@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Theme C · Sunshine Studio (Mindtrip-inspired)</title>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#ffffff; --soft:#faf9f6; --ink:#111110; --mut:#77746c; --line:#ece9e2;
+    --sun:#ffbf1f; --sun-deep:#f5a700;
+    --grad:linear-gradient(100deg,#d8e9ff 0%,#ffd9ec 50%,#ffe8c9 100%);
+    --sh:0 2px 6px rgba(17,17,16,.05), 0 18px 44px rgba(17,17,16,.08); }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'Anuphan',sans-serif; background:var(--bg); color:var(--ink); overflow-x:hidden; }
+
+  nav { display:flex; align-items:center; gap:8px; padding:16px 28px; }
+  .logo { font-weight:800; font-size:22px; letter-spacing:-.5px; margin-right:14px; }
+  .logo i { font-style:normal; color:var(--sun-deep); }
+  nav a { text-decoration:none; color:var(--ink); font-weight:600; font-size:14.5px; padding:9px 16px; border-radius:999px; transition:background .2s; }
+  nav a:hover { background:var(--soft); }
+  nav a.on { background:var(--ink); color:#fff; }
+  .ava { margin-left:auto; width:38px; height:38px; border-radius:50%; background:var(--grad); border:2px solid #fff; box-shadow:var(--sh); }
+
+  .wrap { max-width:1240px; margin:0 auto; padding:10px 28px 70px; }
+
+  /* hero เวทีเหลืองแบบ mindtrip + collage ลอย */
+  .stage { position:relative; border-radius:28px; background:linear-gradient(160deg,var(--sun) 0%,#ffcf4d 100%); overflow:hidden; padding:44px 40px 120px; margin-bottom:26px; }
+  .stage h1 { font-size:clamp(34px,5vw,56px); font-weight:800; letter-spacing:-1.5px; line-height:1.04; max-width:560px; }
+  .stage p { margin-top:12px; font-size:16px; font-weight:500; color:rgba(17,17,16,.75); max-width:440px; }
+  .cta-black { margin-top:22px; display:inline-block; background:var(--ink); color:#fff; border:0; border-radius:999px; padding:14px 30px; font-family:inherit; font-size:15.5px; font-weight:700; cursor:pointer; transition:all .2s; }
+  .cta-black:hover { transform:scale(1.03); }
+  .cta-black:active { transform:scale(.97); }
+  .cloud { position:absolute; font-size:54px; filter:drop-shadow(0 10px 16px rgba(17,17,16,.12)); animation:floaty 8s ease-in-out infinite; }
+  @keyframes floaty { 50% { transform:translateY(-12px); } }
+  .land { position:absolute; font-size:72px; bottom:26px; animation:floaty 9s ease-in-out infinite; filter:drop-shadow(0 14px 20px rgba(17,17,16,.18)); }
+  /* การ์ดลอย validation จริงแบบ mindtrip floating chips */
+  .float-card { position:absolute; background:#fff; border-radius:14px; box-shadow:var(--sh); padding:10px 14px; display:flex; gap:9px; align-items:center; font-size:12.5px; font-weight:600; animation:floaty 7s ease-in-out infinite; }
+  .float-card .dot { width:26px; height:26px; border-radius:99px; background:var(--grad); display:grid; place-items:center; font-size:13px; }
+  .float-card small { display:block; color:var(--mut); font-weight:500; }
+
+  .moods { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin:-90px 12px 26px; position:relative; }
+  .mood { background:#fff; border-radius:20px; box-shadow:var(--sh); border:2px solid transparent; padding:16px 18px; cursor:pointer; transition:all .25s cubic-bezier(.22,1,.36,1); }
+  .mood:hover { transform:translateY(-4px); }
+  .mood.on { border-color:var(--ink); }
+  .mood .e { font-size:26px; }
+  .mood b { display:block; font-size:15.5px; margin-top:6px; }
+  .mood span { font-size:12.5px; color:var(--mut); }
+
+  .cols { display:grid; grid-template-columns:300px 1fr 330px; gap:18px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:22px; box-shadow:var(--sh); padding:20px; }
+  .h { font-size:19px; font-weight:800; letter-spacing:-.3px; margin-bottom:14px; }
+  .routebox { background:var(--soft); border-radius:16px; padding:14px; }
+  .routebox .r { display:flex; justify-content:space-between; padding:5px 0; font-size:13.5px; color:var(--mut); }
+  .routebox .sum { display:flex; justify-content:space-between; align-items:baseline; margin-top:6px; padding-top:8px; border-top:1px solid var(--line); }
+  .routebox .sum b { font-size:22px; }
+  .chip { background:#fff; border:1.5px solid var(--line); color:var(--mut); border-radius:999px; padding:8px 15px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s; }
+  .chip:hover { border-color:var(--ink); color:var(--ink); }
+  .chip.on { background:var(--ink); border-color:var(--ink); color:#fff; }
+
+  .vgrid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .vcard { border-radius:20px; overflow:hidden; background:#fff; border:1px solid var(--line); box-shadow:var(--sh); transition:all .3s cubic-bezier(.22,1,.36,1); }
+  .vcard:hover { transform:translateY(-4px); }
+  .vcard .th { height:120px; position:relative; display:grid; place-items:center; font-size:42px; }
+  .t1 { background:linear-gradient(150deg,#ffe3b0,#ffc879); } .t2 { background:linear-gradient(150deg,#d3ecda,#a9dcbb); }
+  .tag { position:absolute; top:10px; left:10px; background:#fff; border-radius:999px; padding:5px 12px; font-size:11.5px; font-weight:800; box-shadow:0 3px 10px rgba(17,17,16,.12); }
+  .tag.hit { color:#c46e00; } .tag.un { color:#6a48c9; }
+  .fare { position:absolute; right:10px; top:10px; background:rgba(17,17,16,.82); color:#fff; border-radius:999px; padding:4px 11px; font-size:11.5px; font-weight:600; }
+  .vcard .bd { padding:14px 16px 16px; }
+  .vcard b.name { font-size:15.5px; letter-spacing:-.2px; }
+  .vcard .meta { color:var(--mut); font-size:12.5px; margin:6px 0 8px; line-height:1.6; }
+  .heart { color:#e0245e; font-weight:700; font-size:12px; }
+  /* ปุ่ม gradient pastel — ลายเซ็น mindtrip */
+  .go { width:100%; margin-top:10px; font-family:inherit; font-weight:700; font-size:14px; background:var(--grad); color:var(--ink); border:0; border-radius:999px; padding:12px; cursor:pointer; transition:all .2s; }
+  .go:hover { filter:saturate(1.3); transform:scale(1.02); }
+  .go:active { transform:scale(.97); }
+
+  .bignum { font-size:34px; font-weight:800; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+  .bignum small { font-size:15px; color:var(--mut); font-weight:600; letter-spacing:0; }
+  .left-note { display:inline-block; margin-top:6px; background:#eaf7ef; color:#177a45; font-size:12.5px; font-weight:700; border-radius:999px; padding:4px 12px; }
+  .barr { height:8px; border-radius:99px; background:var(--soft); border:1px solid var(--line); overflow:hidden; margin-top:12px; }
+  .barr i { display:block; height:100%; width:43%; background:linear-gradient(90deg,var(--sun),var(--sun-deep)); border-radius:99px; animation:fill 1s .4s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fill { from { width:0; } }
+  .split { margin-top:16px; background:var(--soft); border-radius:16px; padding:14px; }
+  .split .row { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+  .split button { width:32px; height:32px; border-radius:99px; border:1.5px solid var(--line); background:#fff; font-size:16px; cursor:pointer; }
+  .split .per { font-size:19px; font-weight:800; background:linear-gradient(100deg,#3b82d6,#d6499a); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .cta2 { width:100%; margin-top:16px; font-family:inherit; font-weight:800; font-size:16px; background:var(--ink); color:#fff; border:0; border-radius:999px; padding:15px; cursor:pointer; transition:all .2s; }
+  .cta2:hover { transform:scale(1.02); }
+  .cta2:active { transform:scale(.97); }
+  .rise { animation:rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}
+  @keyframes rise { from { opacity:0; transform:translateY(16px); } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Go<i>Nai</i>.</div>
+  <a class="on" href="#">วางแผน</a><a href="#">สำรวจ</a><a href="#">ทริปของฉัน</a>
+  <div class="ava"></div>
+</nav>
+
+<div class="wrap">
+  <!-- เวทีเหลือง + collage -->
+  <div class="stage rise">
+    <span class="cloud" style="top:30px;right:34%">☁️</span>
+    <span class="cloud" style="top:90px;right:8%;animation-delay:-4s">☁️</span>
+    <span class="land" style="right:26%;animation-delay:-2s">🛺</span>
+    <span class="land" style="right:8%;font-size:64px">⛴️</span>
+    <div class="float-card" style="top:48px;right:16%"><span class="dot">✓</span><span>ราคายืนยันแล้ว<small>โดยคนจริง 9 คน</small></span></div>
+    <div class="float-card" style="bottom:40px;right:32%;animation-delay:-3s"><span class="dot">💛</span><span>เหลืองบ 256฿<small>ไม่เกินแน่นอน</small></span></div>
+    <h1>เที่ยวให้สุด<br>งบไม่หลุดสักบาท</h1>
+    <p>วิน เรือ BTS คิดครบก่อนออกจากบ้าน — จากราคาที่นักเที่ยวจริงช่วยกันยืนยัน</p>
+    <button class="cta-black">เริ่มวางแผนเลย</button>
+  </div>
+
+  <!-- mood tiles ลอยคร่อมเวที -->
+  <div class="moods">
+    <div class="mood on rise"><span class="e">💻</span><b>งานนอกบ้าน</b><span>เงียบ · ปลั๊ก · ~450฿</span></div>
+    <div class="mood rise d1"><span class="e">💛</span><b>เดทอาทิตย์นี้</b><span>บรรยากาศดี · ~900฿</span></div>
+    <div class="mood rise d2"><span class="e">👨‍👩‍👧</span><b>พาครอบครัว</b><span>ในร่ม · ที่จอด · ~1,200฿</span></div>
+    <div class="mood rise d3"><span class="e">📷</span><b>ถ่ายรูปสวย</b><span>golden hour · ~600฿</span></div>
+  </div>
+
+  <div class="cols">
+    <aside class="card rise d1">
+      <div class="h">เส้นทางวันนี้</div>
+      <div class="routebox">
+        <div class="r"><span>เดินไป BTS ห้าแยกลาดพร้าว</span><span>0฿</span></div>
+        <div class="r"><span>BTS → สยาม</span><span>44฿</span></div>
+        <div class="sum"><span style="color:var(--mut);font-size:13px">รวมขาไป · 33 นาที</span><b>44฿</b></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
+        <button class="chip on">🎧 เงียบ</button><button class="chip">🔌 ปลั๊ก</button><button class="chip">☂️ ในร่ม</button><button class="chip">⏱ ≤10 นาที</button>
+      </div>
+    </aside>
+
+    <section class="card rise d2">
+      <div class="h">คัดมาให้ · <span style="color:var(--sun-deep)">2 จาก 3 ที่</span></div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="th t1">🥐<span class="tag hit">🔥 ฮิต Nº2</span><span class="fare">BTS 44฿</span></div>
+          <div class="bd">
+            <b class="name">บีนส์บาร์ ชั้นลอย</b>
+            <div class="meta">เงียบ ประชุมได้ · 100 Mbps · ~150฿/คน · เดิน 3 นาที</div>
+            <span class="heart">♥ ยืนยันแล้ว 9 คน</span>
+            <button class="go">+ เพิ่มเข้าทริป</button>
+          </div>
+        </div>
+        <div class="vcard">
+          <div class="th t2">🌿<span class="tag un">✨ ที่ลับ</span><span class="fare">BTS 44฿</span></div>
+          <div class="bd">
+            <b class="name">โฮมคาเฟ่ ซอยเกษม</b>
+            <div class="meta">มีข้าว · คนยังน้อย · ~160฿/คน · เดิน 12 นาที</div>
+            <span class="heart">♥ ยืนยันแล้ว 5 คน</span>
+            <button class="go">+ เพิ่มเข้าทริป</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card rise d3">
+      <div class="h">งบวันนี้</div>
+      <div class="bignum">194฿ <small>/ 450฿</small></div>
+      <span class="left-note">เหลือ 256฿ · ไม่เกินงบ ✓</span>
+      <div class="barr"><i></i></div>
+      <div class="split">
+        <div style="font-weight:700;font-size:13.5px">🧑‍🤝‍🧑 แบ่งจ่ายกับเพื่อน</div>
+        <div class="row">
+          <div style="display:flex;align-items:center;gap:10px"><button>−</button><b>3</b><button>+</button><span style="color:var(--mut);font-size:13px">คน</span></div>
+          <span class="per">~65฿ /คน</span>
+        </div>
+      </div>
+      <button class="cta2">ออกเดินทาง →</button>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

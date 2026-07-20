@@ -16,36 +16,36 @@ export default function GroupPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <span className="gn-step gn-step-purple">👥 กลุ่ม</span>
-      <h1 className="gn-serif mt-2 text-[24px] font-extrabold">เที่ยวกับเพื่อน — กำลังพัฒนา</h1>
-      <p className="mb-6 text-gn-mut">
+      <span className="gn-step">👥 กลุ่ม</span>
+      <h1 className="o-serif mt-2 text-[24px] font-medium text-ink">เที่ยวกับเพื่อน — กำลังพัฒนา</h1>
+      <p className="mb-6 text-mut">
         ตอนนี้ GoNai วางแผนเดี่ยวได้เต็มรูปแบบแล้ว ส่วนโหมดกลุ่มกำลังสร้างอยู่ — นี่คือสิ่งที่กำลังจะมา:
       </p>
 
       <div className="space-y-3">
         {PLANNED.map((f) => (
-          <div key={f.title} className="flex items-start gap-3 rounded-2xl border border-gn-line bg-gn-card p-4">
+          <div key={f.title} className="gn-card-e flex items-start gap-3 p-4">
             <span className="text-2xl">{f.icon}</span>
             <div>
-              <h3 className="font-bold">{f.title}</h3>
-              <p className="mt-0.5 text-sm text-gn-mut">{f.desc}</p>
+              <h3 className="font-semibold text-ink">{f.title}</h3>
+              <p className="mt-0.5 text-sm text-mut">{f.desc}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-gn-mint-bd bg-gn-mint-bg p-5 text-center">
+      <div className="mt-6 rounded-2xl border border-line bg-card-solid/60 p-5 text-center">
         {interested ? (
-          <p className="font-bold text-gn-green-dark">รับทราบแล้ว 💚 เปิดเมื่อไหร่จะบอกก่อนใคร</p>
+          <p className="font-semibold text-ok">รับทราบแล้ว 💚 เปิดเมื่อไหร่จะบอกก่อนใคร</p>
         ) : (
           <>
-            <p className="mb-3 font-semibold">อยากได้โหมดกลุ่มไหม? กดบอกเราหน่อย — ยิ่งคนสนใจเยอะ ยิ่งมาเร็ว</p>
+            <p className="mb-3 font-semibold text-ink">อยากได้โหมดกลุ่มไหม? กดบอกเราหน่อย — ยิ่งคนสนใจเยอะ ยิ่งมาเร็ว</p>
             <button
               onClick={() => {
                 track("group_interest", {});
                 setInterested(true);
               }}
-              className="rounded-full bg-gn-purple px-6 py-2.5 font-bold text-white"
+              className="gn-press o-pill-primary o-btn-label px-6 py-2.5"
             >
               สนใจ! เปิดเมื่อไหร่บอกด้วย 🙋
             </button>
@@ -53,9 +53,9 @@ export default function GroupPage() {
         )}
       </div>
 
-      <p className="mt-6 text-center text-sm text-gn-mut">
+      <p className="mt-6 text-center text-sm text-mut">
         ระหว่างนี้ ลองวางแผนทริปเดี่ยวก่อน —{" "}
-        <Link href="/app" className="font-bold text-gn-green underline">
+        <Link href="/app" className="font-bold text-accent underline">
           ไปหน้าวางแผน
         </Link>
       </p>

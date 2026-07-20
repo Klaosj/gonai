@@ -1,65 +1,87 @@
 @import "tailwindcss";
 
-/* ===== Design tokens — PaiNai v0.4 "Polished" =====
-   สี brand คงเดิมตาม spec 2.7 · เพิ่มระบบวัสดุ + motion */
+/* ===== GoNai design v0.5 "Origin" — cinematic dark + serif editorial + mono labels =====
+   อ้างอิง https://useorigin.com/ — visual refactor เท่านั้น, motion system เดิมคงอยู่ทั้งหมด */
 @theme {
-  /* primary (mockup-aligned) */
-  --color-gn-green: #0d7a5f;
-  --color-gn-green-dark: #0a5c48;
-  --color-gn-orange: #ff6b35;
-  --color-gn-orange-dark: #e55a2a;
-  --color-gn-purple: #7c5cff;
-  --color-gn-purple-dark: #5b45c0;
+  /* ===== new palette (plan §2) ===== */
+  --color-bg: #0b0b0c;
+  --color-bg-elev: #131315;
+  --color-card: rgba(255, 255, 255, 0.04);
+  --color-card-solid: #17181a;
+  --color-line: rgba(255, 255, 255, 0.1);
+  --color-ink: #f4f3ef;
+  --color-mut: #9b9a94;
+  --color-accent: #cfe6f5;
+  --color-pill: #f4f3ef;
+  --color-ok: #7ad0a6;
+  --color-warn: #e8b36a;
+  --color-bad: #e07a5f;
 
-  /* neutral */
-  --color-gn-bg: #faf9f6;
-  --color-gn-ink: #1f2a26;
-  --color-gn-mut: #6b7a74;
-  --color-gn-line: #e7e3da;
-  --color-gn-card: #ffffff;
-  --color-gn-cream: #f1efe9;
+  /* ===== legacy gn-* tokens — remapped into the dark palette so any class we
+     didn't touch (bg-gn-*, text-gn-*, border-gn-*) still renders correctly ===== */
+  --color-gn-green: #7ad0a6;
+  --color-gn-green-dark: #5fb98d;
+  --color-gn-orange: #f4f3ef;
+  --color-gn-orange-dark: #d8d6cf;
+  --color-gn-purple: #cfe6f5;
+  --color-gn-purple-dark: #a9c9dd;
+  --color-gn-navy: #17181a;
 
-  /* semantic */
-  --color-gn-red: #c0392b;
-  --color-gn-gray: #6b7a74;
+  --color-gn-bg: #0b0b0c;
+  --color-gn-ink: #f4f3ef;
+  --color-gn-mut: #9b9a94;
+  --color-gn-line: rgba(255, 255, 255, 0.1);
+  --color-gn-card: #17181a;
+  --color-gn-cream: #131315;
 
-  /* warning / hint palette */
-  --color-gn-amber-bg: #fff8ef;
-  --color-gn-amber-bd: #f3e3cc;
-  --color-gn-amber-fg: #7a5c2e;
-  --color-gn-amber-cta: #b4550f;
-  --color-gn-amber-cta-bd: #ffd9c2;
-  --color-gn-amber-cta-bg: #fff4ec;
+  --color-gn-red: #e07a5f;
+  --color-gn-gray: #9b9a94;
 
-  /* mode toggle palette */
-  --color-gn-mint-bg: #eef7f3;
-  --color-gn-mint-bd: #cfe6dc;
-  --color-gn-mint-bar: #d7e9e0;
+  --color-gn-amber-bg: rgba(232, 179, 106, 0.08);
+  --color-gn-amber-bd: rgba(232, 179, 106, 0.35);
+  --color-gn-amber-fg: #e8b36a;
+  --color-gn-amber-cta: #e8b36a;
+  --color-gn-amber-cta-bd: rgba(232, 179, 106, 0.4);
+  --color-gn-amber-cta-bg: rgba(232, 179, 106, 0.08);
 
-  /* chat bubble palette */
-  --color-gn-chat-user: #0d7a5f;
-  --color-gn-chat-ai-bg: #f1f7f4;
-  --color-gn-chat-ai-bd: #dcebe3;
-  --color-gn-chat-cost-bg: #ffffff;
-  --color-gn-chat-cost-bd: #bcd8cc;
+  --color-gn-mint-bg: rgba(122, 208, 166, 0.08);
+  --color-gn-mint-bd: rgba(122, 208, 166, 0.25);
+  --color-gn-mint-bar: rgba(255, 255, 255, 0.08);
 
-  /* import box palette */
-  --color-gn-import-bg: #faf8ff;
-  --color-gn-import-bd: #cfc6e8;
+  --color-gn-chat-user: #17181a;
+  --color-gn-chat-ai-bg: rgba(255, 255, 255, 0.03);
+  --color-gn-chat-ai-bd: rgba(255, 255, 255, 0.1);
+  --color-gn-chat-cost-bg: rgba(255, 255, 255, 0.02);
+  --color-gn-chat-cost-bd: rgba(255, 255, 255, 0.15);
 
-  /* danger box palette */
-  --color-gn-danger-bg: #fff2f0;
-  --color-gn-danger-bd: #ffd2ca;
-  --color-gn-danger-fg: #a3402e;
+  --color-gn-import-bg: rgba(207, 230, 245, 0.05);
+  --color-gn-import-bd: rgba(207, 230, 245, 0.25);
 
-  /* points/reward palette (purple) */
-  --color-gn-pts-bg: #f6f3ff;
-  --color-gn-pts-bd: #e3dbff;
-  --color-gn-pts-fg: #5b45c0;
+  --color-gn-danger-bg: rgba(224, 122, 95, 0.08);
+  --color-gn-danger-bd: rgba(224, 122, 95, 0.3);
+  --color-gn-danger-fg: #e07a5f;
+
+  --color-gn-pts-bg: rgba(207, 230, 245, 0.06);
+  --color-gn-pts-bd: rgba(207, 230, 245, 0.25);
+  --color-gn-pts-fg: #cfe6f5;
 }
 
 /* ===== Motion + material vocabulary ===== */
 :root {
+  /* plain CSS custom properties (plan §2) — used inside utility classes below */
+  --bg: #0b0b0c;
+  --bg-elev: #131315;
+  --card: rgba(255, 255, 255, 0.04);
+  --card-solid: #17181a;
+  --line: rgba(255, 255, 255, 0.1);
+  --ink: #f4f3ef;
+  --mut: #9b9a94;
+  --accent: #cfe6f5;
+  --pill: #f4f3ef;
+  --ok: #7ad0a6;
+  --warn: #e8b36a;
+  --bad: #e07a5f;
+
   /* easing — spring มี overshoot เล็กน้อย ใช้กับของที่ "เด้งรับมือ"
      ease-out ใช้กับของที่ "เข้าที่อย่างนุ่มนวล" */
   --gn-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
@@ -68,56 +90,167 @@
   --gn-med: 340ms;
   --gn-slow: 600ms;
 
-  /* เงาหลายชั้นแบบนุ่ม — ยิ่งสูงยิ่งฟุ้ง */
-  --gn-shadow-1: 0 1px 2px rgba(31, 42, 38, 0.05), 0 1px 6px rgba(31, 42, 38, 0.04);
-  --gn-shadow-2: 0 2px 4px rgba(31, 42, 38, 0.05), 0 8px 24px rgba(31, 42, 38, 0.07);
-  --gn-shadow-3: 0 4px 8px rgba(31, 42, 38, 0.06), 0 18px 48px rgba(31, 42, 38, 0.12);
-  --gn-hairline: rgba(31, 42, 38, 0.08);
+  /* เงาหลายชั้นแบบนุ่ม — แทบไม่ใช้เงาสี ให้ความรู้สึกพรีเมียมสงบ */
+  --gn-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 6px rgba(0, 0, 0, 0.2);
+  --gn-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --gn-shadow-3: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --gn-hairline: rgba(255, 255, 255, 0.1);
 }
 
 body {
-  background: var(--color-gn-bg);
-  color: var(--color-gn-ink);
+  background: var(--bg);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
 
 /* ตัวเลขเงินทุกตัวเรียงหลักตรงกัน ไม่กระโดดตอนเปลี่ยนค่า */
-.gn-num { font-variant-numeric: tabular-nums; }
+.gn-num {
+  font-variant-numeric: tabular-nums;
+}
 
-/* serif (Playfair Display) สำหรับ logo + hero titles */
-.gn-serif {
-  font-family: 'Playfair Display', serif;
+/* logo + hero titles — เดิมใช้ Playfair, ตอนนี้คือ Fraunces (italic display serif) */
+.gn-serif,
+.o-serif {
+  font-family: var(--font-fraunces), "Fraunces", serif;
   letter-spacing: -0.01em;
+}
+.o-serif em,
+.gn-serif em {
+  font-style: italic;
+}
+
+/* mono uppercase micro-labels — ลายเซ็นสำคัญที่สุดของดีไซน์นี้ (ปุ่ม/badge/หัวคอลัมน์/ชิป)
+   ไม่กำหนด font-size ในนี้ — ให้แต่ละจุดคุม text-[…]/text-xs ของตัวเองตามบริบท */
+.o-mono {
+  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+}
+/* mono ตัวพิมพ์เล็ก — ใช้กับข้อความยาว (footer/hint/คำอธิบาย) ที่ยังอยากได้ผิว mono
+   แต่ไม่ต้อง uppercase + tracking กว้างจนอ่านไทยยาก */
+.o-mono-text {
+  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  letter-spacing: 0.01em;
 }
 
 /* hide scrollbar */
-.gn-noscroll::-webkit-scrollbar { display: none; }
-.gn-noscroll { -ms-overflow-style: none; scrollbar-width: none; }
+.gn-noscroll::-webkit-scrollbar {
+  display: none;
+}
+.gn-noscroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===== Ambience gradients — บรรยากาศต่อ intent (แทนภาพถ่ายที่ยังไม่มี) ===== */
+.o-ambience-work {
+  background-image: linear-gradient(135deg, #1a2733 0%, #35506b 55%, #6f93b0 100%);
+}
+.o-ambience-date {
+  background-image: linear-gradient(135deg, #2b1a26 0%, #6b3550 55%, #c98a6f 100%);
+}
+.o-ambience-photo {
+  background-image: linear-gradient(135deg, #2b2114 0%, #6b5535 55%, #d9a662 100%);
+}
+.o-ambience-family {
+  background-image: linear-gradient(135deg, #14282b 0%, #356b62 55%, #7fb0a0 100%);
+}
+
+/* grain — ผิว "ฟิล์ม" ทับ ambience */
+.o-grain {
+  position: relative;
+  isolation: isolate;
+}
+.o-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
 /* ===== Materials ===== */
 
-/* การ์ดมาตรฐาน: ขอบ hairline + เงานุ่ม + ยกตัวรับ hover */
+/* การ์ดมาตรฐาน: กระจกมืด + hairline + ยกตัวรับ hover (คงชื่อคลาสเดิมไว้ให้ markup เก่าใช้ได้) */
 .gn-card-e {
-  background: var(--color-gn-card);
-  border: 1px solid var(--gn-hairline);
+  background: var(--card);
+  border: 1px solid var(--line);
   box-shadow: var(--gn-shadow-1);
   border-radius: 20px;
-  transition: box-shadow var(--gn-med) var(--gn-ease), transform var(--gn-med) var(--gn-ease);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  transition: box-shadow var(--gn-med) var(--gn-ease), transform var(--gn-med) var(--gn-ease), border-color var(--gn-med) var(--gn-ease);
 }
 .gn-lift:hover {
   transform: translateY(-3px);
   box-shadow: var(--gn-shadow-2);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
-/* กระจกฝ้าสำหรับ header */
+/* กระจกฝ้าสำหรับ header — มืดบนฉากมืด */
 .gn-glass {
-  background: rgba(255, 255, 255, 0.72);
-  -webkit-backdrop-filter: saturate(1.6) blur(18px);
-  backdrop-filter: saturate(1.6) blur(18px);
-  border-bottom: 1px solid var(--gn-hairline);
+  background: rgba(11, 11, 12, 0.72);
+  -webkit-backdrop-filter: saturate(1.4) blur(18px);
+  backdrop-filter: saturate(1.4) blur(18px);
+  border-bottom: 1px solid var(--line);
 }
 
-/* ===== Interaction physics ===== */
+/* ===== Pills / buttons (Origin signature) ===== */
+
+/* CTA หลัก: pill ขาว ตัวดำ — hover ไม่มีเงาเรืองสี ใช้ brightness แทน */
+.o-pill-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  background: var(--pill);
+  color: var(--bg);
+  border-radius: 999px;
+  font-weight: 600;
+  transition: filter var(--gn-fast) var(--gn-ease), transform var(--gn-fast) var(--gn-ease), opacity var(--gn-fast) var(--gn-ease);
+}
+.o-pill-primary:hover {
+  filter: brightness(0.92);
+}
+
+/* ปุ่มรอง: dark pill โปร่ง ขอบ hairline */
+.o-pill-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: border-color var(--gn-fast) var(--gn-ease), background-color var(--gn-fast) var(--gn-ease);
+}
+.o-pill-dark:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ปุ่มเดิม gn-cta — คงชื่อคลาสไว้ แต่ตัดเงาส้มเรืองออก ใช้ brightness แบบ Origin แทน */
+.gn-cta {
+  transition: filter var(--gn-fast) var(--gn-ease);
+}
+.gn-cta:hover {
+  filter: brightness(0.92);
+}
+
+/* ตัวอักษรบนปุ่ม/CTA — ใช้ฟอนต์ mono ตามดีไซน์ Origin แต่ไม่ uppercase/ไม่ tracking กว้างจัด
+   (ปุ่มไทยยาวๆ อ่านยากถ้า tracking กว้างแบบ .o-mono เพราะวรรณยุกต์ลอยห่างจากพยัญชนะ) */
+.o-btn-label {
+  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ===== Interaction physics (unchanged) ===== */
 
 /* ปุ่มทุกปุ่ม "ยุบรับนิ้ว" ตอนกด */
 .gn-press {
@@ -125,143 +258,213 @@ body {
     opacity var(--gn-fast) var(--gn-ease), background-color var(--gn-fast) var(--gn-ease),
     border-color var(--gn-fast) var(--gn-ease), color var(--gn-fast) var(--gn-ease);
 }
-.gn-press:active { transform: scale(0.96); }
-
-/* CTA หลัก: เงาเรือง + ยุบตอนกด */
-.gn-cta {
-  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35), 0 1px 3px rgba(31, 42, 38, 0.08);
+.gn-press:active {
+  transform: scale(0.96);
 }
-.gn-cta:hover { box-shadow: 0 6px 20px rgba(255, 107, 53, 0.45), 0 2px 5px rgba(31, 42, 38, 0.08); }
 
-/* ===== Entrance choreography ===== */
+/* ===== Entrance choreography (unchanged) ===== */
 
 @keyframes gn-rise {
-  from { opacity: 0; transform: translateY(14px) scale(0.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .gn-rise {
   animation: gn-rise var(--gn-slow) var(--gn-ease) both;
 }
 /* stagger — ไล่จังหวะลูกคลื่น */
-.gn-d1 { animation-delay: 60ms; }
-.gn-d2 { animation-delay: 120ms; }
-.gn-d3 { animation-delay: 180ms; }
-.gn-d4 { animation-delay: 240ms; }
-.gn-d5 { animation-delay: 300ms; }
-.gn-d6 { animation-delay: 360ms; }
+.gn-d1 {
+  animation-delay: 60ms;
+}
+.gn-d2 {
+  animation-delay: 120ms;
+}
+.gn-d3 {
+  animation-delay: 180ms;
+}
+.gn-d4 {
+  animation-delay: 240ms;
+}
+.gn-d5 {
+  animation-delay: 300ms;
+}
+.gn-d6 {
+  animation-delay: 360ms;
+}
 
-/* ===== Sheet / overlay ===== */
+/* ===== Sheet / overlay (unchanged) ===== */
 
 @keyframes gn-sheet-up {
-  from { transform: translateY(105%); }
-  to   { transform: translateY(0); }
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
-.gn-sheet { animation: gn-sheet-up 420ms var(--gn-spring) both; }
+.gn-sheet {
+  animation: gn-sheet-up 420ms var(--gn-spring) both;
+}
 
 @keyframes gn-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-.gn-backdrop { animation: gn-fade var(--gn-med) var(--gn-ease) both; }
+.gn-backdrop {
+  animation: gn-fade var(--gn-med) var(--gn-ease) both;
+}
 
 @keyframes gn-pop {
-  0%   { transform: scale(0.6); opacity: 0; }
-  60%  { transform: scale(1.08); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-.gn-pop { animation: gn-pop var(--gn-med) var(--gn-spring) both; }
+.gn-pop {
+  animation: gn-pop var(--gn-med) var(--gn-spring) both;
+}
 
-/* ===== Toast — เด้งขึ้นแบบ spring ===== */
+/* ===== Toast — เด้งขึ้นแบบ spring (unchanged) ===== */
 @keyframes gn-toast-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(60px) scale(0.9); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(60px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
 }
 .gn-toast {
   animation: gn-toast-in 380ms var(--gn-spring) forwards;
   box-shadow: var(--gn-shadow-3);
+  border: 1px solid var(--line);
 }
 
-/* ===== live pulse ===== */
+/* ===== live pulse (unchanged) ===== */
 @keyframes gn-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.35; transform: scale(0.8); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
 }
-.gn-live-dot { animation: gn-pulse 1.2s var(--gn-ease) infinite; }
+.gn-live-dot {
+  animation: gn-pulse 1.2s var(--gn-ease) infinite;
+}
 
-/* ===== hero shine — แสงกวาดช้าๆ บน gradient ===== */
+/* ===== hero shine — แสงกวาดช้าๆ บน gradient (unchanged mechanism, สีขาวจางลงให้เข้ากับฉากมืด) ===== */
 @keyframes gn-shine {
-  from { transform: translateX(-120%) skewX(-18deg); }
-  to   { transform: translateX(320%) skewX(-18deg); }
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(320%) skewX(-18deg);
+  }
 }
 .gn-shine::after {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
   width: 45%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
   animation: gn-shine 5.5s var(--gn-ease) infinite;
 }
 
-/* ===== landing orbs — ลอยช้าๆ ===== */
-@keyframes gn-float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(14px, -18px); }
-}
-.gn-orb {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(60px);
-  opacity: 0.5;
-  animation: gn-float 9s ease-in-out infinite;
-  pointer-events: none;
+/* ===== progress bar — วิ่งเข้าเป้านุ่มๆ (unchanged) ===== */
+.gn-bar {
+  transition: width 700ms var(--gn-ease), background-color var(--gn-med) var(--gn-ease);
 }
 
-/* ===== progress bar — วิ่งเข้าเป้านุ่มๆ ===== */
-.gn-bar { transition: width 700ms var(--gn-ease), background-color var(--gn-med) var(--gn-ease); }
-
-/* ===== skeleton shimmer ===== */
+/* ===== skeleton shimmer — โทนมืด ===== */
 @keyframes gn-shimmer {
-  0% { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
 }
 .gn-skeleton {
-  background: linear-gradient(90deg, var(--color-gn-cream) 0%, #f7f5ef 50%, var(--color-gn-cream) 100%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.05) 100%);
   background-size: 800px 100%;
   animation: gn-shimmer 1.4s infinite linear;
 }
 
-/* ===== focus ring (a11y) ===== */
+/* ===== focus ring (a11y) — ขาวบนฉากมืด ===== */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
-  outline: 2px solid var(--color-gn-orange);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
   border-radius: 8px;
 }
 
-/* ===== step labels ===== */
+/* ===== step labels — เดิมเป็นชิปสี ตอนนี้เป็น mono uppercase เรียบๆ ===== */
 .gn-step {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  font-weight: 800;
-  color: #fff;
+  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mut);
   border-radius: 999px;
-  padding: 4px 12px;
+  padding: 4px 0;
   margin-bottom: 10px;
 }
-.gn-step-green  { background: var(--color-gn-green); }
-.gn-step-orange { background: var(--color-gn-orange); }
-.gn-step-purple { background: var(--color-gn-purple); }
+.gn-step-green,
+.gn-step-orange,
+.gn-step-purple {
+  background: none;
+  color: var(--mut);
+}
 
-/* ===== เคารพผู้ใช้ที่ปิด motion (a11y) ===== */
+/* ===== เคารพผู้ใช้ที่ปิด motion (a11y) — unchanged ===== */
 @media (prefers-reduced-motion: reduce) {
-  .gn-rise, .gn-sheet, .gn-backdrop, .gn-pop, .gn-toast,
-  .gn-live-dot, .gn-skeleton, .gn-orb {
+  .gn-rise,
+  .gn-sheet,
+  .gn-backdrop,
+  .gn-pop,
+  .gn-toast,
+  .gn-live-dot,
+  .gn-skeleton {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
-  .gn-shine::after { animation: none; }
-  .gn-press, .gn-card-e, .gn-bar, .gn-lift { transition: none !important; }
+  .gn-shine::after {
+    animation: none;
+  }
+  .gn-press,
+  .gn-card-e,
+  .gn-bar,
+  .gn-lift,
+  .o-pill-primary,
+  .o-pill-dark,
+  .gn-cta {
+    transition: none !important;
+  }
 }

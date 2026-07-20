@@ -9,21 +9,21 @@ export default function BudgetBar({ est, budget, onEdit }: { est: number; budget
   const estAnim = useCountUp(est);
   return (
     <div className="gn-card-e p-4">
-      <div className="mb-2 flex items-center justify-between text-sm">
+      <div className="mb-2 flex items-center justify-between text-sm text-ink">
         <span>
           งบประเมิน{" "}
-          <b className={`gn-num ${over ? "text-gn-red" : "text-gn-green"}`}>~{estAnim}฿</b> / งบตั้งไว้{" "}
+          <b className={`gn-num ${over ? "text-bad" : "text-ok"}`}>~{estAnim}฿</b> / งบตั้งไว้{" "}
           <b className="gn-num">{budget}฿</b>
         </span>
         {onEdit && (
-          <button onClick={onEdit} className="gn-press text-gn-orange underline underline-offset-2">
+          <button onClick={onEdit} className="gn-press text-accent underline underline-offset-2">
             ✎ แก้งบ
           </button>
         )}
       </div>
-      <div className="h-2.5 w-full overflow-hidden rounded-full bg-gn-cream">
+      <div className="h-1 w-full overflow-hidden rounded-full bg-line">
         <div
-          className={`gn-bar h-full rounded-full ${over ? "bg-gn-red" : "bg-gn-green"}`}
+          className={`gn-bar h-full rounded-full ${over ? "bg-bad" : "bg-ok"}`}
           style={{ width: `${pct}%` }}
         />
       </div>

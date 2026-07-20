@@ -60,8 +60,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <>
       <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 py-2.5">
         <Link href="/app" className="flex items-baseline gap-2">
-          <b className="gn-serif text-[19px] font-bold text-gn-green">GoNai</b>
-          <span className="text-[11px] text-gn-mut">plan · go · ไม่เกินงบ</span>
+          <b className="o-serif text-[19px] font-semibold text-ink">
+            <em>Go</em>Nai
+          </b>
+          <span className="hidden text-[11px] text-mut sm:inline">plan · go · ไม่เกินงบ</span>
         </Link>
         <nav className="ml-2 hidden gap-1 sm:flex">
           {TABS.map((t) => {
@@ -70,8 +72,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <Link
                 key={t.key}
                 href={t.href}
-                className={`gn-press rounded-full px-4 py-2 text-sm font-semibold ${
-                  on ? "bg-gn-green text-white shadow-sm" : "text-gn-mut hover:bg-gn-cream"
+                className={`gn-press o-mono rounded-full px-4 py-2 text-[11px] ${
+                  on ? "bg-pill text-bg" : "text-mut hover:text-ink"
                 }`}
               >
                 {t.label}
@@ -82,7 +84,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="ml-auto" />
         <Link
           href="/app/me"
-          className="gn-press flex h-[34px] w-[34px] items-center justify-center rounded-full bg-gn-orange font-extrabold text-white shadow-sm"
+          className="gn-press flex h-[34px] w-[34px] items-center justify-center rounded-full border border-line bg-card text-ink"
           aria-label="ทริปของฉัน"
         >
           👤
@@ -90,14 +92,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </header>
 
       {showHint && (
-        <div className="flex items-center gap-3 border-b border-gn-amber-bd bg-gn-amber-bg px-5 py-2 text-[13px] text-gn-amber-fg">
+        <div className="flex items-center gap-3 border-b border-line bg-bg-elev px-5 py-2 text-[13px] text-mut">
           <span>
-            💡 <b className="text-gn-orange">วิธีใช้:</b>&nbsp; ① เลือกย่านที่ออก + เงื่อนไข → ② เลือกจาก Top 3 ที่คัดให้
+            💡 <b className="text-ink">วิธีใช้:</b>&nbsp; ① เลือกย่านที่ออก + เงื่อนไข → ② เลือกจาก Top 3 ที่คัดให้
             → ③ เห็นแผน + งบรวมทุกบาท — พอออกเดินทางจริง กด &quot;เริ่มเที่ยว&quot; เพื่อบันทึกจ่ายจริง
           </span>
           <button
             onClick={dismissHint}
-            className="ml-auto rounded-lg border border-gn-amber-bd bg-gn-card px-3 py-1 text-xs font-semibold text-gn-amber-fg"
+            className="gn-press ml-auto rounded-lg border border-line bg-card px-3 py-1 text-xs font-semibold text-ink"
           >
             เข้าใจแล้ว ✕
           </button>
@@ -106,7 +108,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
       {children}
 
-      <footer className="flex flex-wrap justify-center gap-5 border-t border-gn-line bg-gn-card px-5 py-3.5 text-xs text-gn-mut">
+      <footer className="o-mono-text flex flex-wrap justify-center gap-5 border-t border-line bg-bg px-5 py-3.5 text-[11px] text-mut">
         <span>🚧 เบต้า — ข้อมูลชุดตัวอย่าง กำลังเก็บข้อมูลจริงย่านสยาม</span>
         <span>✨ ที่ Unseen ต้องมีคนยืนยัน ≥ 3 คนถึงจะโชว์</span>
         <span>🗺 เส้นทางวิน/เรือ/BTS เก็บภาคสนาม · ที่ยังไม่ validate ใช้สูตร Grab</span>

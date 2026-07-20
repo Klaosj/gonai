@@ -27,7 +27,7 @@ export default function WaitlistForm({ source }: { source: string }) {
 
   if (status === "done") {
     return (
-      <p className="mx-auto mt-6 max-w-md rounded-2xl bg-white/15 px-6 py-4 text-sm font-semibold">
+      <p className="mx-auto mt-6 max-w-md rounded-2xl border border-line bg-bg/50 px-6 py-4 text-sm font-semibold text-ink backdrop-blur">
         ✅ รับไว้แล้ว! เปิดโซนใหม่ / ฟีเจอร์ใหม่เมื่อไหร่ เราจะทักไปก่อนใคร
       </p>
     );
@@ -40,18 +40,18 @@ export default function WaitlistForm({ source }: { source: string }) {
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           placeholder="LINE ID หรืออีเมล"
-          className="min-w-0 flex-1 rounded-full border-0 bg-white px-5 py-3 text-sm text-gn-ink outline-none"
+          className="min-w-0 flex-1 rounded-full border border-line bg-bg/50 px-5 py-3 text-sm text-ink placeholder:text-mut outline-none backdrop-blur"
           required
         />
         <button
           type="submit"
           disabled={status === "sending" || !consent}
-          className="shrink-0 rounded-full bg-gn-orange px-6 py-3 text-sm font-bold text-white transition hover:bg-gn-orange-dark disabled:opacity-50"
+          className="gn-press o-pill-primary o-btn-label shrink-0 px-6 py-3 text-sm disabled:opacity-50"
         >
           {status === "sending" ? "..." : "รับข่าวเปิดตัว"}
         </button>
       </div>
-      <label className="mt-3 flex items-start justify-center gap-2 text-xs opacity-90">
+      <label className="mt-3 flex items-start justify-center gap-2 text-xs text-ink/80">
         <input
           type="checkbox"
           checked={consent}
@@ -60,7 +60,7 @@ export default function WaitlistForm({ source }: { source: string }) {
         />
         <span>ยินยอมให้ติดต่อกลับเรื่อง GoNai เท่านั้น — ลบได้ทุกเมื่อ ไม่ส่งต่อให้ใคร (PDPA)</span>
       </label>
-      {status === "error" && <p className="mt-2 text-xs font-semibold text-yellow-200">{error}</p>}
+      {status === "error" && <p className="mt-2 text-xs font-semibold text-bad">{error}</p>}
     </form>
   );
 }

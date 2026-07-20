@@ -11,6 +11,14 @@ const CATEGORY_EMOJI: Record<string, string> = {
   market: "🛍️",
 };
 
+// ambience gradient stops ต่อ intent — ค่าเดียวกับ .o-ambience-* ใน globals.css
+const INTENT_AMBIENCE_STOPS: Record<string, [string, string, string]> = {
+  work: ["#1a2733", "#35506b", "#6f93b0"],
+  date: ["#2b1a26", "#6b3550", "#c98a6f"],
+  photo: ["#2b2114", "#6b5535", "#d9a662"],
+  family: ["#14282b", "#356b62", "#7fb0a0"],
+};
+
 function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   const W = 720;
   const H = 960;
@@ -18,18 +26,19 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   c.width = W;
   c.height = H;
   const g = c.getContext("2d")!;
-  const font = (size: number, weight = 600) => `${weight} ${size}px 'Noto Sans Thai', system-ui, sans-serif`;
+  const font = (size: number, weight = 600) => `${weight} ${size}px 'IBM Plex Sans Thai', system-ui, sans-serif`;
+  const monoFont = (size: number, weight = 600) => `${weight} ${size}px 'IBM Plex Mono', monospace`;
 
-  // พื้นหลัง cream + แถบหัว
-  g.fillStyle = "#faf6f0";
+  // พื้นหลังมืด + แถบหัว (การ์ดยกสี — Origin cinematic dark)
+  g.fillStyle = "#0b0b0c";
   g.fillRect(0, 0, W, H);
-  g.fillStyle = "#1e7f4f";
+  g.fillStyle = "#17181a";
   g.fillRect(0, 0, W, 140);
-  g.fillStyle = "#ffffff";
+  g.fillStyle = "#f4f3ef";
   g.font = font(40, 800);
   g.fillText("สรุปทริปวันนี้ 🎉", 48, 78);
   g.font = font(24, 500);
-  g.globalAlpha = 0.85;
+  g.globalAlpha = 0.75;
   g.fillText(
     new Date(plan.created_at).toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" }) +
       ` · ${plan.origin_name} → สยาม`,
@@ -40,27 +49,28 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
 
   // รายการ stops (สูงสุด 6 บรรทัด)
   let y = 210;
-  g.fillStyle = "#1a2238";
+  g.fillStyle = "#f4f3ef";
   for (const s of plan.stops.slice(0, 6)) {
     g.font = font(28, 600);
     const cost = s.actual_cost ?? s.est_cost;
     const emoji = CATEGORY_EMOJI[s.venue.category] ?? "📍";
     const name = s.venue.name_th.length > 22 ? s.venue.name_th.slice(0, 21) + "…" : s.venue.name_th;
+    g.fillStyle = "#f4f3ef";
     g.fillText(`${emoji}  ${name}`, 48, y);
-    g.font = font(28, 800);
+    g.font = monoFont(28, 700);
     const costText = `${cost}฿`;
     g.fillText(costText, W - 48 - g.measureText(costText).width, y);
     y += 58;
   }
   if (plan.stops.length > 6) {
     g.font = font(24, 500);
-    g.fillStyle = "#8a8578";
+    g.fillStyle = "#9b9a94";
     g.fillText(`+ อีก ${plan.stops.length - 6} ที่`, 48, y);
     y += 50;
   }
 
-  // เส้นคั่น
-  g.strokeStyle = "#e5ded2";
+  // เส้นคั่น — hairline
+  g.strokeStyle = "rgba(255,255,255,0.14)";
   g.beginPath();
   g.moveTo(48, y);
   g.lineTo(W - 48, y);
@@ -70,13 +80,13 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   // ตัวเลขใหญ่: จ่ายจริง
   const actual = plan.budget_actual ?? plan.spent;
   const over = actual > plan.budget_planned;
-  g.fillStyle = "#1a2238";
+  g.fillStyle = "#9b9a94";
   g.font = font(30, 600);
   g.fillText("จ่ายจริงทั้งวัน", 48, y);
-  g.fillStyle = over ? "#c6362c" : "#1e7f4f";
-  g.font = font(84, 800);
+  g.fillStyle = over ? "#e07a5f" : "#7ad0a6";
+  g.font = monoFont(84, 700);
   g.fillText(`${actual}฿`, 48, y + 96);
-  g.fillStyle = "#8a8578";
+  g.fillStyle = "#9b9a94";
   g.font = font(28, 500);
   g.fillText(
     over ? `งบตั้งไว้ ${plan.budget_planned}฿ · เกิน ${actual - plan.budget_planned}฿` : `งบตั้งไว้ ${plan.budget_planned}฿ · ${over ? "" : "ไม่เกินงบ ✓"}`,
@@ -84,10 +94,15 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
     y + 148,
   );
 
-  // footer แบรนด์
-  g.fillStyle = "#f25c05";
+  // footer แบรนด์ — ambience gradient ตาม intent
+  const stops = INTENT_AMBIENCE_STOPS[plan.intent] ?? INTENT_AMBIENCE_STOPS.work;
+  const grad = g.createLinearGradient(0, H - 110, W, H);
+  grad.addColorStop(0, stops[0]);
+  grad.addColorStop(0.55, stops[1]);
+  grad.addColorStop(1, stops[2]);
+  g.fillStyle = grad;
   g.fillRect(0, H - 110, W, 110);
-  g.fillStyle = "#ffffff";
+  g.fillStyle = "#f4f3ef";
   g.font = font(30, 800);
   g.fillText("GoNai", 48, H - 62);
   g.font = font(22, 500);
@@ -126,10 +141,7 @@ export default function TripRecap({ plan, onShared }: { plan: ExpandedPlan; onSh
   };
 
   return (
-    <button
-      onClick={share}
-      className="w-full rounded-xl bg-gn-purple py-3 font-extrabold text-white shadow-md hover:opacity-90"
-    >
+    <button onClick={share} className="gn-press o-pill-primary o-btn-label w-full py-3">
       📸 แชร์สรุปทริป (รูปสวยพร้อมโพสต์)
     </button>
   );

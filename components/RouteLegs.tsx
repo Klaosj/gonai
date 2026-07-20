@@ -38,29 +38,26 @@ export default function RouteLegs({
     <div className="gn-card-e p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
         <BahtChip legs={route.legs} />
-        <span className="text-xs text-gn-gray">{minutesCur} นาที · เที่ยวเดียว</span>
+        <span className="text-xs text-mut">{minutesCur} นาที · เที่ยวเดียว</span>
       </div>
-      <ol className="mb-3 space-y-1.5">
+      <ol className="mb-3 divide-y divide-line">
         {route.legs.map((l) => (
-          <li key={l.seq} className="flex items-baseline gap-2 text-sm">
+          <li key={l.seq} className="flex items-baseline gap-2 py-1.5 text-sm first:pt-0 last:pb-0">
             <span>{MODE_EMOJI[l.mode] ?? "•"}</span>
-            <span className="flex-1">
-              <b>{MODE_LABELS[l.mode]}</b> — {l.detail_th}
-              {l.warning_th && <span className="ml-1 text-xs text-gn-red">⚠ {l.warning_th}</span>}
+            <span className="flex-1 text-ink">
+              <b className="o-mono text-[11px] text-ink">{MODE_LABELS[l.mode]}</b> — {l.detail_th}
+              {l.warning_th && <span className="ml-1 text-xs text-bad">⚠ {l.warning_th}</span>}
             </span>
-            <span className="text-gn-gray">
+            <span className="text-mut">
               {fmtRange(l.price_min, l.price_max)} · {l.minutes} นาที
             </span>
           </li>
         ))}
       </ol>
       {onToggle && (
-        <button
-          onClick={onToggle}
-          className="gn-press w-full rounded-full border border-gn-navy/15 bg-gn-cream px-3 py-1.5 text-[13px] hover:border-gn-orange"
-        >
+        <button onClick={onToggle} className="gn-press o-pill-dark o-btn-label w-full px-3 py-1.5 text-[13px]">
           {KIND_LABEL[route.kind]} {fmtRange(cur.min, cur.max)} · {minutesCur} นาที{" "}
-          <span className="mx-1 text-gn-orange">⇄</span>{" "}
+          <span className="mx-1 text-accent">⇄</span>{" "}
           {KIND_LABEL[alt.kind]} {fmtRange(other.min, other.max)} · {minutesAlt} นาที
         </button>
       )}

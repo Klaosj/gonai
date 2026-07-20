@@ -81,17 +81,17 @@ export default function VenueCard({
       </div>
 
       <div className="space-y-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 min-w-0 flex-1 font-semibold leading-snug text-ink">{venue.name_th}</h3>
+        <div>
           {venue.badge === "hit" ? (
-            <span className="o-mono shrink-0 whitespace-nowrap rounded-full bg-pill px-2 py-0.5 text-[10px] text-bg">
-              HIT Nº1
+            <span className="o-mono inline-block rounded-full bg-pill px-2 py-0.5 text-[10px] text-bg">
+              {venue.hit_rank ? `HIT Nº${venue.hit_rank}` : "HIT"}
             </span>
           ) : (
-            <span className="o-mono shrink-0 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-[10px] text-bg">
+            <span className="o-mono inline-block rounded-full bg-accent px-2 py-0.5 text-[10px] text-bg">
               UNSEEN
             </span>
           )}
+          <h3 className="mt-1.5 line-clamp-2 font-semibold leading-snug text-ink">{venue.name_th}</h3>
         </div>
 
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mut">
@@ -133,7 +133,7 @@ export default function VenueCard({
         <div className="flex gap-2 pt-1">
           <button
             onClick={onAdd}
-            className="gn-press gn-cta o-btn-label o-pill-primary flex-1 px-4 py-2 text-sm"
+            className="gn-press gn-cta o-btn-label o-pill-primary flex-1 whitespace-nowrap px-3 py-2 text-sm"
           >
             + เพิ่มเข้าแผน
           </button>

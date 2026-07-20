@@ -1,4 +1,5 @@
 import Link from "next/link";
+import WaitlistForm from "@/components/WaitlistForm";
 
 // Landing page (PART B) — แทน redirect เดิม
 // อ้างอิง PaiNai v0.3 design tokens
@@ -130,6 +131,10 @@ export default function LandingPage() {
         >
           เริ่มเลย ▶
         </Link>
+        <p className="mt-10 text-sm font-semibold opacity-90">
+          ยังไม่ใช่ย่านคุณ? ฝากช่องทางไว้ — เปิดโซนใหม่เมื่อไหร่รู้ก่อนใคร
+        </p>
+        <WaitlistForm source="landing_cta" />
       </section>
 
       <footer className="bg-white px-6 py-8 text-center text-xs text-gn-mut">

@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { gn } from "@/lib/api";
 import { mid } from "@/lib/costing";
-import { clearDeviceId } from "@/lib/device";
 import type { ExpandedPlan } from "@/lib/server";
 import { INTENT_LABELS, type Venue } from "@/lib/types";
 
@@ -14,6 +13,7 @@ interface MeResponse {
   saves: Venue[];
   plans: ExpandedPlan[];
   taste: Record<string, number>;
+  auth: { provider: "line" | "anonymous"; displayName: string | null };
 }
 
 const CATEGORY_EMOJI: Record<Venue["category"], string> = {
@@ -26,6 +26,7 @@ const CATEGORY_EMOJI: Record<Venue["category"], string> = {
 export default function TripsPage() {
   const router = useRouter();
   const [me, setMe] = useState<MeResponse | null>(null);
+  const [confirmingWipe, setConfirmingWipe] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (m: string) => {
     setToast(m);
@@ -42,12 +43,17 @@ export default function TripsPage() {
   const tasteEntries = Object.entries(me.taste);
   const tasteLevel = Math.min(4, Math.floor(donePlans.length / 2));
 
+  // in-app confirm (ไม่ใช้ window.confirm — บล็อค browser + ใช้กับ automation ไม่ได้)
   const wipe = async () => {
-    if (!window.confirm("ลบข้อมูลทั้งหมดของคุณจริงไหม? แผน/ประวัติ/ที่บันทึกไว้จะหายทั้งหมด (กู้คืนไม่ได้)")) return;
     await gn("/api/me", { method: "DELETE" });
-    clearDeviceId();
+    setConfirmingWipe(false);
     showToast("ลบข้อมูลทั้งหมดเรียบร้อย — กลับสู่หน้าวางแผน");
     setTimeout(() => router.push("/app"), 800);
+  };
+
+  const logout = async () => {
+    await gn("/api/auth/line/logout", { method: "POST" });
+    window.location.reload();
   };
 
   return (
@@ -91,12 +97,63 @@ export default function TripsPage() {
             <div className="mt-3 text-sm text-gn-mut">ยังไม่มี taste data — เริ่มวางแผนแรกเลย</div>
           )}
 
+          {/* auth */}
+          <div className="mt-3 rounded-xl border border-gn-line bg-gn-cream/50 p-3 text-sm">
+            {me.auth.provider === "line" ? (
+              <div className="flex items-center justify-between gap-2">
+                <span>
+                  💚 ล็อกอินด้วย LINE{me.auth.displayName ? `: ${me.auth.displayName}` : ""}
+                </span>
+                <button onClick={logout} className="shrink-0 text-xs font-semibold text-gn-mut underline">
+                  ออกจากระบบ
+                </button>
+              </div>
+            ) : (
+              <div>
+                <a
+                  href="/api/auth/line/login?return=/app/me"
+                  className="inline-block rounded-lg bg-[#06c755] px-3.5 py-1.5 text-xs font-bold text-white"
+                >
+                  ล็อกอินด้วย LINE
+                </a>
+                <p className="mt-1.5 text-xs text-gn-mut">
+                  เก็บแผน/ประวัติข้ามเครื่อง — ไม่ล็อกอินก็ใช้ได้ แต่ข้อมูลอยู่แค่เครื่องนี้
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="mt-3 text-xs text-gn-mut">
             🔒 ข้อมูลนี้อยู่กับเราเท่านั้น ไม่ขายให้ใคร ·{" "}
-            <button onClick={wipe} className="font-bold text-gn-purple underline">
+            <button onClick={() => setConfirmingWipe(true)} className="font-bold text-gn-purple underline">
               ดู/ลบข้อมูลของฉัน (PDPA)
             </button>
           </div>
+
+          {confirmingWipe && (
+            <div className="mt-3 rounded-xl border border-gn-red/40 bg-gn-red/5 p-3">
+              <p className="text-sm font-semibold text-gn-red">
+                ลบข้อมูลทั้งหมดของคุณจริงไหม?
+              </p>
+              <p className="mt-1 text-xs text-gn-mut">
+                แผน / ประวัติ / ที่บันทึกไว้ จะหายทั้งหมด — กู้คืนไม่ได้
+              </p>
+              <div className="mt-2.5 flex gap-2">
+                <button
+                  onClick={wipe}
+                  className="rounded-lg bg-gn-red px-3.5 py-1.5 text-xs font-bold text-white"
+                >
+                  ยืนยันลบทั้งหมด
+                </button>
+                <button
+                  onClick={() => setConfirmingWipe(false)}
+                  className="rounded-lg border border-gn-line px-3.5 py-1.5 text-xs font-semibold"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* history */}

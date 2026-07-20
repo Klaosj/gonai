@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "tsx tests/logic.test.ts"
+    "check": "tsx tests/logic.test.ts && tsx tests/infra.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

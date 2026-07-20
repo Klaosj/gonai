@@ -27,9 +27,15 @@
 - [x] W2 CSV template + import script (`tests/fixtures-template.csv` + `tests/csv-to-fixtures.ts`)
 - [x] PaiNai v0.3 UI — 4 แท็บ (วางแผน/สำรวจ/กลุ่ม/ทริปของฉัน) + design tokens ใหม่ (green/orange/purple) + 3 คอลัมน์ planner
 - [x] Landing page (PART B) — `app/page.tsx` (hero + problem + 3 ขั้นตอน + features + CTA)
-- [x] Supabase migration — `supabase/schema.sql` (6 ตาราง + RLS) + `supabase/store-adapter.ts` (async adapter) + `.env.example`
-- [x] LINE Login v1.1 — `lib/auth.ts` + `app/api/auth/line/callback/route.ts` + `app/api/auth/line/logout/route.ts` (พร้อมใช้ทันทีที่ตั้ง env)
-- [x] W2 field sprint — `tests/w2-seed.ts` (40 venues + 16 routes, จำลองข้อมูลจริงสำหรับ staging)
+- [x] Supabase migration — `supabase/schema.sql` (9 ตาราง + RLS) + `supabase/store-adapter.ts` **wire แล้วจริง**: `lib/store.ts` เป็น async facade เลือก backend อัตโนมัติ (JSON dev / Supabase prod) ทุก API route ใช้ผ่าน facade
+- [x] Catalog ใน DB — ตาราง `zones/venues/routes` + `lib/catalog.ts` (cache 5 นาที, fallback fixtures) + `supabase/seed.ts` — ทีม field ops แก้ข้อมูลร้าน/เส้นทางใน dashboard ได้โดยไม่ต้อง deploy
+- [x] Auth hardening (2026-07-20) — ตัวตนอยู่ใน httpOnly cookie เซ็นด้วย HMAC (`gn_uid`) ที่ server ออกเอง แทน `x-gn-user` header ที่ client ปลอมได้ · plan มี ownership check · PDPA wipe ลบได้แค่ของตัวเอง · production บังคับ `GN_AUTH_SECRET`
+- [x] LINE Login v1.1 wire ครบ — ปุ่ม login ใน S5 → `/api/auth/line/login` → callback ตรวจ state (HMAC + หมดอายุ 10 นาที) → migrate ข้อมูล anonymous จาก signed cookie (มากับ redirect เสมอ — แก้บั๊กเดิมที่อ่านจาก header ซึ่งไม่มีทางมากับ redirect)
+- [x] W2 field sprint mock — `tests/w2-data.ts` (24 venues + 16 routes ครอบ 8 origins) · พิมพ์เป็น fixtures: `tests/w2-seed.ts` · seed ลง DB: `supabase/seed.ts --w2`
+- [x] Waitlist — `POST /api/waitlist` + ฟอร์มบน landing (PDPA consent + rate limit ต่อ IP)
+- [x] Rate limit — `lib/ratelimit.ts` (in-memory): imports 5/ชม., events 60/นาที, waitlist 5/ชม./IP
+- [x] แก้ QA ค้าง — `window.confirm` ใน S5 เปลี่ยนเป็น in-app confirm dialog
+- [x] Infra tests — `tests/infra.test.ts` (11 ข้อ: cookie signing/tamper, rate limit, catalog fallback, w2 sanity)
 
 ## Flow 5 หน้าจอ (spec 2.8)
 
@@ -88,8 +94,14 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 | `/api/events` | POST | fire-and-forget tracking |
 | `/api/venues` | GET | Top 3 + routes สำหรับ origin |
 | `/api/plans` | POST | สร้าง plan (validation: intent/origin/venue_id/budget>0) |
-| `/api/plans/[id]` | GET/PATCH | ดู/แก้ plan (route_toggle, budget_edit, add_stop, start, checkin, spend, done) |
-| `/api/chain` | GET | chaining suggestions (time, indoor, budget, exclude) |
+| `/api/plans/[id]` | GET/PATCH | ดู/แก้ plan (route_toggle, budget_edit, add_stop, start, checkin, spend, done) — เจ้าของเท่านั้น |
+| `/api/chain` | GET | chaining suggestions (time, indoor, budget, exclude) — เจ้าของเท่านั้น |
+| `/api/waitlist` | POST | เก็บ contact จาก landing (PDPA consent บังคับ) |
+| `/api/auth/line/login` | GET | redirect ไป LINE Login |
+| `/api/auth/line/callback` | GET | แลก code + migrate ข้อมูล + เซ็น cookie ใหม่ |
+| `/api/auth/line/logout` | POST | ล้าง cookie ตัวตน |
+
+ทุก endpoint ระบุตัวตนจาก signed httpOnly cookie `gn_uid` (ดู `lib/auth.ts`) — ไม่มี header auth อีกต่อไป
 
 ## Data Model (`lib/types.ts`)
 
@@ -126,29 +138,29 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 - sort by transition_rank ASC, null ไปท้าย
 - สูงสุด 3 ผล
 
-## Data Roadmap (ตามสเปคในโค้ด)
+## Data Roadmap
 
-### ตอนนี้ (dev)
-- fixtures ใน `lib/fixtures.ts` — placeholder "(ตัวอย่าง)"
-- store = JSON file ที่ `.data/store.json` (dev)
-- auth = anonymous device id (localStorage `gn_device`)
+### ตอนนี้
+- dev: fixtures + JSON store ที่ `.data/store.json` — อัตโนมัติเมื่อไม่มี env
+- prod: ตั้ง `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` → ทุกอย่างเข้า Supabase (user data + catalog)
+- auth: anonymous ผ่าน signed cookie ทันทีที่แตะ API แรก · LINE Login เมื่อตั้ง `LINE_CHANNEL_ID/SECRET`
 
-### W2 field sprint (ถัดไป)
-- เก็บข้อมูลจริงตาม CSV template (spec 2.4)
+### ขั้น deploy จริง (เหลือทำ)
+1. สร้างโปรเจค Supabase → รัน `supabase/schema.sql` ใน SQL Editor
+2. `npx tsx supabase/seed.ts --w2` (staging) หรือไม่ใส่ `--w2` (fixtures)
+3. ตั้ง env บน host: `GN_AUTH_SECRET` (บังคับ), `SUPABASE_*`, `NEXT_PUBLIC_BASE_URL`, `LINE_*`
+4. LINE Developers Console: ตั้ง callback URL = `https://<domain>/api/auth/line/callback`
+
+### W2 field sprint (งานภาคสนาม — ตัวจริงของ product)
+- เก็บข้อมูลจริงตาม CSV template (spec 2.4) — สยาม 15-20 ที่ + เส้นทางจริง 6 origins
 - validate สถานที่: validation_count ≥ 3 ถึงจะโชว์ unseen
-- เก็บเส้นทางจริง (ไม่ใช้สูตร Grab)
-- stale check: last_validated_at < 45 วัน → flag
+- ใส่เข้า DB ผ่าน Supabase dashboard หรือ CSV → `tests/csv-to-fixtures.ts` → seed
+- stale check: last_validated_at เก่ากว่า 45 วัน → revalidate
 
-### Supabase (spec 2.1)
-- `lib/store.ts` เขียน function ให้ swap ได้โดยแทบไม่ต้องแก้ caller
-- ต้องการ credentials + schema migration
-
-### Auth v1.1
-- LINE Login แทน anonymous device id
-
-### Landing page (PART B)
-- `app/page.tsx` ตอนนี้แค่ redirect → /app
-- PART B จะมาแทนด้วย landing จริง
+### ข้อจำกัดที่รู้อยู่ (ยอมรับได้ระดับ MVP)
+- rate limit เป็น in-memory ต่อ instance — scale หลาย instance เพดานรวมสูงขึ้น (ย้าย Upstash/Redis ทีหลัง)
+- โซนใน S1 origin picker มาจาก fixtures ฝั่ง client (สเปค pin 6 โซน + อื่นๆ) — เพิ่มโซนใหม่ใน DB ต้องอัพเดต UI ด้วย
+- JSON store ไม่รองรับ serverless — dev เท่านั้น (facade บังคับ Supabase เมื่อมี env)
 
 ## Stale / Fresh Rule (Gap Fix D)
 - `STALE_DAYS = 45` — venue ที่ `last_validated_at` เก่ากว่า 45 วัน → ต้อง revalidate
@@ -166,16 +178,27 @@ gonai/
 ├── components/             # VenueCard, RouteLegs, BudgetBar, IntentChips, BahtChip, TrustBadge
 ├── lib/
 │   ├── types.ts            # data model + labels
-│   ├── fixtures.ts         # placeholder data (ห้ามใช้ production)
+│   ├── fixtures.ts         # placeholder data (dev fallback)
 │   ├── costing.ts          # journey cost math
 │   ├── budget.ts           # budget default logic
 │   ├── top3.ts             # 2 Hit + 1 Unseen selection
 │   ├── chaining.ts         # "ไปต่อ" suggestions
-│   ├── server.ts           # route lookup + plan expansion
-│   ├── store.ts            # JSON store (swap → Supabase)
-│   ├── api.ts              # client fetch helper
-│   └── device.ts           # anonymous device id
-├── tests/logic.test.ts     # 32 integration tests
+│   ├── catalog.ts          # zones/venues/routes (Supabase + cache, fallback fixtures)
+│   ├── server.ts           # route lookup + plan expansion (async)
+│   ├── store.ts            # store facade (interface + เลือก backend)
+│   ├── store-json.ts       # JSON backend (dev เท่านั้น)
+│   ├── auth.ts             # signed cookie + LINE Login
+│   ├── ratelimit.ts        # in-memory sliding window
+│   └── api.ts              # client fetch helper
+├── supabase/
+│   ├── schema.sql          # 9 ตาราง + RLS
+│   ├── store-adapter.ts    # Supabase backend + catalog fetch/upsert
+│   └── seed.ts             # seed catalog (fixtures | --w2)
+├── tests/
+│   ├── logic.test.ts       # 32 integration tests
+│   ├── infra.test.ts       # 11 infra tests (auth/ratelimit/catalog)
+│   ├── w2-data.ts          # W2 mock data (24 venues + 16 routes)
+│   └── w2-seed.ts          # พิมพ์ W2 mock เป็น fixtures
 ├── QA-RESULTS.md           # QA 10 รอบ
 └── PLAN.md                 # ไฟล์นี้
 ```
@@ -183,7 +206,10 @@ gonai/
 ## คำสั่ง
 
 ```bash
-npm run dev      # รัน dev server (localhost:3000)
-npm run check    # รัน integration tests (tsx tests/logic.test.ts)
-npm run build    # production build
+npm run dev                        # รัน dev server (localhost:3000)
+npm run check                      # tests: logic 32 ข้อ + infra 11 ข้อ
+npm run build                      # production build
+npx tsx supabase/seed.ts           # seed catalog ลง Supabase (fixtures)
+npx tsx supabase/seed.ts --w2      # seed catalog ลง Supabase (W2 mock 24 venues)
+npx tsx tests/w2-seed.ts > lib/fixtures.ts   # ใช้ W2 mock เป็น fixtures local
 ```

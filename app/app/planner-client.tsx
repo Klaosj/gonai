@@ -5,6 +5,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import SplitPay from "@/components/SplitPay";
 import VenueCard from "@/components/VenueCard";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
@@ -31,6 +32,42 @@ const INTENT_AMBIENCE: Record<Intent, string> = {
   family: "o-ambience-family",
 };
 
+// Mood tiles (plan §1) — แตะเดียว = ตั้ง intent+filters+budget จริง แล้ว refetch
+// subtitle เขียนจาก filters ที่ tile ตั้งจริงเท่านั้น (ห้ามเขียนเกินสิ่งที่ tile ทำ)
+const MOODS: { key: Intent; emoji: string; label: string; timeframe: string; filters: VenueFilters; ambience: string }[] = [
+  { key: "work", emoji: "💻", label: "งานนอกบ้าน", timeframe: "Mood · วันนี้", filters: { quiet: true, plugs: true }, ambience: "o-ambience-work" },
+  { key: "date", emoji: "💛", label: "เดทอาทิตย์นี้", timeframe: "Mood · เสาร์นี้", filters: {}, ambience: "o-ambience-date" },
+  { key: "family", emoji: "👨‍👩‍👧", label: "พาครอบครัว", timeframe: "Mood · ครอบครัว", filters: { indoor: true }, ambience: "o-ambience-family" },
+  { key: "photo", emoji: "📷", label: "ถ่ายรูปสวย", timeframe: "Mood · สายรูป", filters: {}, ambience: "o-ambience-photo" },
+];
+
+const MOOD_FILTER_LABELS: Partial<Record<keyof VenueFilters, string>> = {
+  near: "เดินใกล้",
+  food: "อาหารจริงจัง",
+  quiet: "เงียบ",
+  plugs: "ปลั๊ก",
+  indoor: "ในร่ม",
+};
+
+function moodSubtitle(m: (typeof MOODS)[number]): string {
+  const labels = (Object.keys(m.filters) as (keyof VenueFilters)[])
+    .filter((k) => m.filters[k])
+    .map((k) => MOOD_FILTER_LABELS[k])
+    .filter((x): x is string => !!x);
+  return [...labels, `งบ ~${BUDGET_DEFAULTS[m.key]}฿`].join(" · ");
+}
+
+const round50 = (x: number) => Math.round(x / 50) * 50;
+
+// onboarding (/app/welcome) เขียน gn_pref ไว้ — planner อ่านตอน init เท่านั้น (ครั้งแรกของ session)
+function readGnPref(): { vibe?: "quiet" | "loud" | "food" | "photo"; budgetMul?: number } {
+  try {
+    return JSON.parse(localStorage.getItem("gn_pref") ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
 // ตัวกรองจริง — ผูกกับ attribute ใน data (lib/filters.ts ฝั่ง server)
 const FILTER_CHIPS: { key: keyof VenueFilters; label: string }[] = [
   { key: "near", label: "⏱ เดิน ≤10 นาที" },
@@ -54,9 +91,13 @@ interface VenuesResponse {
 export default function PlannerClient() {
   const router = useRouter();
   const sp = useSearchParams();
+  // deep link จริง (?add= หรือ ?intent=) ต้องชนะเสมอ — ค่า default จาก onboarding (gn_pref) ใช้เฉพาะตอนไม่มี deep link
+  const hasDeepLink = !!(sp.get("add") || sp.get("intent"));
   const [intent, setIntent] = useState<Intent>(() => {
     const q = sp.get("intent");
-    return INTENTS.some((i) => i.key === q) ? (q as Intent) : "work";
+    if (INTENTS.some((i) => i.key === q)) return q as Intent;
+    if (!sp.get("add") && readGnPref().vibe === "photo") return "photo";
+    return "work";
   });
   const [origin, setOrigin] = useState(() => {
     if (sp.get("origin")) return sp.get("origin")!;
@@ -66,9 +107,23 @@ export default function PlannerClient() {
       return "bangkapi";
     }
   });
-  const [budget, setBudget] = useState<number>(Number(sp.get("budget") ?? BUDGET_DEFAULTS[intent] ?? 800));
+  const [budget, setBudget] = useState<number>(() => {
+    const q = sp.get("budget");
+    if (q) return Number(q);
+    if (!sp.get("add")) {
+      const mul = readGnPref().budgetMul;
+      if (typeof mul === "number") return round50(BUDGET_DEFAULTS[intent] * mul);
+    }
+    return BUDGET_DEFAULTS[intent] ?? 800;
+  });
   const [editingBudget, setEditingBudget] = useState(false);
-  const [filters, setFilters] = useState<VenueFilters>({});
+  const [filters, setFilters] = useState<VenueFilters>(() => {
+    if (hasDeepLink) return {};
+    const vibe = readGnPref().vibe;
+    if (vibe === "quiet") return { quiet: true };
+    if (vibe === "food") return { food: true };
+    return {};
+  });
   const [rainDismissed, setRainDismissed] = useState(false);
 
   const [data, setData] = useState<VenuesResponse | null>(null);
@@ -98,6 +153,18 @@ export default function PlannerClient() {
   }, [intent, origin, filters]);
 
   useEffect(load, [load]);
+
+  // onboarding redirect (plan §3) — เฉพาะตอนไม่มี query param ใดๆ เลย (add/intent/origin/budget)
+  // และยังไม่เคยทำ onboarding มาก่อน · เช็คครั้งเดียวตอน mount
+  useEffect(() => {
+    try {
+      const hasAnyQuery = sp.get("add") || sp.get("intent") || sp.get("origin") || sp.get("budget");
+      if (!hasAnyQuery && localStorage.getItem("gn_onboarded") !== "1") {
+        router.replace("/app/welcome");
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const act = useCallback(
     async (action: string, extra: Record<string, unknown> = {}) => {
@@ -193,6 +260,13 @@ export default function PlannerClient() {
     track("origin_change", { origin: id });
   };
 
+  const pickMood = (m: (typeof MOODS)[number]) => {
+    setIntent(m.key);
+    setFilters(m.filters);
+    setBudget(BUDGET_DEFAULTS[m.key]);
+    track("mood_tile", { intent: m.key });
+  };
+
   const toggleFilter = (key: keyof VenueFilters) => {
     setFilters((f) => {
       const next = { ...f, [key]: !f[key] };
@@ -230,9 +304,33 @@ export default function PlannerClient() {
   const rain = data.weather;
   const showRain = rain?.rainExpected && !rainDismissed;
   const activeFilters = FILTER_CHIPS.filter((c) => filters[c.key]);
+  // base สำหรับ split-pay = ตัวเลขจริงที่โชว์อยู่ในกล่องงบ (plan §1)
+  const splitBase = plan ? (plan.status === "draft" ? plan.est_total : plan.spent) : spent;
 
   return (
     <div className="mx-auto max-w-[1500px] px-4 py-4">
+      {/* Mood tiles — แทน hint bar เดิม: แตะเดียวตั้ง intent+filters+budget จริงแล้ว refetch (plan §1) */}
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {MOODS.map((m, i) => {
+          const active = intent === m.key;
+          return (
+            <button
+              key={m.key}
+              onClick={() => pickMood(m)}
+              className={`o-grain gn-rise gn-d${i + 1} gn-press relative flex min-h-[118px] flex-col justify-end gap-1 overflow-hidden rounded-[20px] border p-4 text-left transition-transform hover:-translate-y-1 ${m.ambience} ${
+                active ? "border-ink" : "border-line"
+              }`}
+            >
+              <span className="o-mono relative z-[2] text-[10px] text-ink/75">{m.timeframe}</span>
+              <b className="relative z-[2] text-[17px] font-semibold text-ink">
+                {m.emoji} {m.label}
+              </b>
+              <span className="relative z-[2] text-[12px] text-ink/80">{moodSubtitle(m)}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[330px_1fr_360px]">
         {/* ====== col 1: เงื่อนไข + ตัวกรอง + import ====== */}
         <aside className="gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
@@ -487,6 +585,8 @@ export default function PlannerClient() {
               />
             </div>
           </div>
+
+          <SplitPay base={splitBase} />
 
           {plan ? (
             <>

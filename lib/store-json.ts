@@ -120,6 +120,10 @@ export const jsonStore: Store = {
     persist();
   },
 
+  async countEvents(user_id, type) {
+    return load().events.filter((x) => x.user_id === user_id && x.type === type).length;
+  },
+
   async bumpTaste(user_id, key) {
     const user = ensureUserSync(user_id);
     user.taste[key] = (user.taste[key] ?? 0) + 1;

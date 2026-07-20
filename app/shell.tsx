@@ -1,10 +1,12 @@
 "use client";
-// Shell — header (active tab + avatar) + hint bar + footer — ใช้เฉพาะโซนแอป (/app/*)
+// Shell — header (active tab + avatar + Taste DNA chip) + footer — ใช้เฉพาะโซนแอป (/app/*)
 // landing (/) ไม่ใช้ Shell — แยกโลก marketing กับแอปออกจากกัน
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { track } from "@/lib/api";
+import { gn, track } from "@/lib/api";
+import type { ExpandedPlan } from "@/lib/server";
+import type { Venue } from "@/lib/types";
 
 const TABS = [
   { key: "planner", label: "🗺️ วางแผน", href: "/app" },
@@ -20,14 +22,70 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
+interface MeResponse {
+  plans: ExpandedPlan[];
+  taste: Record<string, number>;
+}
+
+const INTENT_DNA_LABELS: Record<string, string> = {
+  work: "สายทำงาน",
+  date: "สายเดท",
+  family: "สายครอบครัว",
+  photo: "สายรูป",
+};
+
+const CATEGORY_DNA_LABELS: Record<Venue["category"], string> = {
+  cafe: "คาเฟ่",
+  restaurant: "ร้านอาหาร",
+  activity: "กิจกรรม",
+  market: "ตลาด",
+};
+
+// สูงสุดของ key แบบ "prefix:value" — คืน value ที่นับสูงสุด (ไม่มี = null)
+function topByPrefix(taste: Record<string, number>, prefix: string): string | null {
+  let best: string | null = null;
+  let bestN = 0;
+  for (const [k, n] of Object.entries(taste)) {
+    if (!k.startsWith(prefix)) continue;
+    if (n > bestN) {
+      bestN = n;
+      best = k.slice(prefix.length);
+    }
+  }
+  return best;
+}
+
+// Taste DNA chip — ทุกชิ้นมาจากข้อมูลจริง (plan §2) ไม่มี placeholder
+function tasteDnaLabels(me: MeResponse): string[] {
+  const labels: string[] = [];
+
+  const topIntent = topByPrefix(me.taste, "intent:");
+  if (topIntent && INTENT_DNA_LABELS[topIntent]) labels.push(INTENT_DNA_LABELS[topIntent]);
+
+  const topSave = topByPrefix(me.taste, "save:");
+  if (topSave && CATEGORY_DNA_LABELS[topSave as Venue["category"]]) {
+    labels.push(CATEGORY_DNA_LABELS[topSave as Venue["category"]]);
+  }
+
+  const done = me.plans.filter((p) => p.status === "done" && p.budget_actual !== null);
+  if (done.length >= 2) {
+    const overCount = done.filter((p) => (p.budget_actual ?? 0) > p.budget_planned).length;
+    if (overCount === 0) labels.push("งบเซฟ");
+    else if (overCount > done.length - overCount) labels.push("สายจัดเต็ม");
+  }
+
+  return labels.slice(0, 3);
+}
+
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "";
-  const [showHint, setShowHint] = useState(true);
+  const [me, setMe] = useState<MeResponse | null>(null);
 
+  // Taste DNA — โหลดครั้งเดียวตอน mount ทุกหน้าในโซนแอป · เงียบเมื่อพัง (ไม่บล็อค UI)
   useEffect(() => {
-    try {
-      if (localStorage.getItem("gn_hint_dismissed") === "1") setShowHint(false);
-    } catch {}
+    gn<MeResponse>("/api/me")
+      .then(setMe)
+      .catch(() => {});
   }, []);
 
   // client error reporter — ส่งเข้า events ให้เห็นปัญหาจริงจากเครื่องผู้ใช้ (สูงสุด 1 ครั้ง/30 วิ)
@@ -49,12 +107,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const dismissHint = () => {
-    setShowHint(false);
-    try {
-      localStorage.setItem("gn_hint_dismissed", "1");
-    } catch {}
-  };
+  const donePlans = me?.plans.filter((p) => p.status === "done") ?? [];
+  // มี done plan อย่างน้อย 1 + ไม่ใช่หน้า onboarding เท่านั้นถึงโชว์ — ไม่มีข้อมูล = ไม่โชว์อะไรเลย
+  const showDna = donePlans.length > 0 && pathname !== "/app/welcome" && me !== null;
+  const dnaDots = Math.min(5, donePlans.length);
+  const dnaLabels = me ? tasteDnaLabels(me) : [];
 
   return (
     <>
@@ -81,7 +138,28 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="ml-auto" />
+
+        <div className="ml-auto flex items-center gap-3">
+          {showDna && (
+            <Link
+              href="/app/me"
+              title={`สร้างจาก ${donePlans.length} ทริปที่จบจริง`}
+              className="gn-press hidden items-center gap-2.5 rounded-full border border-line bg-card px-3.5 py-1.5 sm:flex"
+            >
+              <span className="o-mono text-[10px] text-accent">Taste DNA</span>
+              <span className="flex gap-[3px]">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded-full ${i < dnaDots ? "bg-accent" : "bg-accent/25"}`}
+                  />
+                ))}
+              </span>
+              {dnaLabels.length > 0 && <span className="text-[12px] text-mut">{dnaLabels.join(" · ")}</span>}
+            </Link>
+          )}
+        </div>
+
         <Link
           href="/app/me"
           className="gn-press flex h-[34px] w-[34px] items-center justify-center rounded-full border border-line bg-card text-ink"
@@ -90,21 +168,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           👤
         </Link>
       </header>
-
-      {showHint && (
-        <div className="flex items-center gap-3 border-b border-line bg-bg-elev px-5 py-2 text-[13px] text-mut">
-          <span>
-            💡 <b className="text-ink">วิธีใช้:</b>&nbsp; ① เลือกย่านที่ออก + เงื่อนไข → ② เลือกจาก Top 3 ที่คัดให้
-            → ③ เห็นแผน + งบรวมทุกบาท — พอออกเดินทางจริง กด &quot;เริ่มเที่ยว&quot; เพื่อบันทึกจ่ายจริง
-          </span>
-          <button
-            onClick={dismissHint}
-            className="gn-press ml-auto rounded-lg border border-line bg-card px-3 py-1 text-xs font-semibold text-ink"
-          >
-            เข้าใจแล้ว ✕
-          </button>
-        </div>
-      )}
 
       {children}
 

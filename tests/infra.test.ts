@@ -1,5 +1,10 @@
 // infra.test.ts — tests สำหรับชั้น infrastructure (auth cookie, rate limit, catalog)
 // รันด้วย: npm run check (ต่อจาก logic.test.ts)
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { decodeUid, encodeUid, verifyLineState } from "../lib/auth";
 import { getCatalog } from "../lib/catalog";
 import { applyVenueFilters } from "../lib/filters";
@@ -132,6 +137,46 @@ async function main() {
   await test("w2-data: มี unseen ที่ count < 3 ไว้ทดสอบ filter (U05)", () => {
     const below = W2_VENUES.filter((v) => v.badge === "unseen" && v.validation_count < 3);
     eq(below.length >= 1, true, "ต้องมีเคส count < 3 อย่างน้อย 1 ตัว");
+  });
+
+  // ===== store: countEvents (plan §0/§8.4 — /api/me priceConfirms ใช้ตัวนี้) =====
+  // รันผ่าน subprocess ชี้ GN_DATA_FILE ไปไฟล์ temp — กัน dev data จริงใน .data/store.json โดนแตะ
+  await test("store-json: countEvents นับถูก + นับเฉพาะ type ที่ขอ (GN_DATA_FILE ชี้ไฟล์ temp)", () => {
+    const tmpData = path.join(os.tmpdir(), `gn-countevents-data-${Date.now()}.json`);
+    const tmpScript = path.join(os.tmpdir(), `gn-countevents-script-${Date.now()}.mjs`);
+    const storeJsonUrl = pathToFileURL(path.join(process.cwd(), "lib", "store-json.ts")).href;
+    const scriptSrc = `
+import { jsonStore } from ${JSON.stringify(storeJsonUrl)};
+const uid = "test-user-countevents";
+await jsonStore.addEvent(uid, "price_confirm", {});
+await jsonStore.addEvent(uid, "price_confirm", {});
+await jsonStore.addEvent(uid, "price_confirm", {});
+await jsonStore.addEvent(uid, "other_type", {});
+const a = await jsonStore.countEvents(uid, "price_confirm");
+const b = await jsonStore.countEvents(uid, "other_type");
+const c = await jsonStore.countEvents(uid, "nonexistent_type");
+console.log(JSON.stringify({ a, b, c }));
+`;
+    fs.writeFileSync(tmpScript, scriptSrc);
+    try {
+      const tsxBin = path.join(process.cwd(), "node_modules", ".bin", "tsx");
+      const out = execFileSync(tsxBin, [tmpScript], {
+        env: { ...process.env, GN_DATA_FILE: tmpData },
+        encoding: "utf8",
+      });
+      const lastLine = out.trim().split("\n").pop() ?? "{}";
+      const { a, b, c } = JSON.parse(lastLine) as { a: number; b: number; c: number };
+      eq(a, 3, "price_confirm count");
+      eq(b, 1, "other_type count");
+      eq(c, 0, "nonexistent_type count");
+    } finally {
+      try {
+        fs.unlinkSync(tmpScript);
+      } catch {}
+      try {
+        fs.unlinkSync(tmpData);
+      } catch {}
+    }
   });
 
   console.log("════════════════════════════════════════════════════════════");

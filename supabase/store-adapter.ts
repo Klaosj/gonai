@@ -115,6 +115,16 @@ export const supabaseStore: Store = {
     await sb().from("events").insert({ user_id, type, payload, created_at: new Date().toISOString() });
   },
 
+  async countEvents(user_id, type) {
+    const { count, error } = await sb()
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user_id)
+      .eq("type", type);
+    must("countEvents", error);
+    return count ?? 0;
+  },
+
   async bumpTaste(user_id, key) {
     const user = await this.ensureUser(user_id);
     const taste = { ...user.taste, [key]: (user.taste[key] ?? 0) + 1 };

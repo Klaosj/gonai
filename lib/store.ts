@@ -23,6 +23,7 @@ export interface Store {
   toggleSave(user_id: string, venue_id: string): Promise<boolean>; // true = saved
   savedVenueIdsOf(user_id: string): Promise<string[]>;
   addEvent(user_id: string, type: string, payload?: Record<string, unknown>): Promise<void>;
+  countEvents(user_id: string, type: string): Promise<number>;
   bumpTaste(user_id: string, key: string): Promise<void>;
   addImport(user_id: string, url: string, platform: string): Promise<void>;
   importsOf(user_id: string): Promise<{ url: string; platform: string; status: string; created_at: string }[]>;

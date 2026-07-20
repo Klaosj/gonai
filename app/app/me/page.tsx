@@ -1,19 +1,21 @@
 "use client";
-// /app/me — ประวัติ + Taste profile + ที่บันทึกไว้ (3-col mockup)
-// ใช้ /api/me จริง
+// /app/me — ประวัติ + สถิติ/Badge จากข้อมูลจริง + Taste profile + ที่บันทึกไว้ (plan §6 · ต้นแบบ Gonai triphistory.html)
+// ใช้ /api/me จริง — ทุกตัวเลข/badge คำนวณจาก me.plans + me.priceConfirms เท่านั้น ไม่มีระบบแต้ม/รางวัลลอยๆ
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { gn } from "@/lib/api";
 import { mid } from "@/lib/costing";
 import type { ExpandedPlan } from "@/lib/server";
-import { INTENT_LABELS, type Venue } from "@/lib/types";
+import { INTENT_LABELS, type Intent, type Venue } from "@/lib/types";
 
 interface MeResponse {
   saves: Venue[];
   plans: ExpandedPlan[];
   imports: { url: string; platform: string; status: string; created_at: string }[];
   taste: Record<string, number>;
+  priceConfirms: number;
   auth: { provider: "line" | "anonymous"; displayName: string | null };
 }
 
@@ -37,6 +39,77 @@ const CATEGORY_AMBIENCE: Record<Venue["category"], string> = {
   activity: "o-ambience-photo",
   market: "o-ambience-family",
 };
+
+const INTENT_EMOJI: Record<Intent, string> = {
+  work: "💻",
+  date: "💛",
+  family: "👨‍👩‍👧",
+  photo: "📷",
+};
+
+const INTENT_AMBIENCE: Record<Intent, string> = {
+  work: "o-ambience-work",
+  date: "o-ambience-date",
+  family: "o-ambience-family",
+  photo: "o-ambience-photo",
+};
+
+interface Badge {
+  key: string;
+  emoji: string;
+  label: string;
+  earned: boolean;
+  detail: string;
+}
+
+// badges ผูกกับการกระทำจริงในระบบทั้งหมด — ไม่มีแต้ม/ของรางวัลแลก มีแค่สถิติ (plan §6.2)
+function computeBadges(donePlans: ExpandedPlan[], priceConfirms: number): Badge[] {
+  const confirmEarned = priceConfirms >= 3;
+  const checkinTrips = donePlans.filter((p) => p.stops.length > 0 && p.stops.every((s) => s.checked_in_at)).length;
+  const checkinEarned = checkinTrips >= 3;
+  const unseenVisits = donePlans.reduce((sum, p) => sum + p.stops.filter((s) => s.venue.badge === "unseen").length, 0);
+  const unseenEarned = unseenVisits >= 3;
+  // donePlans มาจาก me.plans ที่ store คืนใหม่→เก่าอยู่แล้ว — ไล่จากล่าสุดจนกว่าจะเจอทริปที่เกินงบ
+  let onBudgetStreak = 0;
+  for (const p of donePlans) {
+    if ((p.budget_actual ?? 0) <= p.budget_planned) onBudgetStreak++;
+    else break;
+  }
+  const onBudgetEarned = onBudgetStreak >= 5;
+
+  return [
+    {
+      key: "confirm",
+      emoji: "🧾",
+      label: "นักยืนยันราคา",
+      earned: confirmEarned,
+      detail: confirmEarned ? `confirm แล้ว ${priceConfirms} ราคา ✓` : `ยืนยันราคาให้ครบ 3 (ตอนนี้ ${priceConfirms})`,
+    },
+    {
+      key: "checkin",
+      emoji: "🧭",
+      label: "ครบทุกเช็คอิน",
+      earned: checkinEarned,
+      detail: checkinEarned ? `ทริปเช็คอินครบ ${checkinTrips} ทริป ✓` : `ทริปเช็คอินครบทุกจุดให้ได้ 3 ทริป (ตอนนี้ ${checkinTrips})`,
+    },
+    {
+      key: "unseen",
+      emoji: "✨",
+      label: "นักล่า Unseen",
+      earned: unseenEarned,
+      detail: unseenEarned ? `ไปที่ลับแล้ว ${unseenVisits} ครั้ง ✓` : `ไปที่ลับให้ครบ 3 (ตอนนี้ ${unseenVisits})`,
+    },
+    {
+      key: "budget",
+      emoji: "🎯",
+      label: "งบเป๊ะ",
+      earned: onBudgetEarned,
+      detail: onBudgetEarned
+        ? `ไม่เกินงบติดกัน ${onBudgetStreak} ทริป ✓`
+        : `ไม่เกินงบติดกันให้ครบ 5 ทริป (ตอนนี้ ${onBudgetStreak})`,
+    },
+  ];
+}
 
 export default function TripsPage() {
   const router = useRouter();
@@ -72,6 +145,34 @@ export default function TripsPage() {
   const tasteEntries = Object.entries(me.taste);
   const tasteLevel = Math.min(4, Math.floor(donePlans.length / 2));
 
+  // ===== สถิติรวม (plan §6.1) — คำนวณจาก me.plans + priceConfirms จริงเท่านั้น =====
+  const totalSpent = donePlans.reduce((s, p) => s + (p.budget_actual ?? 0), 0);
+  const accuracyPlans = donePlans.filter((p) => p.est_total > 0 && p.budget_actual !== null);
+  const avgErrorPct =
+    accuracyPlans.length > 0
+      ? Math.round(
+          (accuracyPlans.reduce((s, p) => s + Math.abs(p.est_total - (p.budget_actual ?? 0)) / p.est_total, 0) /
+            accuracyPlans.length) *
+            100,
+        )
+      : null;
+
+  const badges = computeBadges(donePlans, me.priceConfirms);
+
+  // ===== ที่ชอบไปซ้ำ (plan §6.3) — นับ venue ซ้ำจาก stops ของ done plans =====
+  const venueCounts = new Map<string, { venue: Venue; count: number }>();
+  for (const p of donePlans) {
+    for (const s of p.stops) {
+      const entry = venueCounts.get(s.venue.id);
+      if (entry) entry.count++;
+      else venueCounts.set(s.venue.id, { venue: s.venue, count: 1 });
+    }
+  }
+  const favorites = [...venueCounts.values()]
+    .filter((e) => e.count >= 2)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+
   // in-app confirm (ไม่ใช้ window.confirm — บล็อค browser + ใช้กับ automation ไม่ได้)
   const wipe = async () => {
     await gn("/api/me", { method: "DELETE" });
@@ -93,11 +194,73 @@ export default function TripsPage() {
         ยิ่งเที่ยว ยิ่งแม่น — ทุกทริปที่จบ ทำให้คำแนะนำและงบประมาณของคุณแม่นขึ้น
       </p>
 
-      {/* 3-col: profile | history | saved (mockup) */}
+      {/* ===== แถวสถิติรวม ===== */}
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="gn-card-e p-4">
+          <span className="o-mono text-[10px] text-mut">ทริปทั้งหมด</span>
+          <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{donePlans.length}</b>
+        </div>
+        <div className="gn-card-e p-4">
+          <span className="o-mono text-[10px] text-mut">ใช้ไปทั้งหมด</span>
+          <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{totalSpent}฿</b>
+        </div>
+        <div className="gn-card-e p-4">
+          <span className="o-mono text-[10px] text-mut">แม่นเฉลี่ย</span>
+          <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{avgErrorPct === null ? "—" : `±${avgErrorPct}%`}</b>
+          {avgErrorPct !== null && <small className="text-ok">ประเมิน vs จ่ายจริง</small>}
+        </div>
+        <div className="gn-card-e p-4">
+          <span className="o-mono text-[10px] text-mut">ราคาที่ยืนยัน</span>
+          <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{me.priceConfirms}</b>
+          {me.priceConfirms > 0 && <small className="text-ok">ช่วยเพื่อนนักเที่ยวแล้ว</small>}
+        </div>
+      </div>
+
+      {/* ===== Badge + ที่ชอบไปซ้ำ ===== */}
+      <div className="mb-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+        <div className="gn-card-e p-4">
+          <p className="o-mono mb-3 text-[10px] text-accent">Badge จากการช่วย validate</p>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {badges.map((b) => (
+              <div
+                key={b.key}
+                className={`flex items-center gap-3 rounded-2xl border border-line p-3.5 ${b.earned ? "" : "opacity-45"}`}
+              >
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-lg ${
+                    b.earned ? "border-accent bg-accent text-bg" : "border-line bg-card-solid text-ink"
+                  }`}
+                >
+                  {b.emoji}
+                </span>
+                <div className="min-w-0">
+                  <b className="block text-[13px] text-ink">{b.label}</b>
+                  <span className="text-[11px] text-mut">{b.detail}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {favorites.length > 0 && (
+          <div className="gn-card-e p-4">
+            <p className="o-mono mb-2 text-[10px] text-mut">ที่ชอบไปซ้ำ</p>
+            {favorites.map((f) => (
+              <div key={f.venue.id} className="flex items-center gap-2.5 border-b border-line py-2.5 text-[13.5px] last:border-b-0">
+                <span>{CATEGORY_EMOJI[f.venue.category]}</span>
+                <span className="min-w-0 flex-1 truncate text-ink">{f.venue.name_th}</span>
+                <span className="shrink-0 text-xs text-mut">ไป {f.count} ครั้ง</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 3-col เดิม: profile | history | saved (mockup) */}
       <div className="grid gap-4 lg:grid-cols-3">
         {/* profile */}
         <div className="gn-card-e p-4">
-          <h4 className="font-semibold text-ink">🧬 Taste Profile ของ Klao</h4>
+          <h4 className="font-semibold text-ink">🧬 Taste Profile ของคุณ</h4>
           <div className="mt-2.5 flex gap-1.5">
             {[0, 1, 2, 3].map((i) => (
               <span
@@ -185,7 +348,7 @@ export default function TripsPage() {
           )}
         </div>
 
-        {/* history */}
+        {/* history — อัพเกรดสไตล์แบบ mockup: thumbnail ambience + ยอด + ต่ำกว่า/เกินงบ (plan §6.4) */}
         <div>
           <h4 className="mb-2.5 font-semibold text-ink">📜 ทริปที่ผ่านมา</h4>
           {me.plans.length === 0 && (
@@ -196,26 +359,33 @@ export default function TripsPage() {
           {me.plans.map((p) => {
             const diff = (p.budget_actual ?? 0) - p.budget_planned;
             return (
-              <div key={p.id} className="gn-card-e mb-2.5 p-3">
-                <div className="flex justify-between font-semibold text-ink">
-                  <span>
+              <Link
+                key={p.id}
+                href={`/app/plan/${p.id}`}
+                className="gn-card-e gn-lift mb-2.5 flex items-center gap-3 p-3"
+              >
+                <span className={`o-grain relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-2xl text-lg ${INTENT_AMBIENCE[p.intent]}`}>
+                  <span className="relative z-[2]">{INTENT_EMOJI[p.intent]}</span>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <b className="block truncate text-[13.5px] text-ink">
                     {INTENT_LABELS[p.intent]} · {p.origin_name} → สยาม
-                  </span>
-                  {p.status === "done" && (
-                    <span className={`text-xs font-extrabold ${diff > 0 ? "text-bad" : "text-ok"}`}>
-                      {diff > 0 ? `+${diff}฿ เกินแผน` : diff === 0 ? "ตรงแผน" : `${diff}฿ ต่ำกว่าแผน`}
-                    </span>
-                  )}
+                  </b>
+                  <small className="text-mut">
+                    {new Date(p.created_at).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })} ·{" "}
+                    {p.stops.length} ที่ ·{" "}
+                    {p.status === "done" ? "จบทริปแล้ว" : p.status === "active" ? "กำลังเที่ยวอยู่" : "แผนร่าง"}
+                  </small>
                 </div>
-                <small className="text-mut">
-                  {new Date(p.created_at).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })} ·{" "}
-                  {p.status === "done"
-                    ? `แผน ${p.est_total}฿ → จ่ายจริง ${p.budget_actual}฿`
-                    : p.status === "active"
-                      ? "กำลังเที่ยวอยู่"
-                      : "แผนร่าง"}
-                </small>
-              </div>
+                {p.status === "done" && (
+                  <div className="shrink-0 text-right">
+                    <b className="gn-num block text-[15px] text-ink">{p.budget_actual}฿</b>
+                    <div className={`text-[11px] font-semibold ${diff > 0 ? "text-bad" : "text-ok"}`}>
+                      {diff > 0 ? `เกินงบ ${diff}฿` : diff === 0 ? "ตรงงบเป๊ะ" : `ต่ำกว่างบ ${-diff}฿ ✓`}
+                    </div>
+                  </div>
+                )}
+              </Link>
             );
           })}
         </div>

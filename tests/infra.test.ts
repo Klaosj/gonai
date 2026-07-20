@@ -2,7 +2,10 @@
 // รันด้วย: npm run check (ต่อจาก logic.test.ts)
 import { decodeUid, encodeUid, verifyLineState } from "../lib/auth";
 import { getCatalog } from "../lib/catalog";
+import { applyVenueFilters } from "../lib/filters";
+import { VENUES } from "../lib/fixtures";
 import { rateLimit, resetRateLimits } from "../lib/ratelimit";
+import { analyzeRain } from "../lib/weather";
 import { W2_VENUES } from "./w2-data";
 
 let pass = 0;
@@ -83,6 +86,40 @@ async function main() {
     if (c.venues.length < 5) throw new Error(`venues น้อยผิดปกติ: ${c.venues.length}`);
     if (!c.zones.find((z) => z.id === "siam")) throw new Error("ไม่มีโซนสยาม");
     if (!c.routes.length) throw new Error("ไม่มี routes");
+  });
+
+  // ===== weather (pure) =====
+  await test("weather: ฝน ≥50% ช่วงบ่าย → rainExpected + peakHour ถูก", () => {
+    const times = Array.from({ length: 24 }, (_, h) => `2026-07-20T${String(h).padStart(2, "0")}:00`);
+    const probs = times.map((_, h) => (h === 17 ? 70 : h === 15 ? 40 : 10));
+    const r = analyzeRain(times, probs, 10);
+    eq(r.rainExpected, true);
+    eq(r.maxProb, 70);
+    eq(r.peakHour, 17);
+  });
+
+  await test("weather: ฝนแรงเฉพาะช่วงที่ผ่านไปแล้ว → ไม่เตือน", () => {
+    const times = Array.from({ length: 24 }, (_, h) => `2026-07-20T${String(h).padStart(2, "0")}:00`);
+    const probs = times.map((_, h) => (h === 9 ? 90 : 10));
+    const r = analyzeRain(times, probs, 14); // ตอนนี้บ่ายสองแล้ว — ฝนเช้าไม่เกี่ยว
+    eq(r.rainExpected, false);
+    eq(r.peakHour, null);
+  });
+
+  // ===== filters (pure) =====
+  await test("filters: indoor กรอง outdoor ออกจริง", () => {
+    const out = applyVenueFilters(VENUES, { indoor: true });
+    eq(out.every((v) => v.attributes.indoor), true);
+    if (out.length === VENUES.length) throw new Error("fixtures ต้องมี outdoor อย่างน้อย 1 ที่ให้กรองออก");
+  });
+
+  await test("filters: quiet + plugs ทำงานร่วมกัน (AND)", () => {
+    const out = applyVenueFilters(VENUES, { quiet: true, plugs: true });
+    eq(out.every((v) => v.attributes.noise === "quiet" && v.attributes.plugs !== "none"), true);
+  });
+
+  await test("filters: ไม่ส่ง filter = ได้ครบทุกที่", () => {
+    eq(applyVenueFilters(VENUES, {}).length, VENUES.length);
   });
 
   // ===== w2 data sanity (ก่อนใช้ seed staging) =====

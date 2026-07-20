@@ -138,6 +138,20 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 - sort by transition_rank ASC, null ไปท้าย
 - สูงสุด 3 ผล
 
+## Capacity Estimate (system design row — คิดแล้ว อย่า over-engineer)
+
+- สมมติสุดโต่งช่วง launch สยาม: 1,000 DAU × 20 req/วัน = 20k req/วัน ≈ **0.23 QPS เฉลี่ย · peak ~1.2 QPS (5×)**
+- Storage: plan ~2KB × 3 ทริป/สัปดาห์/ผู้ใช้ + events ~0.5KB → **ระดับ MB/เดือน**
+- ข้อสรุป: Supabase free tier + Vercel hobby เอาอยู่เกิน 10 เท่าของเป้า — **ห้ามเพิ่ม infra จนกว่าตัวเลขจริงจะเถียง**
+- จุดที่จะพังก่อนถ้าโต: events โตเร็วสุด (fire-and-forget ทุก interaction) → ตั้ง retention 90 วันใน Supabase เมื่อถึง 100k rows
+
+## Monitoring (system design row)
+
+- `/api/health` — เช็ค catalog + store ตอบ 200/500 → ผูก UptimeRobot (ฟรี, ยิงทุก 5 นาที) หลัง deploy
+- Client error → event `client_error` (Shell ดัก window.onerror + unhandledrejection, จำกัด 1/30วิ/เครื่อง)
+- ดู error จริง: query ตาราง events where type='client_error' ใน Supabase dashboard
+- Server error: Vercel function logs (มากับ platform)
+
 ## Data Roadmap
 
 ### ตอนนี้

@@ -1,23 +1,9 @@
-// supabase/store-adapter.ts
-// Adapter ที่มี interface เดียวกับ lib/store.ts แต่ใช้ Supabase แทน JSON file
-// วิธีใช้: ตั้ง env SUPABASE_URL + SUPABASE_SERVICE_KEY แล้ว swap ใน lib/store.ts
-//
-// การ swap: ใน lib/store.ts เปลี่ยน import จาก json-store เป็น supabase-store
-//   import { ... } from "../supabase/store-adapter"  // แทน json functions
-//
-// ถ้าไม่มี env → fallback ไปใช้ JSON store เดิมอัตโนมัติ
-
+// Supabase backend — implement interface เดียวกับ lib/store-json.ts (ดู lib/store.ts)
+// เปิดใช้: ตั้ง SUPABASE_URL + SUPABASE_SERVICE_KEY ใน .env แล้ว facade เลือกตัวนี้อัตโนมัติ
+// schema: supabase/schema.sql · seed venues/routes: npx tsx supabase/seed.ts
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { GnEvent, Plan, User } from "../lib/types";
-
-export interface StoreShape {
-  users: Record<string, User>;
-  plans: Record<string, Plan>;
-  saves: { user_id: string; venue_id: string; created_at: string }[];
-  events: GnEvent[];
-  imports: { user_id: string; url: string; platform: string; status: string; created_at: string }[];
-  waitlist: { contact: string; channel: string; source: string | null; pdpa_consent: boolean; created_at: string }[];
-}
+import type { Plan, Route, User, Venue, Zone } from "../lib/types";
+import type { Store } from "../lib/store";
 
 let client: SupabaseClient | null = null;
 
@@ -26,7 +12,7 @@ function getClient(): SupabaseClient | null {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) return null;
-  client = createClient(url, key);
+  client = createClient(url, key, { auth: { persistSession: false } });
   return client;
 }
 
@@ -34,125 +20,147 @@ export function isSupabaseEnabled(): boolean {
   return getClient() !== null;
 }
 
-// ===== Users =====
-export async function ensureUser(id: string): Promise<User> {
-  const sb = getClient()!;
-  const { data } = await sb.from("users").select("*").eq("id", id).maybeSingle();
-  if (data) return data as User;
-  const newUser: User = {
-    id,
-    created_at: new Date().toISOString(),
-    budget_defaults: {},
-    taste: {},
-  };
-  await sb.from("users").insert(newUser);
-  return newUser;
+function sb(): SupabaseClient {
+  const c = getClient();
+  if (!c) throw new Error("Supabase not configured (SUPABASE_URL / SUPABASE_SERVICE_KEY)");
+  return c;
 }
 
-// ===== Plans =====
-export async function getPlan(id: string): Promise<Plan | null> {
-  const sb = getClient()!;
-  const { data } = await sb.from("plans").select("*").eq("id", id).maybeSingle();
-  return (data as Plan) ?? null;
+// insert/update ที่พลาดต้องดังไม่ใช่เงียบ — ผู้ใช้ควรเห็น 500 ไม่ใช่ข้อมูลหายเฉยๆ
+function must(op: string, error: { message: string } | null) {
+  if (error) throw new Error(`supabase ${op}: ${error.message}`);
 }
 
-export async function savePlan(plan: Plan): Promise<void> {
-  const sb = getClient()!;
-  await sb.from("plans").upsert(plan);
+export const supabaseStore: Store = {
+  async ensureUser(id) {
+    const { data } = await sb().from("users").select("*").eq("id", id).maybeSingle();
+    if (data) return data as User;
+    const user: User = { id, created_at: new Date().toISOString(), budget_defaults: {}, taste: {} };
+    // upsert กัน race ตอนหลาย request แรกยิงพร้อมกัน
+    const { error } = await sb().from("users").upsert(user, { onConflict: "id" });
+    must("ensureUser", error);
+    return user;
+  },
+
+  async wipeUser(user_id) {
+    // on delete cascade ใน schema จัดการ plans/saves/events/imports
+    const { error } = await sb().from("users").delete().eq("id", user_id);
+    must("wipeUser", error);
+  },
+
+  async migrateUser(oldId, newId) {
+    const { data: oldUser } = await sb().from("users").select("*").eq("id", oldId).maybeSingle();
+    if (!oldUser) return;
+    const newUser = await this.ensureUser(newId);
+    const taste = { ...newUser.taste };
+    for (const [k, n] of Object.entries((oldUser as User).taste ?? {})) {
+      taste[k] = (taste[k] ?? 0) + (n as number);
+    }
+    must("migrate taste", (await sb().from("users").update({ taste }).eq("id", newId)).error);
+    for (const table of ["plans", "saves", "events", "imports"]) {
+      must(`migrate ${table}`, (await sb().from(table).update({ user_id: newId }).eq("user_id", oldId)).error);
+    }
+    must("migrate cleanup", (await sb().from("users").delete().eq("id", oldId)).error);
+  },
+
+  async getPlan(id) {
+    const { data } = await sb().from("plans").select("*").eq("id", id).maybeSingle();
+    return (data as Plan) ?? null;
+  },
+
+  async savePlan(plan) {
+    const { error } = await sb().from("plans").upsert(plan, { onConflict: "id" });
+    must("savePlan", error);
+  },
+
+  async plansOf(user_id) {
+    const { data } = await sb()
+      .from("plans")
+      .select("*")
+      .eq("user_id", user_id)
+      .order("created_at", { ascending: false });
+    return (data as Plan[]) ?? [];
+  },
+
+  async donePlansOf(user_id) {
+    const { data } = await sb().from("plans").select("*").eq("user_id", user_id).eq("status", "done");
+    return (data as Plan[]) ?? [];
+  },
+
+  async toggleSave(user_id, venue_id) {
+    const { data: existing } = await sb()
+      .from("saves")
+      .select("id")
+      .eq("user_id", user_id)
+      .eq("venue_id", venue_id)
+      .maybeSingle();
+    if (existing) {
+      must("unsave", (await sb().from("saves").delete().eq("id", existing.id)).error);
+      return false;
+    }
+    must(
+      "save",
+      (await sb().from("saves").insert({ user_id, venue_id, created_at: new Date().toISOString() })).error,
+    );
+    return true;
+  },
+
+  async savedVenueIdsOf(user_id) {
+    const { data } = await sb().from("saves").select("venue_id").eq("user_id", user_id);
+    return (data ?? []).map((r) => r.venue_id as string);
+  },
+
+  async addEvent(user_id, type, payload = {}) {
+    // fire-and-forget — event หายไม่ต้องล้ม request
+    await sb().from("events").insert({ user_id, type, payload, created_at: new Date().toISOString() });
+  },
+
+  async bumpTaste(user_id, key) {
+    const user = await this.ensureUser(user_id);
+    const taste = { ...user.taste, [key]: (user.taste[key] ?? 0) + 1 };
+    must("bumpTaste", (await sb().from("users").update({ taste }).eq("id", user_id)).error);
+  },
+
+  async addImport(user_id, url, platform) {
+    must(
+      "addImport",
+      (await sb().from("imports").insert({ user_id, url, platform, status: "queued", created_at: new Date().toISOString() })).error,
+    );
+  },
+
+  async addWaitlist(entry) {
+    must("addWaitlist", (await sb().from("waitlist").insert({ ...entry, created_at: new Date().toISOString() })).error);
+  },
+};
+
+// ===== Catalog (venues/routes/zones — content ที่ทีม field ops แก้ได้โดยไม่ต้อง deploy) =====
+
+export interface DbCatalog {
+  zones: Zone[];
+  venues: Venue[];
+  routes: Route[];
 }
 
-export async function donePlansOf(user_id: string): Promise<Plan[]> {
-  const sb = getClient()!;
-  const { data } = await sb
-    .from("plans")
-    .select("*")
-    .eq("user_id", user_id)
-    .eq("status", "done");
-  return (data as Plan[]) ?? [];
-}
-
-// ===== Saves =====
-export async function toggleSave(user_id: string, venue_id: string): Promise<boolean> {
-  const sb = getClient()!;
-  const { data: existing } = await sb
-    .from("saves")
-    .select("id")
-    .eq("user_id", user_id)
-    .eq("venue_id", venue_id)
-    .maybeSingle();
-  if (existing) {
-    await sb.from("saves").delete().eq("id", existing.id);
-    return false;
-  }
-  await sb.from("saves").insert({
-    user_id,
-    venue_id,
-    created_at: new Date().toISOString(),
-  });
-  return true;
-}
-
-export async function savesOf(user_id: string) {
-  const sb = getClient()!;
-  const { data } = await sb.from("saves").select("*").eq("user_id", user_id);
-  return data ?? [];
-}
-
-// ===== Events =====
-export async function addEvent(user_id: string, type: string, payload: Record<string, unknown> = {}): Promise<void> {
-  const sb = getClient()!;
-  await sb.from("events").insert({
-    user_id,
-    type,
-    payload,
-    created_at: new Date().toISOString(),
-  });
-}
-
-// ===== Taste (embedded in users.taste jsonb) =====
-export async function bumpTaste(user_id: string, key: string): Promise<void> {
-  const user = await ensureUser(user_id);
-  const taste = { ...user.taste, [key]: (user.taste[key] ?? 0) + 1 };
-  const sb = getClient()!;
-  await sb.from("users").update({ taste }).eq("id", user_id);
-}
-
-// ===== Imports =====
-export async function addImport(user_id: string, url: string, platform: string): Promise<void> {
-  const sb = getClient()!;
-  await sb.from("imports").insert({
-    user_id,
-    url,
-    platform,
-    status: "queued",
-    created_at: new Date().toISOString(),
-  });
-}
-
-// ===== PDPA wipe =====
-export async function wipeUser(user_id: string): Promise<void> {
-  const sb = getClient()!;
-  // cascade delete จะจัดการ plans/saves/events/imports ให้
-  // (ต้องตั้ง on delete cascade ใน schema — ดู supabase/schema.sql)
-  await sb.from("users").delete().eq("id", user_id);
-}
-
-// ===== Me (composite query สำหรับ /api/me) =====
-export async function getMe(user_id: string) {
-  const [user, plans, saves] = await Promise.all([
-    ensureUser(user_id),
-    getPlansByUser(user_id),
-    savesOf(user_id),
+// null = ตารางยังว่าง (ยังไม่ได้ seed) → caller fallback ไป fixtures
+export async function fetchCatalog(): Promise<DbCatalog | null> {
+  const [zones, venues, routes] = await Promise.all([
+    sb().from("zones").select("*"),
+    sb().from("venues").select("*"),
+    sb().from("routes").select("*"),
   ]);
-  return { user, plans, saves };
+  must("fetch zones", zones.error);
+  must("fetch venues", venues.error);
+  must("fetch routes", routes.error);
+  if (!venues.data?.length) return null;
+  return {
+    zones: (zones.data as Zone[]) ?? [],
+    venues: venues.data as Venue[],
+    routes: (routes.data as Route[]) ?? [],
+  };
 }
 
-async function getPlansByUser(user_id: string): Promise<Plan[]> {
-  const sb = getClient()!;
-  const { data } = await sb
-    .from("plans")
-    .select("*")
-    .eq("user_id", user_id)
-    .order("created_at", { ascending: false });
-  return (data as Plan[]) ?? [];
+export async function upsertCatalog(catalog: DbCatalog): Promise<void> {
+  must("seed zones", (await sb().from("zones").upsert(catalog.zones, { onConflict: "id" })).error);
+  must("seed venues", (await sb().from("venues").upsert(catalog.venues, { onConflict: "id" })).error);
+  must("seed routes", (await sb().from("routes").upsert(catalog.routes, { onConflict: "id" })).error);
 }

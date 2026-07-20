@@ -66,6 +66,52 @@ create table if not exists public.imports (
 
 create index if not exists idx_imports_status on public.imports(status);
 
+-- ===== Catalog: zones / venues / routes =====
+-- content ของแอป — ทีม field ops แก้ใน dashboard ได้เลย ไม่ต้อง deploy โค้ด
+-- seed ครั้งแรก: npx tsx supabase/seed.ts (fixtures) หรือ --w2 (mock 40 venues)
+
+create table if not exists public.zones (
+  id text primary key,
+  name_th text not null,
+  is_origin boolean not null default true,
+  km_to_siam numeric not null default 0
+);
+
+create table if not exists public.venues (
+  id text primary key,
+  name_th text not null,
+  zone_id text not null references public.zones(id),
+  category text not null check (category in ('cafe','restaurant','activity','market')),
+  intents text[] not null default '{}',
+  badge text not null check (badge in ('hit','unseen')),
+  hit_rank integer,
+  unseen_rank integer,
+  transition_rank integer,
+  attributes jsonb not null default '{}'::jsonb,   -- VenueAttributes
+  price_per_head_min integer not null,
+  price_per_head_max integer not null,
+  open_time text not null,                          -- "09:00"
+  close_time text not null,                         -- "21:00"
+  walk_min_from_hub integer not null default 0,
+  video_url text,
+  source text not null default 'sprint' check (source in ('sprint','tat','import')),
+  last_validated_at date not null,                  -- stale check: เก่ากว่า 45 วัน → revalidate
+  validation_count integer not null default 0       -- unseen โชว์เมื่อ ≥ 3 (spec 2.6)
+);
+
+create index if not exists idx_venues_zone on public.venues(zone_id);
+create index if not exists idx_venues_badge on public.venues(badge);
+
+create table if not exists public.routes (
+  id text primary key,
+  origin_zone text not null references public.zones(id),
+  dest_zone text not null references public.zones(id),
+  kind text not null check (kind in ('cheapest','fastest')),
+  legs jsonb not null default '[]'::jsonb           -- RouteLeg[]
+);
+
+create index if not exists idx_routes_origin on public.routes(origin_zone);
+
 -- ===== waitlist =====
 create table if not exists public.waitlist (
   id uuid primary key default uuid_generate_v4(),
@@ -85,6 +131,12 @@ alter table public.plans enable row level security;
 alter table public.saves enable row level security;
 alter table public.events enable row level security;
 alter table public.imports enable row level security;
+alter table public.waitlist enable row level security;
+-- catalog: เปิด RLS ไว้โดยไม่มี policy = anon key อ่าน/เขียนไม่ได้เลย
+-- (server ใช้ service key ซึ่งข้าม RLS — client ไม่แตะ Supabase ตรง)
+alter table public.zones enable row level security;
+alter table public.venues enable row level security;
+alter table public.routes enable row level security;
 
 -- Policy: ผู้ใช้จัดการข้อมูลตัวเองได้ทั้งหมด
 -- (ใน production ใช้ auth.uid() = LINE user id)

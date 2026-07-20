@@ -1,23 +1,28 @@
 // Server helpers: route lookup + plan expansion
-import { LAUNCH_ZONE, ROUTES, VENUES, ZONES } from "./fixtures";
+// content มาจาก getCatalog() (Supabase ใน prod, fixtures ใน dev) — ทุกตัวเป็น async
+import { getCatalog } from "./catalog";
+import { LAUNCH_ZONE } from "./fixtures";
 import { dayBudgetEst, grabEstimate, mid, routeCost } from "./costing";
 import type { Plan, Route, Venue } from "./types";
 
-export function venueById(id: string): Venue | undefined {
-  return VENUES.find((v) => v.id === id);
+export async function venueById(id: string): Promise<Venue | undefined> {
+  return (await getCatalog()).venues.find((v) => v.id === id);
 }
 
-export function zoneName(id: string): string {
-  return ZONES.find((z) => z.id === id)?.name_th ?? id;
+export async function zoneName(id: string): Promise<string> {
+  return (await getCatalog()).zones.find((z) => z.id === id)?.name_th ?? id;
 }
 
 // เส้นทางจาก origin → สยาม: ใช้ seeded routes ถ้ามี ไม่งั้น fallback สูตร Grab (spec 2.4)
-export function routesForOrigin(origin: string): { cheapest: Route; fastest: Route; fallback: boolean } {
-  const cheapest = ROUTES.find((r) => r.origin_zone === origin && r.kind === "cheapest");
-  const fastest = ROUTES.find((r) => r.origin_zone === origin && r.kind === "fastest");
+export async function routesForOrigin(
+  origin: string,
+): Promise<{ cheapest: Route; fastest: Route; fallback: boolean }> {
+  const { zones, routes } = await getCatalog();
+  const cheapest = routes.find((r) => r.origin_zone === origin && r.kind === "cheapest");
+  const fastest = routes.find((r) => r.origin_zone === origin && r.kind === "fastest");
   if (cheapest && fastest) return { cheapest, fastest, fallback: false };
 
-  const km = ZONES.find((z) => z.id === origin)?.km_to_siam ?? 12;
+  const km = zones.find((z) => z.id === origin)?.km_to_siam ?? 12;
   const est = grabEstimate(km);
   const minutes = Math.round(15 + km * 1.5);
   const synthetic = (kind: "cheapest" | "fastest"): Route => ({
@@ -69,8 +74,9 @@ export interface ExpandedPlan {
   created_at: string;
 }
 
-export function expandPlan(plan: Plan): ExpandedPlan {
-  const { cheapest, fastest, fallback } = routesForOrigin(plan.origin_zone);
+export async function expandPlan(plan: Plan): Promise<ExpandedPlan> {
+  const catalog = await getCatalog();
+  const { cheapest, fastest, fallback } = await routesForOrigin(plan.origin_zone);
   const route = plan.route_kind === "cheapest" ? cheapest : fastest;
   const routeAlt = plan.route_kind === "cheapest" ? fastest : cheapest;
   const rc = routeCost(route.legs);
@@ -78,7 +84,7 @@ export function expandPlan(plan: Plan): ExpandedPlan {
 
   const stops: ExpandedStop[] = plan.stops
     .map((s) => {
-      const venue = venueById(s.venue_id);
+      const venue = catalog.venues.find((v) => v.id === s.venue_id);
       if (!venue) return null;
       return { seq: s.seq, venue, est_cost: s.est_cost, actual_cost: s.actual_cost, checked_in_at: s.checked_in_at };
     })
@@ -94,7 +100,7 @@ export function expandPlan(plan: Plan): ExpandedPlan {
     id: plan.id,
     intent: plan.intent,
     origin_zone: plan.origin_zone,
-    origin_name: zoneName(plan.origin_zone),
+    origin_name: catalog.zones.find((z) => z.id === plan.origin_zone)?.name_th ?? plan.origin_zone,
     status: plan.status,
     route_kind: plan.route_kind,
     budget_planned: plan.budget_planned,

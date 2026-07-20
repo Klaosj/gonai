@@ -1,28 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { expandPlan, venueById } from "@/lib/server";
-import { ensureUser, getStore, wipeUser } from "@/lib/store";
+import { attachAuth, clearAuthCookies, displayNameFrom, resolveUser } from "@/lib/auth";
+import { getCatalog } from "@/lib/catalog";
+import { expandPlan } from "@/lib/server";
+import { store } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
-  const uid = req.headers.get("x-gn-user") ?? "anon";
-  const user = ensureUser(uid);
-  const store = getStore();
+  const auth = resolveUser(req);
+  const [user, savedIds, plans, catalog] = await Promise.all([
+    store.ensureUser(auth.id),
+    store.savedVenueIdsOf(auth.id),
+    store.plansOf(auth.id),
+    getCatalog(),
+  ]);
 
-  const saves = store.saves
-    .filter((s) => s.user_id === uid)
-    .map((s) => venueById(s.venue_id))
+  const saves = savedIds
+    .map((id) => catalog.venues.find((v) => v.id === id))
     .filter((v) => v !== undefined);
+  const expanded = await Promise.all(plans.map(expandPlan));
 
-  const plans = Object.values(store.plans)
-    .filter((p) => p.user_id === uid)
-    .sort((a, b) => b.created_at.localeCompare(a.created_at))
-    .map(expandPlan);
-
-  return NextResponse.json({ saves, plans, taste: user.taste });
+  return attachAuth(
+    NextResponse.json({
+      saves,
+      plans: expanded,
+      taste: user.taste,
+      auth: { provider: auth.provider, displayName: displayNameFrom(req) },
+    }),
+    auth,
+  );
 }
 
-// PDPA — ลบข้อมูลผู้ใช้ทุกตารางจริง (A12)
+// PDPA — ลบข้อมูลผู้ใช้ทุกตารางจริง (A12) แล้วล้าง cookie → รอบหน้าได้ตัวตนใหม่
 export async function DELETE(req: NextRequest) {
-  const uid = req.headers.get("x-gn-user") ?? "anon";
-  wipeUser(uid);
-  return NextResponse.json({ ok: true });
+  const auth = resolveUser(req);
+  if (!auth.isNew) await store.wipeUser(auth.id);
+  const res = NextResponse.json({ ok: true });
+  clearAuthCookies(res);
+  return res;
 }

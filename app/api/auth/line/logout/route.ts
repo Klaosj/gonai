@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { clearAuthCookies } from "@/lib/auth";
 
-// LINE logout — ลบ cookies แล้ว redirect กลับ /app
-export async function POST(req: NextRequest) {
+// Logout — ล้าง cookie ตัวตน → request ถัดไปได้ตัวตน anonymous ใหม่
+export async function POST() {
   const res = NextResponse.json({ ok: true });
-  res.cookies.delete("line_user_id");
-  res.cookies.delete("line_display_name");
-  res.cookies.delete("line_picture_url");
+  clearAuthCookies(res);
   return res;
 }

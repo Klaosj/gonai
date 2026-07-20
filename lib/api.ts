@@ -1,12 +1,12 @@
 "use client";
-import { getDeviceId } from "./device";
 
+// ตัวตนผู้ใช้อยู่ใน httpOnly cookie ที่ server เซ็นเอง (ดู lib/auth.ts)
+// — browser แนบ cookie ให้อัตโนมัติ ไม่ต้องส่ง header อะไรเพิ่ม
 export async function gn<T = unknown>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
     headers: {
       "content-type": "application/json",
-      "x-gn-user": getDeviceId(),
       ...(init?.headers ?? {}),
     },
   });

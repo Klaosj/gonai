@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
+import { attachAuth, resolveUser, type AuthUser } from "@/lib/auth";
 import { mid } from "@/lib/costing";
 import { expandPlan, venueById } from "@/lib/server";
-import { getStore, persist } from "@/lib/store";
+import { store } from "@/lib/store";
+import type { Plan } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function GET(_req: NextRequest, ctx: Ctx) {
+// แผนเป็นของเจ้าของเท่านั้น — คนอื่นรู้ id ก็อ่าน/แก้ไม่ได้ (ตอบ 404 ไม่ใช่ 403 กัน id probing)
+async function ownedPlan(id: string, auth: AuthUser): Promise<Plan | null> {
+  const plan = await store.getPlan(id);
+  if (!plan || plan.user_id !== auth.id) return null;
+  return plan;
+}
+
+export async function GET(req: NextRequest, ctx: Ctx) {
+  const auth = resolveUser(req);
   const { id } = await ctx.params;
-  const plan = getStore().plans[id];
-  if (!plan) return new NextResponse("plan not found", { status: 404 });
-  return NextResponse.json(expandPlan(plan));
+  const plan = await ownedPlan(id, auth);
+  if (!plan) return attachAuth(new NextResponse("plan not found", { status: 404 }), auth);
+  return attachAuth(NextResponse.json(await expandPlan(plan)), auth);
 }
 
 export async function PATCH(req: NextRequest, ctx: Ctx) {
+  const auth = resolveUser(req);
   const { id } = await ctx.params;
-  const plan = getStore().plans[id];
-  if (!plan) return new NextResponse("plan not found", { status: 404 });
+  const plan = await ownedPlan(id, auth);
+  if (!plan) return attachAuth(new NextResponse("plan not found", { status: 404 }), auth);
 
   const body = (await req.json()) as {
     action: string;
@@ -33,8 +44,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       if (body.value && body.value > 0) plan.budget_planned = body.value;
       break;
     case "add_stop": {
-      const v = body.venue_id ? venueById(body.venue_id) : undefined;
-      if (!v) return new NextResponse("venue not found", { status: 404 });
+      const v = body.venue_id ? await venueById(body.venue_id) : undefined;
+      if (!v) return attachAuth(new NextResponse("venue not found", { status: 404 }), auth);
       plan.stops.push({
         seq: plan.stops.length + 1,
         venue_id: v.id,
@@ -59,13 +70,13 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     }
     case "done": {
       plan.status = "done";
-      plan.budget_actual = expandPlan(plan).spent;
+      plan.budget_actual = (await expandPlan(plan)).spent;
       break;
     }
     default:
-      return new NextResponse("unknown action", { status: 400 });
+      return attachAuth(new NextResponse("unknown action", { status: 400 }), auth);
   }
 
-  persist();
-  return NextResponse.json(expandPlan(plan));
+  await store.savePlan(plan);
+  return attachAuth(NextResponse.json(await expandPlan(plan)), auth);
 }

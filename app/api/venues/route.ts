@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { VENUES } from "@/lib/fixtures";
+import { attachAuth, resolveUser } from "@/lib/auth";
+import { getCatalog } from "@/lib/catalog";
 import { routesForOrigin } from "@/lib/server";
-import { addEvent, ensureUser, getStore } from "@/lib/store";
+import { store } from "@/lib/store";
 import { top3 } from "@/lib/top3";
 import type { Intent } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
-  const uid = req.headers.get("x-gn-user") ?? "anon";
-  ensureUser(uid);
+  const auth = resolveUser(req);
+  await store.ensureUser(auth.id);
 
   const sp = req.nextUrl.searchParams;
   const intent = (sp.get("intent") ?? "work") as Intent;
   const origin = sp.get("origin") ?? "bangkapi";
 
-  const result = top3(VENUES, intent);
-  if (result.unseenPoolEmpty) addEvent(uid, "unseen_pool_empty", { intent });
+  const { venues } = await getCatalog();
+  const result = top3(venues, intent);
+  if (result.unseenPoolEmpty) await store.addEvent(auth.id, "unseen_pool_empty", { intent });
 
-  const savedIds = getStore()
-    .saves.filter((s) => s.user_id === uid)
-    .map((s) => s.venue_id);
-
-  return NextResponse.json({ ...result, savedIds, routes: routesForOrigin(origin) });
+  const savedIds = await store.savedVenueIdsOf(auth.id);
+  return attachAuth(
+    NextResponse.json({ ...result, savedIds, routes: await routesForOrigin(origin) }),
+    auth,
+  );
 }

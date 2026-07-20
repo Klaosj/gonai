@@ -7,7 +7,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import VenueCard from "@/components/VenueCard";
 import { gn, track } from "@/lib/api";
 import { BUDGET_DEFAULTS, ZONES } from "@/lib/fixtures";
-import { expandPlan, type ExpandedPlan } from "@/lib/server";
+import type { ExpandedPlan } from "@/lib/server";
 import type { Intent, Route, Venue } from "@/lib/types";
 
 const INTENTS: { key: Intent | "food" | "nature"; label: string }[] = [

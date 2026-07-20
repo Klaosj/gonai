@@ -19,7 +19,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "ไปไหน PaiNai — plan · go · ไม่เกินงบ",
   description:
-    "วางแผนเที่ยว 1 วัน พร้อมค่าเดินทาง+งบทุกบาท ก่อนออกจากบ้าน — AI คัด Top 3 จากเงื่อนไขของคุณ",
+    "วางแผนเที่ยว 1 วัน พร้อมค่าเดินทาง+งบทุกบาท ก่อนออกจากบ้าน — คัด Top 3 จากเงื่อนไขของคุณด้วยข้อมูลที่คนจริง validate",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

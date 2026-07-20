@@ -28,7 +28,7 @@ export default function LandingPage() {
             รู้งบจริงทุกบาท ก่อนออกจากบ้าน
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg opacity-90">
-            AI คัด Top 3 จากเงื่อนไขของคุณ — พร้อมค่าวิน เรือ สองแถว รวมในงบเดียว
+            คัด Top 3 จากเงื่อนไขของคุณ ด้วยข้อมูลที่คนจริง validate — พร้อมค่าวิน เรือ สองแถว รวมในงบเดียว
           </p>
           <Link
             href="/app"
@@ -83,7 +83,7 @@ export default function LandingPage() {
               {
                 num: "②",
                 title: "เลือกจาก Top 3",
-                desc: "AI คัด 2 ที่ฮิต + 1 ที่ลับ พร้อมราคาและวิธีเดินทาง",
+                desc: "คัดให้ 2 ที่ฮิต + 1 ที่ลับ พร้อมราคาและวิธีเดินทาง",
                 color: "bg-gn-orange",
               },
               {

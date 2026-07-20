@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Theme B · สวนชิลยามบ่าย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sriracha&family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f4f6ee; --card:#fdfdf9; --line:#e3e6d8; --ink:#2c352c; --mut:#7d8676;
+    --sage:#7fae8e; --deep:#3d6b4f; --terra:#d97e5a; --butter:#f2e3bc; --sky:#a8cbd8;
+    --sh:0 10px 30px rgba(61,107,79,.1); }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'Anuphan',sans-serif; background:var(--bg); color:var(--ink); overflow-x:hidden; }
+  .hand { font-family:'Sriracha',cursive; }
+  /* blob หลังฉาก — หายใจช้าๆ */
+  .blob { position:fixed; pointer-events:none; opacity:.5; filter:blur(2px); animation:sway 11s ease-in-out infinite; }
+  .b1 { top:-90px; left:-70px; width:340px; height:320px; background:#dcead9; border-radius:58% 42% 55% 45% / 52% 55% 45% 48%; }
+  .b2 { bottom:-120px; right:-80px; width:380px; height:360px; background:#f0e6cd; border-radius:45% 55% 48% 52% / 55% 45% 58% 42%; animation-delay:-5s; }
+  @keyframes sway { 50% { transform:translate(16px,-12px) rotate(4deg); } }
+  .leaf-f { position:fixed; font-size:22px; pointer-events:none; opacity:.7; animation:fall 9s ease-in-out infinite; }
+  @keyframes fall { 50% { transform:translateY(-16px) rotate(-8deg); } }
+
+  nav { display:flex; align-items:center; gap:14px; padding:18px 28px; position:relative; z-index:2; }
+  .logo { font-family:'Sriracha'; font-size:24px; color:var(--deep); }
+  .logo i { font-style:normal; color:var(--terra); }
+  nav a { text-decoration:none; color:var(--mut); font-weight:600; font-size:14.5px; padding:9px 18px; border-radius:14px 18px 14px 18px; transition:all .3s; }
+  nav a.on { background:var(--deep); color:#fdfdf9; }
+  nav a:hover:not(.on) { background:#e9eede; color:var(--ink); }
+  .ava { margin-left:auto; width:40px; height:40px; border-radius:45% 55% 50% 50%; background:var(--terra); display:grid; place-items:center; font-size:17px; box-shadow:var(--sh); }
+
+  .wrap { max-width:1240px; margin:0 auto; padding:12px 28px 80px; position:relative; z-index:1; }
+  .hello { margin:14px 0 24px; }
+  .hello .hand { color:var(--sage); font-size:16px; }
+  .hello h1 { font-size:clamp(30px,4.4vw,42px); font-weight:700; line-height:1.2; margin-top:4px; }
+  .hello h1 em { font-family:'Sriracha'; font-style:normal; color:var(--terra); font-weight:400; }
+  .hello p { color:var(--mut); margin-top:8px; font-size:15px; }
+
+  .moods { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:26px; }
+  .mood { border-radius:26px 20px 26px 20px; padding:18px; cursor:pointer; box-shadow:var(--sh); border:2px solid transparent;
+    transition:all .35s cubic-bezier(.22,1,.36,1); }
+  .mood:hover { transform:translateY(-4px); }
+  .mood.on { border-color:var(--deep); }
+  .mood .e { font-size:28px; }
+  .mood b { display:block; margin-top:8px; font-size:16px; }
+  .mood span { font-size:12.5px; color:rgba(44,53,44,.6); }
+  .g1 { background:#e7efe0; } .g2 { background:#f6e7dc; } .g3 { background:#eae9f4; } .g4 { background:#f2ecd9; }
+
+  .cols { display:grid; grid-template-columns:310px 1fr 330px; gap:18px; }
+  .card { background:var(--card); border-radius:26px 20px 26px 20px; box-shadow:var(--sh); padding:20px; border:1px solid var(--line); }
+  .lbl { font-family:'Sriracha'; color:var(--deep); font-size:14.5px; margin-bottom:14px; }
+
+  .routebox { background:#eef2e4; border-radius:18px 14px 18px 14px; padding:14px; }
+  .routebox .r { display:flex; justify-content:space-between; padding:5px 0; font-size:13.5px; color:#67705f; }
+  .routebox .sum { display:flex; justify-content:space-between; align-items:baseline; padding-top:8px; margin-top:4px; border-top:1.5px dashed #c9d1ba; }
+  .routebox .sum b { font-size:22px; color:var(--deep); }
+  .chip { background:#fff; border:1.5px solid var(--line); color:var(--mut); border-radius:999px; padding:8px 15px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .3s; }
+  .chip:hover { border-color:var(--sage); color:var(--deep); }
+  .chip.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+
+  .hero { border-radius:20px 16px 20px 16px; height:110px; background:linear-gradient(140deg,var(--sky),#cfe0d3 60%,var(--butter)); position:relative; margin-bottom:16px; padding:16px; display:flex; align-items:flex-end; overflow:hidden; }
+  .hero .hand { font-size:20px; color:#33544b; }
+  .hero .bird { position:absolute; top:14px; right:20px; animation:fall 7s ease-in-out infinite; }
+
+  .vgrid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .vcard { border-radius:22px 16px 22px 16px; overflow:hidden; background:#fff; border:1px solid var(--line); box-shadow:var(--sh); transition:all .35s cubic-bezier(.22,1,.36,1); }
+  .vcard:hover { transform:translateY(-4px); }
+  .vcard .th { height:104px; display:grid; place-items:center; font-size:38px; position:relative; }
+  .t1 { background:linear-gradient(140deg,#f0e6cd,#e4d3a8); } .t2 { background:linear-gradient(140deg,#dcead9,#bcd9c2); }
+  .tag { position:absolute; top:10px; left:10px; font-family:'Sriracha'; font-size:11.5px; padding:4px 12px; border-radius:999px; color:#fff; }
+  .tag.hit { background:var(--terra); }
+  .tag.un { background:var(--sage); }
+  .fare { position:absolute; right:10px; top:10px; background:rgba(253,253,249,.9); border-radius:999px; padding:4px 10px; font-size:11.5px; font-weight:700; color:var(--deep); }
+  .vcard .bd { padding:14px 16px 16px; }
+  .vcard b.name { font-size:15.5px; }
+  .vcard .meta { color:var(--mut); font-size:12.5px; margin:6px 0 8px; line-height:1.6; }
+  .vcard .trust { font-size:11.5px; color:var(--deep); font-weight:600; }
+  .go { width:100%; margin-top:10px; font-family:inherit; font-weight:700; font-size:14px; background:var(--deep); color:#fdfdf9; border:0; border-radius:999px; padding:11px; cursor:pointer; transition:all .25s; }
+  .go:hover { background:#2f5540; }
+  .go:active { transform:scale(.97); }
+
+  .big { font-size:30px; font-weight:700; color:var(--deep); }
+  .big small { font-size:15px; color:var(--mut); font-weight:500; }
+  .hand-note { font-family:'Sriracha'; color:var(--sage); font-size:13px; margin-top:2px; }
+  .barr { height:10px; border-radius:99px; background:#e9eede; overflow:hidden; margin-top:10px; }
+  .barr i { display:block; height:100%; width:43%; border-radius:99px; background:linear-gradient(90deg,var(--sage),var(--deep)); animation:fill 1.2s .4s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fill { from { width:0; } }
+  .split { margin-top:16px; background:#eef2e4; border-radius:18px 14px 18px 14px; padding:14px; }
+  .split .row { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+  .split button { width:32px; height:32px; border-radius:99px; border:1.5px solid var(--line); background:#fff; font-size:16px; cursor:pointer; color:var(--ink); }
+  .split .per { font-family:'Sriracha'; font-size:19px; color:var(--terra); }
+  .cta { width:100%; margin-top:16px; font-family:'Sriracha'; font-size:16px; background:var(--terra); color:#fff; border:0; border-radius:999px; padding:14px; cursor:pointer; box-shadow:0 8px 22px rgba(217,126,90,.35); transition:all .25s; }
+  .cta:hover { transform:translateY(-2px); box-shadow:0 12px 28px rgba(217,126,90,.45); }
+  .cta:active { transform:scale(.97); }
+  .rise { animation:rise .7s cubic-bezier(.22,1,.36,1) both; }
+  .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}
+  @keyframes rise { from { opacity:0; transform:translateY(16px); } }
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div>
+<span class="leaf-f" style="top:22%;left:4%">🌿</span>
+<span class="leaf-f" style="top:64%;right:4%;animation-delay:-4s">🍃</span>
+<span class="leaf-f" style="bottom:10%;left:8%;animation-delay:-2s">🌼</span>
+
+<nav>
+  <div class="logo">Go<i>Nai</i> 🌿</div>
+  <a class="on" href="#">วางแผน</a><a href="#">สำรวจ</a><a href="#">ทริปของฉัน</a>
+  <div class="ava">🙂</div>
+</nav>
+
+<div class="wrap">
+  <div class="hello rise">
+    <div class="hand">~ เสาร์สบายๆ อากาศกำลังดี</div>
+    <h1>วันนี้ไปนั่งชิลไหนดี <em>งบ 450฿ ก็พอ</em></h1>
+    <p>ค่าวิน เรือ BTS คิดให้เรียบร้อย — ไม่ต้องเครียดเรื่องเงินระหว่างทาง</p>
+  </div>
+
+  <div class="moods rise d1">
+    <div class="mood g1 on"><span class="e">💻</span><b>งานนอกบ้าน</b><span>เงียบ · ปลั๊ก · ~450฿</span></div>
+    <div class="mood g2"><span class="e">💛</span><b>เดทอาทิตย์นี้</b><span>บรรยากาศดี · ~900฿</span></div>
+    <div class="mood g3"><span class="e">👨‍👩‍👧</span><b>พาครอบครัว</b><span>ในร่ม · ที่จอด · ~1,200฿</span></div>
+    <div class="mood g4"><span class="e">📷</span><b>ถ่ายรูปสวย</b><span>golden hour · ~600฿</span></div>
+  </div>
+
+  <div class="cols">
+    <aside class="card rise d1">
+      <div class="lbl">เส้นทางวันนี้ ~</div>
+      <div class="routebox">
+        <div class="r"><span>เดินไป BTS ห้าแยกลาดพร้าว</span><span>0฿</span></div>
+        <div class="r"><span>BTS → สยาม</span><span>44฿</span></div>
+        <div class="sum"><span>รวมขาไป · 33 นาที</span><b>44฿</b></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
+        <button class="chip on">🎧 เงียบ</button><button class="chip">🔌 ปลั๊ก</button><button class="chip">☂️ ในร่ม</button><button class="chip">⏱ ≤10 นาที</button>
+      </div>
+    </aside>
+
+    <section class="card rise d2">
+      <div class="lbl">คัดมาให้แบบชิลๆ · 2 จาก 3 ที่</div>
+      <div class="hero">
+        <span class="bird">🕊️</span>
+        <span class="hand">ลาดพร้าว → สยาม</span>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="th t1">🥐<span class="tag hit">ฮิต · อันดับ 2</span><span class="fare">BTS 44฿</span></div>
+          <div class="bd"><b class="name">บีนส์บาร์ ชั้นลอย</b>
+            <div class="meta">เงียบ ประชุมได้ · 100 Mbps · ~150฿/คน</div>
+            <div class="trust">✓ เพื่อนยืนยันแล้ว 9 คน</div>
+            <button class="go">+ เพิ่มเข้าแผน</button></div>
+        </div>
+        <div class="vcard">
+          <div class="th t2">🌿<span class="tag un">ที่ลับ ✨</span><span class="fare">BTS 44฿</span></div>
+          <div class="bd"><b class="name">โฮมคาเฟ่ ซอยเกษม</b>
+            <div class="meta">มีข้าว · คนยังน้อย · ~160฿/คน</div>
+            <div class="trust">✓ ยืนยันแล้ว 5 คน</div>
+            <button class="go">+ เพิ่มเข้าแผน</button></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card rise d3">
+      <div class="lbl">งบวันนี้ ~</div>
+      <div class="big">194฿ <small>/ 450฿</small></div>
+      <div class="hand-note">เหลืออีก 256฿ สบายๆ 🍃</div>
+      <div class="barr"><i></i></div>
+      <div class="split">
+        <div style="font-weight:700;font-size:13.5px">🧑‍🤝‍🧑 แบ่งจ่ายกับเพื่อน</div>
+        <div class="row">
+          <div style="display:flex;align-items:center;gap:10px"><button>−</button><b>3</b><button>+</button><span style="color:var(--mut);font-size:13px">คน</span></div>
+          <span class="per">~65฿ /คน</span>
+        </div>
+      </div>
+      <button class="cta">ออกไปชิลกัน ~</button>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

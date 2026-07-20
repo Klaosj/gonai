@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Theme A · เช้าวันเสาร์</title>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#fff8ec; --card:#ffffff; --line:#f0e4cf; --ink:#33302a; --mut:#8f8674;
+    --sun:#ffb32b; --coral:#ff7a59; --leaf:#3fa46a; --sky:#58b7e6; --butter:#fff1d0;
+    --sh:0 6px 0 rgba(51,48,42,.06), 0 16px 40px rgba(255,179,43,.14); }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'Anuphan',sans-serif; background:var(--bg); color:var(--ink); overflow-x:hidden; }
+  .fun { font-family:'Itim',cursive; }
+  /* แดดเช้า + sticker ลอย */
+  .sun-blob { position:fixed; top:-140px; right:-100px; width:420px; height:420px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,179,43,.35), transparent 65%); pointer-events:none; animation:breathe 6s ease-in-out infinite; }
+  @keyframes breathe { 50% { transform:scale(1.12); } }
+  .stick { position:fixed; font-size:26px; pointer-events:none; animation:floaty 7s ease-in-out infinite; opacity:.85; }
+  @keyframes floaty { 50% { transform:translateY(-14px) rotate(6deg); } }
+
+  nav { display:flex; align-items:center; gap:16px; padding:16px 26px; position:relative; z-index:2; }
+  .logo { font-family:'Itim'; font-size:28px; color:var(--coral); transform:rotate(-2deg); }
+  .logo span { color:var(--leaf); }
+  nav a { text-decoration:none; color:var(--mut); font-weight:600; font-size:14.5px; padding:9px 18px; border-radius:999px; transition:all .2s; }
+  nav a.on { background:var(--ink); color:#fff; box-shadow:var(--sh); }
+  nav a:hover:not(.on) { background:var(--butter); color:var(--ink); }
+  .ava { margin-left:auto; width:40px; height:40px; border-radius:50%; background:var(--sun); border:3px solid #fff; box-shadow:var(--sh); display:grid; place-items:center; font-size:18px; }
+
+  .wrap { max-width:1240px; margin:0 auto; padding:14px 26px 80px; position:relative; z-index:1; }
+  .hello { margin:10px 0 22px; }
+  .hello h1 { font-family:'Itim'; font-size:clamp(30px,4.5vw,44px); line-height:1.15; }
+  .hello h1 .hl { color:var(--coral); position:relative; white-space:nowrap; }
+  .hello h1 .hl::after { content:""; position:absolute; left:0; right:0; bottom:2px; height:10px; background:var(--sun); opacity:.4; border-radius:99px; z-index:-1; transform:rotate(-1deg); }
+  .hello p { color:var(--mut); margin-top:6px; font-size:15px; }
+
+  /* mood tiles สดใส */
+  .moods { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:24px; }
+  .mood { border-radius:22px; padding:18px; cursor:pointer; border:2.5px solid transparent; box-shadow:var(--sh);
+    transition:all .25s cubic-bezier(.34,1.56,.64,1); position:relative; overflow:hidden; }
+  .mood:hover { transform:translateY(-5px) rotate(-.5deg); }
+  .mood:active { transform:scale(.96); }
+  .mood.on { border-color:var(--ink); }
+  .mood .e { font-size:30px; }
+  .mood b { display:block; font-size:16.5px; margin-top:6px; }
+  .mood span { font-size:12.5px; color:rgba(51,48,42,.65); }
+  .m1 { background:linear-gradient(140deg,#fff1d0,#ffe3a8); }
+  .m2 { background:linear-gradient(140deg,#ffe3da,#ffc9b8); }
+  .m3 { background:linear-gradient(140deg,#d9f2e2,#b8e6c9); }
+  .m4 { background:linear-gradient(140deg,#d8ecfb,#b8dcf5); }
+
+  .cols { display:grid; grid-template-columns:310px 1fr 330px; gap:16px; }
+  .card { background:var(--card); border-radius:24px; box-shadow:var(--sh); padding:18px; border:1px solid var(--line); }
+  .lbl { font-family:'Itim'; color:var(--coral); font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+
+  .routebox { background:var(--butter); border-radius:16px; padding:14px; }
+  .routebox .r { display:flex; justify-content:space-between; padding:5px 0; font-size:13.5px; color:#6d6350; }
+  .routebox .sum { display:flex; justify-content:space-between; padding-top:8px; border-top:2px dashed rgba(51,48,42,.15); margin-top:4px; align-items:baseline; }
+  .routebox .sum b { font-size:22px; color:var(--leaf); }
+  .chip { background:#fff; border:2px solid var(--line); color:var(--mut); border-radius:999px; padding:8px 15px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .22s cubic-bezier(.34,1.56,.64,1); }
+  .chip:hover { transform:translateY(-2px); border-color:var(--sun); color:var(--ink); }
+  .chip.on { background:var(--leaf); border-color:var(--leaf); color:#fff; }
+
+  .hero { border-radius:18px; height:110px; background:linear-gradient(140deg,var(--sky),#8fd0f2 55%,#ffe3a8); position:relative; overflow:hidden; margin-bottom:14px; padding:14px 16px; display:flex; align-items:flex-end; }
+  .hero .fun { font-size:22px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.18); }
+  .hero .cloud { position:absolute; font-size:30px; top:10px; animation:drift 12s linear infinite; }
+  @keyframes drift { from { left:-40px; } to { left:105%; } }
+
+  .vgrid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .vcard { border-radius:20px; overflow:hidden; background:#fff; border:1px solid var(--line); box-shadow:var(--sh); transition:all .25s cubic-bezier(.34,1.56,.64,1); }
+  .vcard:hover { transform:translateY(-5px) rotate(.4deg); }
+  .vcard .th { height:104px; display:grid; place-items:center; font-size:40px; position:relative; }
+  .t1 { background:linear-gradient(140deg,#ffe9c9,#ffd694); } .t2 { background:linear-gradient(140deg,#d9f2e2,#aee3c4); }
+  .tag { position:absolute; top:10px; left:10px; font-family:'Itim'; font-size:12px; padding:4px 12px; border-radius:999px; transform:rotate(-3deg); box-shadow:0 3px 8px rgba(0,0,0,.12); }
+  .tag.hit { background:var(--coral); color:#fff; }
+  .tag.un { background:#9b7ff0; color:#fff; }
+  .fare { position:absolute; right:10px; top:10px; background:#fff; border-radius:999px; padding:4px 10px; font-size:11.5px; font-weight:700; color:var(--sky); box-shadow:0 3px 8px rgba(0,0,0,.1); }
+  .vcard .bd { padding:14px; }
+  .vcard b.name { font-size:15.5px; }
+  .vcard .meta { color:var(--mut); font-size:12.5px; margin:6px 0 10px; }
+  .vcard .trust { font-size:11.5px; color:var(--leaf); font-weight:600; }
+  .go { width:100%; margin-top:10px; font-family:'Itim'; font-size:15px; background:var(--coral); color:#fff; border:0; border-radius:999px; padding:11px; cursor:pointer; box-shadow:0 4px 0 #d95f40; transition:all .12s; }
+  .go:hover { filter:brightness(1.06); }
+  .go:active { transform:translateY(3px); box-shadow:0 1px 0 #d95f40; }
+
+  .budget { text-align:left; }
+  .budget .big { font-family:'Itim'; font-size:30px; color:var(--leaf); }
+  .budget .big small { font-size:16px; color:var(--mut); font-family:'Anuphan'; }
+  .barr { height:14px; border-radius:99px; background:var(--butter); overflow:hidden; margin-top:10px; border:1px solid var(--line); }
+  .barr i { display:block; height:100%; width:43%; border-radius:99px; background:repeating-linear-gradient(45deg,var(--leaf),var(--leaf) 10px,#57b97f 10px,#57b97f 20px); animation:fill 1s .4s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fill { from { width:0; } }
+  .split { margin-top:16px; background:var(--butter); border-radius:16px; padding:14px; }
+  .split .row { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+  .split button { width:32px; height:32px; border-radius:99px; border:2px solid var(--line); background:#fff; font-size:16px; cursor:pointer; }
+  .split .per { font-family:'Itim'; font-size:20px; color:var(--coral); }
+  .cta { width:100%; margin-top:16px; font-family:'Itim'; font-size:18px; background:var(--ink); color:#fff; border:0; border-radius:999px; padding:15px; cursor:pointer; box-shadow:0 5px 0 rgba(51,48,42,.35); transition:all .12s; }
+  .cta:active { transform:translateY(4px); box-shadow:0 1px 0 rgba(51,48,42,.35); }
+  .rise { animation:rise .55s cubic-bezier(.34,1.5,.64,1) both; }
+  .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.21s}
+  @keyframes rise { from { opacity:0; transform:translateY(16px) scale(.98); } }
+</style>
+</head>
+<body>
+<div class="sun-blob"></div>
+<span class="stick" style="top:18%;left:3%">🍞</span>
+<span class="stick" style="top:60%;left:2%;animation-delay:-3s">☕</span>
+<span class="stick" style="top:34%;right:3%;animation-delay:-5s">🛵</span>
+<span class="stick" style="bottom:12%;right:5%;animation-delay:-1s">🌤️</span>
+
+<nav>
+  <div class="logo">Go<span>Nai</span> ☀️</div>
+  <a class="on" href="#">วางแผน</a><a href="#">สำรวจ</a><a href="#">ทริปของฉัน</a>
+  <div class="ava">😎</div>
+</nav>
+
+<div class="wrap">
+  <div class="hello rise">
+    <h1>เสาร์นี้ไปไหนดี? <span class="hl">งบ 450฿ อยู่หมัด</span></h1>
+    <p>วิน เรือ BTS คิดให้ครบทุกบาท — เหลือแค่เลือกว่าอยากไปชิลไหน</p>
+  </div>
+
+  <div class="moods rise d1">
+    <div class="mood m1 on"><span class="e">💻</span><b>งานนอกบ้าน</b><span>เงียบ · ปลั๊ก · ~450฿</span></div>
+    <div class="mood m2"><span class="e">💛</span><b>เดทอาทิตย์นี้</b><span>บรรยากาศดี · ~900฿</span></div>
+    <div class="mood m3"><span class="e">👨‍👩‍👧</span><b>พาครอบครัว</b><span>ในร่ม · ที่จอด · ~1,200฿</span></div>
+    <div class="mood m4"><span class="e">📷</span><b>ถ่ายรูปสวย</b><span>golden hour · ~600฿</span></div>
+  </div>
+
+  <div class="cols">
+    <aside class="card rise d1">
+      <div class="lbl">🧭 เส้นทางของเรา</div>
+      <div class="routebox">
+        <div class="r"><span>เดินไป BTS ห้าแยกลาดพร้าว</span><span>0฿</span></div>
+        <div class="r"><span>BTS → สยาม</span><span>44฿</span></div>
+        <div class="sum"><span>รวมขาไป · 33 นาที</span><b>44฿</b></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
+        <button class="chip on">🎧 เงียบ</button><button class="chip">🔌 ปลั๊ก</button><button class="chip">☂️ ในร่ม</button><button class="chip">⏱ ≤10 นาที</button>
+      </div>
+    </aside>
+
+    <section class="card rise d2">
+      <div class="lbl">✨ คัดมาให้ 2 จาก 3 ที่</div>
+      <div class="hero">
+        <span class="cloud">☁️</span>
+        <span class="fun">ลาดพร้าว → สยาม 🌈</span>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="th t1">🥐<span class="tag hit">🔥 ฮิตอันดับ 2</span><span class="fare">BTS 44฿</span></div>
+          <div class="bd"><b class="name">บีนส์บาร์ ชั้นลอย</b>
+            <div class="meta">เงียบ ประชุมได้ · 100 Mbps · ~150฿/คน</div>
+            <div class="trust">✓ เพื่อนนักเที่ยวยืนยันแล้ว 9 คน</div>
+            <button class="go">+ จัดเข้าแผน!</button></div>
+        </div>
+        <div class="vcard">
+          <div class="th t2">🌿<span class="tag un">✨ ที่ลับ</span><span class="fare">BTS 44฿</span></div>
+          <div class="bd"><b class="name">โฮมคาเฟ่ ซอยเกษม</b>
+            <div class="meta">มีข้าว · คนยังน้อย · ~160฿/คน</div>
+            <div class="trust">✓ ยืนยันแล้ว 5 คน</div>
+            <button class="go">+ จัดเข้าแผน!</button></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card rise d3">
+      <div class="lbl">🪙 กระเป๋าเงินวันนี้</div>
+      <div class="budget">
+        <div class="big">194฿ <small>/ 450฿ · เหลือ 256฿ 🎉</small></div>
+        <div class="barr"><i></i></div>
+      </div>
+      <div class="split">
+        <div style="font-weight:700;font-size:13.5px">🧑‍🤝‍🧑 แบ่งจ่ายกับเพื่อน</div>
+        <div class="row">
+          <div style="display:flex;align-items:center;gap:10px"><button>−</button><b>3</b><button>+</button><span style="color:var(--mut);font-size:13px">คน</span></div>
+          <span class="per">~65฿/คน</span>
+        </div>
+      </div>
+      <button class="cta">ออกเดินทาง! 🚀</button>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

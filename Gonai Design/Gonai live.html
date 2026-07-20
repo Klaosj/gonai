@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Live Mode (กำลังเที่ยว เต็มจอ)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0b0c; --card:rgba(255,255,255,.05); --solid:#17181a; --line:rgba(255,255,255,.1);
+    --ink:#f4f3ef; --mut:#9b9a94; --accent:#cfe6f5; --pill:#f4f3ef; --ok:#7ad0a6; --warn:#e8b36a; --bad:#e07a5f; }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'IBM Plex Sans Thai',sans-serif; background:var(--bg); color:var(--ink); max-width:520px; margin:0 auto; min-height:100vh; }
+  .serif { font-family:'Fraunces',serif; } .serif em { font-style:italic; }
+  .mono { font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.14em; font-size:11px; }
+  .pillw { background:var(--pill); color:var(--bg); border:0; border-radius:999px; font-family:'IBM Plex Mono',monospace; font-weight:600; letter-spacing:.06em; cursor:pointer; transition:all .18s; }
+  .pillw:active { transform:scale(.96); }
+
+  /* sticky budget tracker บนสุด — เห็นตลอดเวลา */
+  .track { position:sticky; top:0; z-index:9; background:rgba(11,11,12,.85); backdrop-filter:blur(18px); border-bottom:1px solid var(--line); padding:14px 20px; }
+  .track .top { display:flex; align-items:center; justify-content:space-between; }
+  .live { display:inline-flex; align-items:center; gap:6px; color:var(--bad); }
+  .live i { width:8px; height:8px; border-radius:99px; background:var(--bad); animation:pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity:.3; transform:scale(.75); } }
+  .nums { font-variant-numeric:tabular-nums; font-size:24px; font-weight:700; margin-top:6px; }
+  .nums small { color:var(--ok); font-size:13px; font-weight:500; }
+  .bar { height:4px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:8px; }
+  .bar i { display:block; height:100%; width:43%; background:var(--ok); border-radius:99px; transition:width .7s cubic-bezier(.22,1,.36,1); }
+
+  .wrap { padding:20px; }
+  .rise { animation:rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } }
+
+  /* การ์ดจุดปัจจุบัน — ใหญ่สุดในจอ */
+  .now { border-radius:24px; overflow:hidden; border:1px solid var(--line); }
+  .now .ph { height:170px; background:linear-gradient(150deg,#1a2733,#6f93b0); position:relative; padding:16px; display:flex; flex-direction:column; justify-content:space-between; }
+  .now .ph .mono { background:rgba(11,11,12,.6); backdrop-filter:blur(8px); align-self:flex-start; padding:5px 12px; border-radius:99px; color:var(--accent); }
+  .now .ph h2 { font-size:24px; font-weight:600; text-shadow:0 2px 12px rgba(0,0,0,.4); }
+  .now .bd { background:var(--solid); padding:18px; }
+  .now .meta { color:var(--mut); font-size:13.5px; margin-bottom:14px; }
+  .btns { display:flex; gap:10px; }
+  .ghost { flex:1; background:transparent; border:1px solid var(--line); color:var(--ink); border-radius:999px; padding:12px; font-family:inherit; font-size:14px; cursor:pointer; }
+  .ghost:hover { border-color:var(--ink); }
+
+  /* step-by-step transport timeline */
+  .tl { margin:22px 0; }
+  .tl .h { color:var(--mut); margin-bottom:12px; }
+  .leg { display:flex; gap:14px; position:relative; padding-bottom:18px; }
+  .leg::before { content:""; position:absolute; left:15px; top:34px; bottom:0; width:1px; background:var(--line); }
+  .leg:last-child::before { display:none; }
+  .leg .ic { width:32px; height:32px; border-radius:99px; display:grid; place-items:center; background:var(--solid); border:1px solid var(--line); flex-shrink:0; z-index:1; }
+  .leg.done .ic { background:var(--ok); color:var(--bg); border-color:var(--ok); }
+  .leg.now-leg .ic { border-color:var(--accent); box-shadow:0 0 0 4px rgba(207,230,245,.12); }
+  .leg .tx b { font-size:14.5px; display:block; }
+  .leg .tx span { color:var(--mut); font-size:12.5px; }
+  .leg .amt { margin-left:auto; font-variant-numeric:tabular-nums; color:var(--mut); font-size:13px; white-space:nowrap; }
+  .leg.done .amt { color:var(--ok); }
+
+  /* จุดถัดไป + replan */
+  .next-stop { background:var(--card); border:1px dashed var(--line); border-radius:18px; padding:16px; display:flex; align-items:center; gap:12px; }
+  .cta-check { width:100%; padding:16px; font-size:15px; margin-top:20px; }
+  .replan { width:100%; background:transparent; border:1px solid var(--line); color:var(--warn); border-radius:999px; padding:12px; font-family:inherit; font-size:14px; margin-top:10px; cursor:pointer; }
+</style>
+</head>
+<body>
+  <!-- budget tracker ติดหัวจอตลอด -->
+  <div class="track">
+    <div class="top">
+      <span class="mono live"><i></i> LIVE · กำลังเที่ยว</span>
+      <span class="mono" style="color:var(--mut)">ลาดพร้าว → สยาม</span>
+    </div>
+    <div class="nums">จ่ายจริง 194฿ / 450฿ <small>· เหลือ 256฿ ✓</small></div>
+    <div class="bar"><i></i></div>
+  </div>
+
+  <div class="wrap">
+    <!-- จุดปัจจุบัน -->
+    <div class="now rise">
+      <div class="ph">
+        <span class="mono">อยู่ที่นี่ · จุดที่ 1/2</span>
+        <h2>บีนส์บาร์ ชั้นลอย</h2>
+      </div>
+      <div class="bd">
+        <div class="meta">เช็คอินแล้ว 13:02 · จ่ายแล้ว 150฿ · เดิน 3 นาทีจาก BTS สยาม</div>
+        <div class="btns">
+          <button class="ghost">🗺 นำทาง</button>
+          <button class="ghost" style="color:var(--ok);border-color:rgba(122,208,166,.4)">✓ ยืนยันราคาให้เพื่อน</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- เส้นทางทีละก้าว -->
+    <div class="tl rise d1">
+      <div class="mono h">เส้นทางวันนี้ · ทีละก้าว</div>
+      <div class="leg done">
+        <span class="ic">✓</span>
+        <span class="tx"><b>เดินไป BTS ห้าแยกลาดพร้าว</b><span>5 นาที</span></span>
+        <span class="amt">0฿</span>
+      </div>
+      <div class="leg done">
+        <span class="ic">✓</span>
+        <span class="tx"><b>BTS → สยาม</b><span>28 นาที · ทางออก 4</span></span>
+        <span class="amt">44฿ ✓</span>
+      </div>
+      <div class="leg now-leg">
+        <span class="ic">☕</span>
+        <span class="tx"><b>บีนส์บาร์ ชั้นลอย</b><span>กำลังอยู่ที่นี่ · จ่ายแล้ว 150฿</span></span>
+        <span class="amt" style="color:var(--accent)">ตอนนี้</span>
+      </div>
+      <div class="leg">
+        <span class="ic">🌿</span>
+        <span class="tx"><b>โฮมคาเฟ่ ซอยเกษม</b><span>เดินต่อ 9 นาที · ประเมิน ~160฿</span></span>
+        <span class="amt">ถัดไป</span>
+      </div>
+    </div>
+
+    <!-- จุดถัดไป -->
+    <div class="next-stop rise d2">
+      <span style="font-size:22px">🌿</span>
+      <div style="flex:1">
+        <b style="font-size:14.5px">ต่อไป: โฮมคาเฟ่ ซอยเกษม</b>
+        <div style="color:var(--mut);font-size:12.5px">เปิดถึง 20:00 · อยู่ในงบที่เหลือ ✓</div>
+      </div>
+      <button class="pillw" style="padding:9px 16px;font-size:12px">เช็คอิน →</button>
+    </div>
+
+    <button class="pillw cta-check rise d3">✓ เช็คอิน + บันทึกจ่ายจริงจุดนี้</button>
+    <button class="replan rise d3">☔ ฝนตก / แผนพัง — หาที่ในร่มในงบที่เหลือ</button>
+  </div>
+</body>
+</html>

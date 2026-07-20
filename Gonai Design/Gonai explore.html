@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Explore (แผนที่ + Grid)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0b0c; --card:rgba(255,255,255,.04); --solid:#17181a; --line:rgba(255,255,255,.1);
+    --ink:#f4f3ef; --mut:#9b9a94; --accent:#cfe6f5; --pill:#f4f3ef; --ok:#7ad0a6; --bad:#e07a5f; }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'IBM Plex Sans Thai',sans-serif; background:var(--bg); color:var(--ink); }
+  .serif { font-family:'Fraunces',serif; } .serif em { font-style:italic; }
+  .mono { font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.14em; font-size:11px; }
+  .chip { background:transparent; border:1px solid var(--line); color:var(--mut); border-radius:999px; padding:8px 16px; font-family:inherit; font-size:13.5px; cursor:pointer; transition:all .2s; }
+  .chip:hover { color:var(--ink); border-color:var(--ink); }
+  .chip.on { background:var(--pill); color:var(--bg); border-color:var(--pill); font-weight:600; }
+  nav { display:flex; align-items:center; gap:18px; padding:14px 24px; border-bottom:1px solid var(--line); background:rgba(11,11,12,.72); backdrop-filter:blur(18px); position:sticky; top:0; z-index:9; }
+  .logo { font-family:'Fraunces',serif; font-size:22px; } .logo em { font-style:italic; }
+  nav .t { color:var(--mut); text-decoration:none; padding:7px 14px; border-radius:999px; }
+  nav .t.on { background:var(--pill); color:var(--bg); font-weight:600; }
+  .wrap { max-width:1280px; margin:0 auto; padding:26px 24px 60px; }
+  .rise { animation:rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}.d4{animation-delay:.32s}
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } }
+
+  .top { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+  h1 { font-size:30px; font-weight:600; } h1 em { font-family:'Fraunces',serif; font-style:italic; color:var(--accent); }
+
+  .layout { display:grid; grid-template-columns:1.1fr .9fr; gap:16px; }
+
+  /* แผนที่ stylized (ของจริงรอพิกัดจาก W2 — mock เป็นภาพประกอบก่อน) */
+  .map { position:relative; border-radius:20px; border:1px solid var(--line); min-height:480px; overflow:hidden;
+    background: radial-gradient(circle at 60% 40%, #16232e 0%, #0e1418 70%),
+      repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,255,255,.035) 39px 40px),
+      repeating-linear-gradient(90deg, transparent 0 39px, rgba(255,255,255,.035) 39px 40px); }
+  .map .river { position:absolute; left:-10%; top:55%; width:130%; height:46px; background:rgba(207,230,245,.09); transform:rotate(-9deg); border-radius:99px; }
+  .map .bts { position:absolute; left:8%; top:30%; width:86%; height:3px; background:rgba(122,208,166,.35); transform:rotate(4deg); }
+  .pin { position:absolute; display:grid; place-items:center; cursor:pointer; transition:transform .2s cubic-bezier(.34,1.5,.64,1); }
+  .pin:hover { transform:scale(1.15); z-index:3; }
+  .pin .dot { width:38px; height:38px; border-radius:99px; display:grid; place-items:center; font-size:17px; background:var(--solid); border:1.5px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.5); }
+  .pin.hit .dot { border-color:var(--pill); }
+  .pin.unseen .dot { border-color:var(--accent); box-shadow:0 0 0 5px rgba(207,230,245,.08),0 8px 24px rgba(0,0,0,.5); }
+  .pin .lb { margin-top:5px; font-size:11px; background:rgba(11,11,12,.8); backdrop-filter:blur(6px); padding:3px 9px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; }
+  .maplegend { position:absolute; left:14px; bottom:14px; display:flex; gap:12px; background:rgba(11,11,12,.75); backdrop-filter:blur(8px); border:1px solid var(--line); border-radius:12px; padding:8px 14px; font-size:11.5px; color:var(--mut); }
+  .mapnote { position:absolute; right:14px; top:14px; }
+
+  /* grid ฝั่งขวา */
+  .gridcol { display:flex; flex-direction:column; gap:12px; }
+  .vcard { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:14px 16px; display:flex; gap:14px; align-items:center; transition:all .3s cubic-bezier(.22,1,.36,1); cursor:pointer; }
+  .vcard:hover { transform:translateY(-2px); border-color:rgba(255,255,255,.3); }
+  .vcard .th { width:64px; height:64px; border-radius:14px; display:grid; place-items:center; font-size:26px; flex-shrink:0; }
+  .t-work { background:linear-gradient(150deg,#1a2733,#35506b); }
+  .t-date { background:linear-gradient(150deg,#2b1a26,#6b3550); }
+  .t-photo { background:linear-gradient(150deg,#2b2114,#6b5535); }
+  .t-family { background:linear-gradient(150deg,#14282b,#356b62); }
+  .vcard b { display:block; font-size:15px; }
+  .vcard .m { color:var(--mut); font-size:12.5px; margin-top:2px; }
+  .badge { margin-left:auto; flex-shrink:0; border-radius:99px; padding:4px 10px; font-size:10px; }
+  .b-hit { background:var(--pill); color:var(--bg); }
+  .b-un { background:var(--accent); color:var(--bg); }
+  .trend { color:var(--ok); font-size:11.5px; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo"><em>Go</em>Nai</span>
+  <a class="t mono" href="#">วางแผน</a><a class="t on mono" href="#">สำรวจ</a><a class="t mono" href="#">ทริปของฉัน</a>
+</nav>
+
+<div class="wrap">
+  <div class="top rise">
+    <h1>ยังไม่มีแผน? <em>เปิดแผนที่หาก่อน</em></h1>
+    <span class="mono" style="color:var(--mut)">ย่านสยาม · อัปเดตสัปดาห์นี้</span>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px" class="rise d1">
+    <button class="chip on">✨ ทั้งหมด</button>
+    <button class="chip">🔥 มาแรงสัปดาห์นี้</button>
+    <button class="chip">💜 Unseen เท่านั้น</button>
+    <button class="chip">💻 นั่งทำงาน</button>
+    <button class="chip">💛 เดท</button>
+    <button class="chip">📷 ถ่ายรูป</button>
+    <button class="chip">🪙 ต่ำกว่า 150฿</button>
+  </div>
+
+  <div class="layout">
+    <!-- MAP -->
+    <div class="map rise d2">
+      <span class="river"></span><span class="bts"></span>
+      <span class="mapnote mono" style="background:rgba(11,11,12,.75);border:1px solid var(--line);padding:6px 12px;border-radius:99px;color:var(--mut)">แผนที่จริงรอพิกัด W2</span>
+      <div class="pin hit" style="left:24%;top:22%"><span class="dot">☕</span><span class="lb">เวิร์คคาเฟ่ · Nº1</span></div>
+      <div class="pin hit" style="left:48%;top:38%"><span class="dot">🥐</span><span class="lb">บีนส์บาร์ · Nº2</span></div>
+      <div class="pin unseen" style="left:66%;top:26%"><span class="dot">🌿</span><span class="lb">โฮมคาเฟ่ ✨</span></div>
+      <div class="pin unseen" style="left:35%;top:62%"><span class="dot">🎨</span><span class="lb">ดาดฟ้าแกลเลอรี ✨</span></div>
+      <div class="pin hit" style="left:74%;top:58%"><span class="dot">🛍️</span><span class="lb">ตลาดนัด · Nº3</span></div>
+      <div class="maplegend"><span>⚪ Hit</span><span style="color:var(--accent)">🔵 Unseen (ยืนยัน ≥3 คน)</span><span>— BTS</span><span style="color:rgba(207,230,245,.7)">〰 คลองแสนแสบ</span></div>
+    </div>
+
+    <!-- GRID -->
+    <div class="gridcol">
+      <div class="mono rise d2" style="color:var(--mut)">เรียงตามที่คนกดเพิ่มเข้าแผนสัปดาห์นี้</div>
+      <div class="vcard rise d2"><span class="th t-work">☕</span>
+        <span><b>เวิร์คคาเฟ่ สยามสแควร์</b><span class="m">~200฿/คน · เดิน 6 นาที · <span class="trend">▲ เพิ่มเข้าแผน 41 ครั้ง</span></span></span>
+        <span class="badge b-hit mono">HIT Nº1</span></div>
+      <div class="vcard rise d3"><span class="th t-work">🥐</span>
+        <span><b>บีนส์บาร์ ชั้นลอย</b><span class="m">~150฿/คน · เงียบ ประชุมได้ · <span class="trend">▲ 32 ครั้ง</span></span></span>
+        <span class="badge b-hit mono">HIT Nº2</span></div>
+      <div class="vcard rise d3"><span class="th t-family">🌿</span>
+        <span><b>โฮมคาเฟ่ ซอยเกษม</b><span class="m">~160฿/คน · มีข้าว · <span class="trend">ยืนยันแล้ว 5 คน</span></span></span>
+        <span class="badge b-un mono">UNSEEN</span></div>
+      <div class="vcard rise d4"><span class="th t-photo">🎨</span>
+        <span><b>ดาดฟ้าแกลเลอรี BACC</b><span class="m">0-100฿ · golden hour 17:00 · <span class="trend">ยืนยันแล้ว 4 คน</span></span></span>
+        <span class="badge b-un mono">UNSEEN</span></div>
+      <div class="vcard rise d4"><span class="th t-date">🛍️</span>
+        <span><b>ตลาดนัดหลังมอ</b><span class="m">~120฿/คน · เย็นๆ คนเยอะ · <span class="trend">▲ 18 ครั้ง</span></span></span>
+        <span class="badge b-hit mono">HIT Nº3</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

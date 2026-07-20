@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — App (Mood tiles · Split-pay · Taste DNA)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0b0c; --elev:#131315; --card:rgba(255,255,255,.04); --solid:#17181a; --line:rgba(255,255,255,.1);
+    --ink:#f4f3ef; --mut:#9b9a94; --accent:#cfe6f5; --pill:#f4f3ef; --ok:#7ad0a6; --warn:#e8b36a; --bad:#e07a5f; }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'IBM Plex Sans Thai',sans-serif; background:var(--bg); color:var(--ink); }
+  .serif { font-family:'Fraunces',serif; } .serif em { font-style:italic; }
+  .mono { font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.14em; font-size:11px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; }
+  .pillw { background:var(--pill); color:var(--bg); border:0; border-radius:999px; font-family:'IBM Plex Mono',monospace; font-weight:600; letter-spacing:.06em; cursor:pointer; transition:all .18s; }
+  .pillw:hover { filter:brightness(.9); } .pillw:active { transform:scale(.96); }
+  .chip { background:transparent; border:1px solid var(--line); color:var(--mut); border-radius:999px; padding:8px 16px; font-family:inherit; font-size:13.5px; cursor:pointer; transition:all .2s; }
+  .chip:hover { color:var(--ink); border-color:var(--ink); }
+  .chip.on { background:var(--pill); color:var(--bg); border-color:var(--pill); font-weight:600; }
+  .rise { animation:rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}.d4{animation-delay:.24s}
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } }
+  nav { display:flex; align-items:center; gap:18px; padding:14px 24px; border-bottom:1px solid var(--line); background:rgba(11,11,12,.72); backdrop-filter:blur(18px); position:sticky; top:0; z-index:9; }
+  .logo { font-family:'Fraunces',serif; font-size:22px; } .logo em { font-style:italic; }
+  nav .t { color:var(--mut); text-decoration:none; padding:7px 14px; border-radius:999px; }
+  nav .t.on { background:var(--pill); color:var(--bg); font-weight:600; }
+  /* Taste DNA chip ใน header — สร้างจากการใช้งานจริง */
+  .dna { margin-left:auto; display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:999px; padding:6px 14px; background:var(--card); }
+  .dna .dots { display:flex; gap:3px; }
+  .dna .dots i { width:6px; height:6px; border-radius:99px; background:var(--accent); opacity:.9; }
+  .dna .dots i:nth-child(4), .dna .dots i:nth-child(5) { opacity:.25; }
+  .wrap { max-width:1280px; margin:0 auto; padding:26px 24px 60px; }
+
+  /* Mood tiles — แทน hint banner: แตะเดียวเริ่มแผน (map เข้า intent+filter จริง) */
+  .moods { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin-bottom:26px; }
+  .mood { position:relative; overflow:hidden; border-radius:20px; border:1px solid var(--line); padding:22px 20px 18px; cursor:pointer; min-height:120px; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; transition:all .3s cubic-bezier(.22,1,.36,1); }
+  .mood:hover { transform:translateY(-4px); border-color:rgba(255,255,255,.35); }
+  .mood .mono { opacity:.75; }
+  .mood b { font-size:18px; font-weight:600; }
+  .mood span { font-size:12.5px; color:rgba(255,255,255,.75); }
+  .m-work { background:linear-gradient(150deg,#1a2733,#35506b); }
+  .m-date { background:linear-gradient(150deg,#2b1a26,#6b3550); }
+  .m-family { background:linear-gradient(150deg,#14282b,#356b62); }
+  .m-photo { background:linear-gradient(150deg,#2b2114,#6b5535); }
+
+  .cols { display:grid; grid-template-columns:320px 1fr 340px; gap:16px; }
+  .col { padding:18px; }
+  .h { color:var(--mut); margin-bottom:14px; }
+  .routebox { background:var(--solid); border-radius:14px; padding:14px; border:1px solid var(--line); }
+  .routebox .r { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:13.5px; color:var(--mut); }
+  .routebox .sum { display:flex; justify-content:space-between; padding-top:10px; align-items:baseline; }
+  .routebox .sum b { font-size:22px; }
+  .hero { border-radius:14px; height:120px; background:linear-gradient(150deg,#1a2733,#6f93b0); display:flex; align-items:flex-end; padding:16px; margin-bottom:14px; }
+  .vcard { background:var(--card); border:1px solid var(--line); border-radius:18px; overflow:hidden; }
+  .vcard .th { height:96px; background:linear-gradient(150deg,#1a2733,#35506b); position:relative; }
+  .vcard .bd { padding:14px; }
+  .vgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tagw { position:absolute; top:10px; left:10px; background:var(--pill); color:var(--bg); border-radius:99px; padding:3px 9px; }
+  .taga { position:absolute; top:10px; left:10px; background:var(--accent); color:var(--bg); border-radius:99px; padding:3px 9px; }
+
+  /* budget + split-pay */
+  .bignum { font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .bar { height:4px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:10px; }
+  .bar i { display:block; height:100%; width:43%; background:var(--ok); border-radius:99px; animation:fill 1s .5s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fill { from { width:0; } }
+  .split { margin-top:16px; border-top:1px solid var(--line); padding-top:16px; }
+  .split .row { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+  .step { display:flex; align-items:center; gap:12px; }
+  .step button { width:30px; height:30px; border-radius:99px; border:1px solid var(--line); background:transparent; color:var(--ink); font-size:16px; cursor:pointer; }
+  .step button:hover { border-color:var(--ink); }
+  .perhead { font-size:22px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo"><em>Go</em>Nai</span>
+  <a class="t on mono" href="#">วางแผน</a><a class="t mono" href="#">สำรวจ</a><a class="t mono" href="#">ทริปของฉัน</a>
+  <div class="dna" title="Taste DNA — สร้างจากทริปจริง 4 ทริป">
+    <span class="mono" style="color:var(--accent)">TASTE DNA</span>
+    <div class="dots"><i></i><i></i><i></i><i></i><i></i></div>
+    <span style="font-size:12px;color:var(--mut)">สายเงียบ · คาเฟ่ · งบเซฟ</span>
+  </div>
+</nav>
+
+<div class="wrap">
+  <!-- Mood tiles แทน hint banner — แตะเดียว = ตั้ง intent+budget+filter แล้วโชว์ Top 3 เลย -->
+  <div class="moods">
+    <div class="mood m-work rise"><span class="mono">Mood · วันนี้</span><b>💻 งานนอกบ้าน</b><span>เงียบ · ปลั๊ก · งบ ~450฿</span></div>
+    <div class="mood m-date rise d1"><span class="mono">Mood · เสาร์นี้</span><b>💛 เดทอาทิตย์นี้</b><span>บรรยากาศดี · งบ ~900฿</span></div>
+    <div class="mood m-family rise d2"><span class="mono">Mood · ครอบครัว</span><b>👨‍👩‍👧 พาครอบครัว</b><span>ในร่ม · ที่จอด · งบ ~1,200฿</span></div>
+    <div class="mood m-photo rise d3"><span class="mono">Mood · สายรูป</span><b>📷 ถ่ายรูปสวย</b><span>golden hour · งบ ~600฿</span></div>
+  </div>
+
+  <div class="cols">
+    <aside class="card col rise d1">
+      <div class="mono h">01 — เงื่อนไขของคุณ</div>
+      <div class="routebox">
+        <div class="r"><span>เดินไป BTS ห้าแยกลาดพร้าว</span><span>0฿</span></div>
+        <div class="r"><span>BTS → สยาม</span><span>44฿</span></div>
+        <div class="sum"><span class="mono">รวมขาไป · 33 นาที</span><b>44฿</b></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
+        <button class="chip on">🎧 เงียบ</button><button class="chip">🔌 ปลั๊ก</button><button class="chip">☂️ ในร่ม</button><button class="chip">⏱ ≤10 นาที</button>
+      </div>
+    </aside>
+
+    <section class="card col rise d2">
+      <div class="mono h">02 — เลือกสถานที่ · คัดมา 2 จาก 3</div>
+      <div class="hero"><span class="serif" style="font-size:22px"><em>ลาดพร้าว</em> → สยาม</span></div>
+      <div class="vgrid">
+        <div class="vcard"><div class="th"><span class="tagw mono" style="font-size:10px">HIT Nº2</span></div>
+          <div class="bd"><b>บีนส์บาร์ ชั้นลอย</b><div style="color:var(--mut);font-size:12.5px;margin:6px 0">เงียบ · 100 Mbps · ~150฿/คน</div>
+          <button class="pillw" style="width:100%;padding:9px">+ เพิ่มเข้าแผน</button></div></div>
+        <div class="vcard"><div class="th" style="background:linear-gradient(150deg,#14282b,#356b62)"><span class="taga mono" style="font-size:10px">UNSEEN</span></div>
+          <div class="bd"><b>โฮมคาเฟ่ ซอยเกษม</b><div style="color:var(--mut);font-size:12.5px;margin:6px 0">มีข้าว · ยืนยัน 5 คน · ~160฿/คน</div>
+          <button class="pillw" style="width:100%;padding:9px">+ เพิ่มเข้าแผน</button></div></div>
+      </div>
+    </section>
+
+    <aside class="card col rise d3">
+      <div class="mono h">03 — แผน + งบของคุณ</div>
+      <div class="mono" style="color:var(--mut)">งบวันนี้</div>
+      <div class="bignum">ใช้ไป 194฿ / 450฿</div>
+      <div class="mono" style="color:var(--ok);margin-top:2px">เหลือ 256฿</div>
+      <div class="bar"><i></i></div>
+
+      <!-- Split-pay: คณิตล้วน ไม่ต้องมี backend -->
+      <div class="split">
+        <div class="mono" style="color:var(--accent)">แบ่งจ่ายกับเพื่อน</div>
+        <div class="row">
+          <div class="step">
+            <button onclick="ppl(-1)">−</button><b id="n" style="font-size:18px">3</b><button onclick="ppl(1)">+</button>
+            <span style="color:var(--mut);font-size:13px">คน</span>
+          </div>
+          <div style="text-align:right">
+            <div class="perhead" id="ph">~65฿ / คน</div>
+            <div style="color:var(--mut);font-size:11.5px">จากยอดจริง 194฿</div>
+          </div>
+        </div>
+        <div style="color:var(--mut);font-size:12px;margin-top:10px">💡 จบทริปแล้วส่งลิงก์ PromptPay ให้เพื่อนได้จาก recap</div>
+      </div>
+
+      <button class="pillw" style="width:100%;padding:13px;margin-top:18px">เริ่มเที่ยว →</button>
+    </aside>
+  </div>
+</div>
+<script>
+  let n = 3;
+  function ppl(d) {
+    n = Math.max(1, Math.min(12, n + d));
+    document.getElementById("n").textContent = n;
+    document.getElementById("ph").textContent = `~${Math.ceil(194 / n)}฿ / คน`;
+  }
+</script>
+</body>
+</html>

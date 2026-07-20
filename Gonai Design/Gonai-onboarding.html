@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Onboarding (3 แตะ ข้ามได้ตลอด)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0b0c; --card:rgba(255,255,255,.04); --line:rgba(255,255,255,.1);
+    --ink:#f4f3ef; --mut:#9b9a94; --accent:#cfe6f5; --pill:#f4f3ef; --ok:#7ad0a6; }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'IBM Plex Sans Thai',sans-serif; background:linear-gradient(160deg,#0b0b0c 40%,#1a2733); color:var(--ink); min-height:100vh; display:grid; place-items:center; }
+  .serif { font-family:'Fraunces',serif; } .serif em { font-style:italic; }
+  .mono { font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.14em; font-size:11px; }
+  .shell { width:min(560px,94vw); padding:20px; }
+  .prog { display:flex; gap:6px; margin-bottom:26px; }
+  .prog i { height:3px; flex:1; border-radius:99px; background:var(--line); }
+  .prog i.on { background:var(--pill); }
+  .step-card { background:var(--card); border:1px solid var(--line); border-radius:24px; padding:34px 30px; backdrop-filter:blur(14px); animation:rise .55s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes rise { from { opacity:0; transform:translateY(16px); } }
+  h1 { font-size:28px; font-weight:600; margin:8px 0 4px; }
+  h1 em { font-family:'Fraunces',serif; font-style:italic; color:var(--accent); }
+  .sub { color:var(--mut); font-size:14px; margin-bottom:22px; }
+  .opts { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .opt { border:1px solid var(--line); background:transparent; border-radius:16px; padding:18px 16px; text-align:left; cursor:pointer; color:var(--ink); font-family:inherit; transition:all .22s cubic-bezier(.22,1,.36,1); }
+  .opt:hover { border-color:rgba(255,255,255,.4); transform:translateY(-2px); }
+  .opt.on { background:var(--pill); color:var(--bg); border-color:var(--pill); }
+  .opt .e { font-size:24px; display:block; margin-bottom:8px; }
+  .opt b { font-size:15px; display:block; }
+  .opt span { font-size:12px; opacity:.7; }
+  .foot { display:flex; align-items:center; justify-content:space-between; margin-top:24px; }
+  .skip { color:var(--mut); background:none; border:0; font-family:'IBM Plex Mono',monospace; letter-spacing:.1em; font-size:11px; text-transform:uppercase; cursor:pointer; }
+  .skip:hover { color:var(--ink); }
+  .next { background:var(--pill); color:var(--bg); border:0; border-radius:999px; padding:12px 28px; font-family:'IBM Plex Mono',monospace; font-weight:600; letter-spacing:.06em; cursor:pointer; transition:all .18s; }
+  .next:hover { filter:brightness(.9); } .next:active { transform:scale(.96); }
+  .note { text-align:center; color:var(--mut); font-size:11.5px; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="mono" style="color:var(--accent);margin-bottom:10px">GONAI — ตั้งค่า 3 แตะ (ข้ามได้ทุกขั้น)</div>
+  <div class="prog"><i class="on"></i><i id="p2"></i><i id="p3"></i></div>
+
+  <!-- STEP 1: vibe -->
+  <div class="step-card" id="s1">
+    <div class="mono" style="color:var(--mut)">01 / 03</div>
+    <h1>ปกติคุณเที่ยวแนว<em>ไหน?</em></h1>
+    <div class="sub">ใช้จัดลำดับ Top 3 ให้ตรงตั้งแต่ครั้งแรก — เปลี่ยนทีหลังได้</div>
+    <div class="opts">
+      <button class="opt on" onclick="pick(this)"><span class="e">🤫</span><b>สายเงียบ</b><span>คาเฟ่เงียบ มุมส่วนตัว</span></button>
+      <button class="opt" onclick="pick(this)"><span class="e">🎉</span><b>สายคึกคัก</b><span>ตลาด อีเวนต์ คนเยอะได้</span></button>
+      <button class="opt" onclick="pick(this)"><span class="e">🍜</span><b>สายกิน</b><span>ของอร่อยนำทาง</span></button>
+      <button class="opt" onclick="pick(this)"><span class="e">📷</span><b>สายรูป</b><span>แสงสวย มุมถ่ายรูป</span></button>
+    </div>
+    <div class="foot">
+      <button class="skip">ข้ามทั้งหมด — ใช้เลย →</button>
+      <button class="next" onclick="go(2)">ต่อไป →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: budget style -->
+  <div class="step-card" id="s2" style="display:none">
+    <div class="mono" style="color:var(--mut)">02 / 03</div>
+    <h1>สไตล์งบของ<em>คุณ?</em></h1>
+    <div class="sub">ตั้งงบตั้งต้นอัตโนมัติ — แก้ได้ทุกทริป</div>
+    <div class="opts">
+      <button class="opt on" onclick="pick(this)"><span class="e">🪙</span><b>งบเซฟ</b><span>~300-500฿ / วัน</span></button>
+      <button class="opt" onclick="pick(this)"><span class="e">⚖️</span><b>กลางๆ</b><span>~500-900฿ / วัน</span></button>
+      <button class="opt" onclick="pick(this)"><span class="e">✨</span><b>จัดเต็มบ้าง</b><span>~900-1,500฿ / วัน</span></button>
+      <button class="opt" onclick="pick(this)"><span class="e">🎲</span><b>แล้วแต่วัน</b><span>ถามทุกครั้ง</span></button>
+    </div>
+    <div class="foot">
+      <button class="skip">ข้าม</button>
+      <button class="next" onclick="go(3)">ต่อไป →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: home zone -->
+  <div class="step-card" id="s3" style="display:none">
+    <div class="mono" style="color:var(--mut)">03 / 03</div>
+    <h1>ออกจากย่าน<em>ไหนบ่อยสุด?</em></h1>
+    <div class="sub">คิดค่าเดินทางให้ถูกตั้งแต่เปิดแอป</div>
+    <div class="opts">
+      <button class="opt" onclick="pick(this)"><span class="e">🏠</span><b>บางกะปิ</b></button>
+      <button class="opt on" onclick="pick(this)"><span class="e">🏠</span><b>ลาดพร้าว</b></button>
+      <button class="opt" onclick="pick(this)"><span class="e">🏠</span><b>อ่อนนุช</b></button>
+      <button class="opt" onclick="pick(this)"><span class="e">📍</span><b>อื่นๆ</b></button>
+    </div>
+    <div class="foot">
+      <button class="skip">ข้าม</button>
+      <button class="next">เริ่มใช้ GoNai →</button>
+    </div>
+  </div>
+
+  <div class="note">🔒 เก็บไว้กับเราเท่านั้นตาม PDPA — ลบได้ทุกเมื่อในแท็บ ทริปของฉัน</div>
+</div>
+<script>
+  function pick(el) {
+    [...el.parentElement.children].forEach((c) => c.classList.remove("on"));
+    el.classList.add("on");
+  }
+  function go(step) {
+    for (let i = 1; i <= 3; i++) document.getElementById("s" + i).style.display = i === step ? "" : "none";
+    if (step >= 2) document.getElementById("p2").classList.add("on");
+    if (step >= 3) document.getElementById("p3").classList.add("on");
+  }
+</script>
+</body>
+</html>

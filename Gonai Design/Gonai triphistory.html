@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Trip History (ประวัติ + Badge)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0b0c; --card:rgba(255,255,255,.04); --solid:#17181a; --line:rgba(255,255,255,.1);
+    --ink:#f4f3ef; --mut:#9b9a94; --accent:#cfe6f5; --pill:#f4f3ef; --ok:#7ad0a6; --bad:#e07a5f; }
+  * { margin:0; box-sizing:border-box; }
+  body { font-family:'IBM Plex Sans Thai',sans-serif; background:var(--bg); color:var(--ink); }
+  .serif { font-family:'Fraunces',serif; } .serif em { font-style:italic; }
+  .mono { font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.14em; font-size:11px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; }
+  nav { display:flex; align-items:center; gap:18px; padding:14px 24px; border-bottom:1px solid var(--line); background:rgba(11,11,12,.72); backdrop-filter:blur(18px); position:sticky; top:0; z-index:9; }
+  .logo { font-family:'Fraunces',serif; font-size:22px; } .logo em { font-style:italic; }
+  nav .t { color:var(--mut); text-decoration:none; padding:7px 14px; border-radius:999px; }
+  nav .t.on { background:var(--pill); color:var(--bg); font-weight:600; }
+  .wrap { max-width:1100px; margin:0 auto; padding:30px 24px 60px; }
+  .rise { animation:rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } }
+
+  /* แถวสถิติรวม — ตัวเลขใหญ่แบบ Origin */
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0 26px; }
+  .stat { padding:20px; }
+  .stat .mono { color:var(--mut); }
+  .stat b { display:block; font-size:32px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:6px; }
+  .stat small { color:var(--ok); font-size:12px; }
+
+  .cols { display:grid; grid-template-columns:1.2fr .8fr; gap:16px; }
+
+  /* รายการทริป */
+  .trip { display:flex; gap:14px; align-items:center; padding:16px 18px; border-bottom:1px solid var(--line); transition:background .2s; cursor:pointer; }
+  .trip:hover { background:rgba(255,255,255,.03); }
+  .trip:last-child { border-bottom:0; }
+  .trip .th { width:52px; height:52px; border-radius:14px; display:grid; place-items:center; font-size:22px; flex-shrink:0; }
+  .trip b { display:block; font-size:15px; }
+  .trip .m { color:var(--mut); font-size:12.5px; margin-top:2px; }
+  .amt { margin-left:auto; text-align:right; }
+  .amt b { font-variant-numeric:tabular-nums; font-size:16px; }
+  .amt .under { color:var(--ok); font-size:11.5px; }
+  .amt .over { color:var(--bad); font-size:11.5px; }
+  .t1 { background:linear-gradient(150deg,#1a2733,#35506b); } .t2 { background:linear-gradient(150deg,#2b1a26,#6b3550); } .t3 { background:linear-gradient(150deg,#14282b,#356b62); }
+
+  /* badges — ผูกกับการกระทำจริง ไม่มีแต้มลอยๆ */
+  .bgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .bd { border:1px solid var(--line); border-radius:16px; padding:14px; display:flex; gap:12px; align-items:center; }
+  .bd .e { width:40px; height:40px; border-radius:99px; display:grid; place-items:center; font-size:18px; background:var(--solid); border:1px solid var(--line); }
+  .bd.earned .e { background:var(--accent); border-color:var(--accent); }
+  .bd b { font-size:13px; display:block; }
+  .bd span { color:var(--mut); font-size:11px; }
+  .bd.locked { opacity:.45; }
+  .fav { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .fav:last-child { border-bottom:0; }
+  .fav .n { color:var(--mut); margin-left:auto; font-size:12px; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo"><em>Go</em>Nai</span>
+  <a class="t mono" href="#">วางแผน</a><a class="t mono" href="#">สำรวจ</a><a class="t on mono" href="#">ทริปของฉัน</a>
+</nav>
+
+<div class="wrap">
+  <h1 class="rise" style="font-size:30px;font-weight:600">ทริปของ<span class="serif"><em>คุณ</em></span></h1>
+  <p class="rise" style="color:var(--mut);font-size:14px;margin-top:4px">ยิ่งเที่ยว ยิ่งแม่น — ทุกทริปที่จบทำให้งบประเมินของคุณคมขึ้น</p>
+
+  <div class="stats rise d1">
+    <div class="card stat"><span class="mono">ทริปทั้งหมด</span><b>4</b></div>
+    <div class="card stat"><span class="mono">ใช้ไปทั้งหมด</span><b>1,486฿</b></div>
+    <div class="card stat"><span class="mono">แม่นเฉลี่ย</span><b>±9%</b><small>ประเมิน vs จ่ายจริง</small></div>
+    <div class="card stat"><span class="mono">ราคาที่ยืนยัน</span><b>6</b><small>ช่วยเพื่อนนักเที่ยวแล้ว</small></div>
+  </div>
+
+  <div class="cols">
+    <!-- ประวัติทริป -->
+    <div class="card rise d2">
+      <div class="mono" style="color:var(--mut);padding:16px 18px 4px">ทริปที่ผ่านมา</div>
+      <div class="trip"><span class="th t1">☕</span>
+        <span><b>นั่งทำงาน · ลาดพร้าว → สยาม</b><span class="m">เสาร์ 19 ก.ค. · 2 ที่ · เช็คอินครบ</span></span>
+        <span class="amt"><b>194฿</b><div class="under">ต่ำกว่างบ 256฿ ✓</div></span></div>
+      <div class="trip"><span class="th t2">💛</span>
+        <span><b>เดท · บางกะปิ → สยาม</b><span class="m">เสาร์ 12 ก.ค. · 3 ที่ · แชร์ recap แล้ว</span></span>
+        <span class="amt"><b>1,012฿</b><div class="over">เกินงบ 112฿</div></span></div>
+      <div class="trip"><span class="th t3">👨‍👩‍👧</span>
+        <span><b>ครอบครัว · จตุจักร → สยาม</b><span class="m">อาทิตย์ 6 ก.ค. · 2 ที่</span></span>
+        <span class="amt"><b>187฿</b><div class="under">ต่ำกว่างบ 63฿ ✓</div></span></div>
+      <div class="trip"><span class="th t1">📷</span>
+        <span><b>ถ่ายรูป · ลาดพร้าว → สยาม</b><span class="m">เสาร์ 28 มิ.ย. · 1 ที่</span></span>
+        <span class="amt"><b>93฿</b><div class="under">ต่ำกว่างบ 507฿ ✓</div></span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <!-- validation badges — ทุกใบผูกกับการกระทำจริงในระบบ -->
+      <div class="card rise d2" style="padding:18px">
+        <div class="mono" style="color:var(--accent);margin-bottom:12px">Badge จากการช่วย validate</div>
+        <div class="bgrid">
+          <div class="bd earned"><span class="e">🧾</span><span><b>นักยืนยันราคา</b><span>confirm แล้ว 6 ราคา ✓</span></span></div>
+          <div class="bd earned"><span class="e">🧭</span><span><b>ครบทุกเช็คอิน</b><span>ทริปเช็คอินครบ 3 ทริป ✓</span></span></div>
+          <div class="bd locked"><span class="e">✨</span><span><b>นักล่า Unseen</b><span>ไปที่ลับให้ครบ 3 (ตอนนี้ 1)</span></span></div>
+          <div class="bd locked"><span class="e">🎯</span><span><b>งบเป๊ะ 5 ทริป</b><span>ไม่เกินงบติดกัน (ตอนนี้ 2)</span></span></div>
+        </div>
+      </div>
+      <!-- ที่ไปบ่อย -->
+      <div class="card rise d3" style="padding:18px">
+        <div class="mono" style="color:var(--mut);margin-bottom:8px">ที่ชอบไปซ้ำ</div>
+        <div class="fav">☕ บีนส์บาร์ ชั้นลอย <span class="n">ไป 3 ครั้ง</span></div>
+        <div class="fav">🌿 โฮมคาเฟ่ ซอยเกษม <span class="n">ไป 2 ครั้ง</span></div>
+        <div class="fav">🎨 ดาดฟ้าแกลเลอรี BACC <span class="n">ไป 1 ครั้ง</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

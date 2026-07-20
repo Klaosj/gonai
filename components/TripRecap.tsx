@@ -89,7 +89,7 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   g.fillRect(0, H - 110, W, 110);
   g.fillStyle = "#ffffff";
   g.font = font(30, 800);
-  g.fillText("ไปไหน PaiNai", 48, H - 62);
+  g.fillText("GoNai", 48, H - 62);
   g.font = font(22, 500);
   g.globalAlpha = 0.9;
   g.fillText("วางแผนเที่ยว 1 วัน · รู้งบทุกบาทก่อนออกจากบ้าน", 48, H - 28);
@@ -104,10 +104,10 @@ export default function TripRecap({ plan, onShared }: { plan: ExpandedPlan; onSh
     const canvas = drawRecap(plan);
     canvas.toBlob(async (blob) => {
       if (!blob) return;
-      const file = new File([blob], "painai-trip.png", { type: "image/png" });
+      const file = new File([blob], "gonai-trip.png", { type: "image/png" });
       if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], title: "สรุปทริปวันนี้ — ไปไหน PaiNai" });
+          await navigator.share({ files: [file], title: "สรุปทริปวันนี้ — GoNai" });
           onShared("แชร์สรุปทริปแล้ว 🎉");
           return;
         } catch {
@@ -118,7 +118,7 @@ export default function TripRecap({ plan, onShared }: { plan: ExpandedPlan; onSh
       // desktop: ดาวน์โหลดรูปแทน
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "painai-trip.png";
+      a.download = "gonai-trip.png";
       a.click();
       URL.revokeObjectURL(a.href);
       onShared("บันทึกรูปสรุปทริปแล้ว — เอาไปโพสต์ได้เลย 📸");

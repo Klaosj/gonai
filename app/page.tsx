@@ -9,7 +9,7 @@ export default function LandingPage() {
       {/* mini header — landing ไม่ใช้ Shell ของแอป */}
       <header className="flex items-center justify-between px-6 py-3.5">
         <span className="flex items-baseline gap-2">
-          <b className="gn-serif text-[19px] font-bold text-gn-green">ไปไหน PaiNai</b>
+          <b className="gn-serif text-[19px] font-bold text-gn-green">GoNai</b>
           <span className="text-[11px] text-gn-mut">plan · go · ไม่เกินงบ</span>
         </span>
         <Link href="/app" className="gn-press rounded-full border border-gn-line px-4 py-1.5 text-sm font-bold text-gn-green hover:bg-gn-cream">
@@ -153,7 +153,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="bg-white px-6 py-8 text-center text-xs text-gn-mut">
-        <p>ไปไหน PaiNai — plan · go · ไม่เกินงบ</p>
+        <p>GoNai — plan · go · ไม่เกินงบ</p>
         <p className="mt-1">เบต้า · ข้อมูลชุดตัวอย่าง — รอ data จริงจาก W2 field sprint</p>
       </footer>
     </div>

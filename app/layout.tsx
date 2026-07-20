@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ไปไหน PaiNai — plan · go · ไม่เกินงบ",
+  title: "GoNai — plan · go · ไม่เกินงบ",
   description:
     "วางแผนเที่ยว 1 วัน พร้อมค่าเดินทาง+งบทุกบาท ก่อนออกจากบ้าน — คัด Top 3 จากเงื่อนไขของคุณด้วยข้อมูลที่คนจริง validate",
 };

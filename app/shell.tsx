@@ -60,7 +60,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <>
       <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 py-2.5">
         <Link href="/app" className="flex items-baseline gap-2">
-          <b className="gn-serif text-[19px] font-bold text-gn-green">ไปไหน PaiNai</b>
+          <b className="gn-serif text-[19px] font-bold text-gn-green">GoNai</b>
           <span className="text-[11px] text-gn-mut">plan · go · ไม่เกินงบ</span>
         </Link>
         <nav className="ml-2 hidden gap-1 sm:flex">

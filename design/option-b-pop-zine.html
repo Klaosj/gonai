@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Option B · Pop Zine</title>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #f6efe0; --ink: #14110a; --orange: #ff5c1c; --green: #12a06b; --purple: #8a5cff; --yellow: #ffd21c; }
+  * { margin: 0; box-sizing: border-box; }
+  body { font-family: 'Mitr', sans-serif; background: var(--paper); color: var(--ink);
+    background-image: radial-gradient(rgba(20,17,10,.06) 1px, transparent 1px); background-size: 22px 22px; overflow-x: hidden; }
+
+  .bar { background: var(--ink); color: var(--paper); overflow: hidden; padding: 8px 0; border-bottom: 3px solid var(--ink); }
+  .bar-track { display: flex; gap: 40px; white-space: nowrap; animation: mv 16s linear infinite; font-weight: 600; font-size: 14px; }
+  .bar-track em { font-style: normal; color: var(--yellow); }
+  @keyframes mv { to { transform: translateX(-50%); } }
+
+  nav { display: flex; align-items: center; gap: 14px; padding: 18px 28px; border-bottom: 3px solid var(--ink); background: var(--paper); position: sticky; top: 0; z-index: 10; }
+  .logo { font-family: 'Archivo Black'; font-size: 30px; letter-spacing: -1px; transform: rotate(-2deg); }
+  .logo span { color: var(--orange); text-shadow: 3px 3px 0 var(--ink); }
+  nav a { text-decoration: none; color: var(--ink); font-weight: 600; font-size: 15px; padding: 7px 16px; border: 3px solid transparent; border-radius: 0; }
+  nav a.on { border-color: var(--ink); background: var(--yellow); box-shadow: 4px 4px 0 var(--ink); }
+  nav a:hover:not(.on) { border-color: var(--ink); }
+  .ava { margin-left: auto; width: 40px; height: 40px; background: var(--purple); color: #fff; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); display: grid; place-items: center; font-weight: 700; }
+
+  .wrap { max-width: 1150px; margin: 0 auto; padding: 40px 28px 120px; }
+
+  .hero { position: relative; margin-bottom: 44px; }
+  .hero h1 { font-size: clamp(44px, 7vw, 88px); line-height: .98; font-weight: 700; text-transform: none; letter-spacing: -1.5px; }
+  .hero h1 .hl { background: var(--green); color: var(--paper); display: inline-block; padding: 0 14px; transform: rotate(-1.5deg); border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+  .hero h1 .baht { color: var(--orange); text-decoration: underline wavy var(--ink) 4px; text-underline-offset: 8px; }
+  .stamp { position: absolute; right: 0; top: -14px; background: var(--orange); color: var(--paper); border: 3px solid var(--ink);
+    font-family: 'Archivo Black'; font-size: 15px; padding: 12px 16px; transform: rotate(8deg); box-shadow: 5px 5px 0 var(--ink); animation: wob 2.4s ease-in-out infinite; }
+  @keyframes wob { 50% { transform: rotate(4deg) scale(1.04); } }
+  .hero p { margin-top: 20px; font-size: 18px; font-weight: 500; }
+
+  .lbl { display: inline-block; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 13px; padding: 4px 12px; margin: 26px 0 12px; transform: rotate(-1deg); }
+  .chips { display: flex; flex-wrap: wrap; gap: 12px; }
+  .chip { font-family: inherit; font-size: 15px; font-weight: 600; background: var(--paper); border: 3px solid var(--ink); padding: 10px 18px; cursor: pointer; transition: all .12s; box-shadow: 4px 4px 0 var(--ink); }
+  .chip:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+  .chip:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+  .chip.on { background: var(--yellow); }
+  .chip.on-g { background: var(--green); color: var(--paper); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 26px; margin-top: 22px; }
+  .card { background: #fff; border: 3px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); transition: all .16s; animation: pop .5s cubic-bezier(.34,1.6,.64,1) both; position: relative; }
+  .card:nth-child(1) { transform: rotate(-1deg); }
+  .card:nth-child(2) { transform: rotate(.8deg); animation-delay: .08s; }
+  .card:nth-child(3) { transform: rotate(-.6deg); animation-delay: .16s; }
+  @keyframes pop { from { opacity: 0; transform: scale(.8) rotate(0); } }
+  .card:hover { transform: rotate(0) translate(-3px, -3px); box-shadow: 12px 12px 0 var(--ink); z-index: 2; }
+  .thumb { height: 150px; border-bottom: 3px solid var(--ink); display: grid; place-items: center; font-size: 56px; position: relative; }
+  .card:nth-child(1) .thumb { background: repeating-linear-gradient(45deg, #ffe9b8, #ffe9b8 14px, #ffdf94 14px, #ffdf94 28px); }
+  .card:nth-child(2) .thumb { background: repeating-linear-gradient(-45deg, #cdeedd, #cdeedd 14px, #b5e6cd 14px, #b5e6cd 28px); }
+  .card:nth-child(3) .thumb { background: repeating-linear-gradient(45deg, #e4d9ff, #e4d9ff 14px, #d5c5ff 14px, #d5c5ff 28px); }
+  .stick { position: absolute; font-family: 'Archivo Black'; font-size: 13px; border: 3px solid var(--ink); padding: 6px 12px; top: -14px; left: -12px; transform: rotate(-6deg); box-shadow: 3px 3px 0 var(--ink); }
+  .stick.hit { background: var(--orange); color: var(--paper); }
+  .stick.un { background: var(--purple); color: var(--paper); }
+  .fare { position: absolute; right: -10px; bottom: -12px; background: var(--yellow); border: 3px solid var(--ink); font-weight: 700; font-size: 14px; padding: 6px 12px; transform: rotate(4deg); box-shadow: 3px 3px 0 var(--ink); }
+  .body { padding: 18px 20px 22px; }
+  .body h3 { font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .meta { font-size: 14px; margin: 10px 0; line-height: 1.7; }
+  .price { font-family: 'Archivo Black'; font-size: 26px; color: var(--green); }
+  .price small { font-family: 'Mitr'; font-size: 13px; color: var(--ink); font-weight: 500; }
+  .verify { display: inline-block; background: var(--green); color: var(--paper); font-size: 12px; font-weight: 600; padding: 3px 10px; margin-top: 6px; transform: rotate(-1deg); }
+  .verify.un { background: var(--purple); }
+  .go { margin-top: 14px; width: 100%; font-family: inherit; font-size: 17px; font-weight: 700; background: var(--orange); color: var(--paper); border: 3px solid var(--ink); padding: 12px; cursor: pointer; box-shadow: 5px 5px 0 var(--ink); transition: all .12s; }
+  .go:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--ink); }
+  .go:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
+
+  .dock { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) rotate(-.5deg); z-index: 20;
+    background: var(--ink); color: var(--paper); border: 3px solid var(--ink); box-shadow: 8px 8px 0 rgba(20,17,10,.35);
+    display: flex; align-items: center; gap: 16px; padding: 14px 20px; min-width: 460px; animation: rise .6s .3s cubic-bezier(.34,1.5,.64,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translate(-50%, 90px) rotate(-.5deg); } }
+  .dock .n { font-weight: 600; font-size: 15px; }
+  .dock .n b { color: var(--yellow); font-size: 20px; font-family: 'Archivo Black'; }
+  .dock .track { flex: 1; height: 14px; border: 2px solid var(--paper); min-width: 110px; }
+  .dock .track i { display: block; height: 100%; width: 43%; background: repeating-linear-gradient(45deg, var(--green), var(--green) 8px, #17c584 8px, #17c584 16px); animation: fill 1s .6s ease-out both; }
+  @keyframes fill { from { width: 0; } }
+  .dock button { font-family: inherit; font-weight: 700; font-size: 16px; background: var(--yellow); color: var(--ink); border: 3px solid var(--paper); padding: 10px 18px; cursor: pointer; transition: transform .12s; }
+  .dock button:active { transform: scale(.93); }
+</style>
+</head>
+<body>
+  <div class="bar"><div class="bar-track">
+    <span>🛵 วิน 20฿</span><span>⛴️ เรือแสนแสบ 27฿</span><span>🚈 BTS 44฿</span><span><em>รวมขาไป 47฿ · 48 นาที</em></span><span>💸 ไม่มีเซอร์ไพรส์</span><span>✓ ราคา validate โดยคนจริง</span>
+    <span>🛵 วิน 20฿</span><span>⛴️ เรือแสนแสบ 27฿</span><span>🚈 BTS 44฿</span><span><em>รวมขาไป 47฿ · 48 นาที</em></span><span>💸 ไม่มีเซอร์ไพรส์</span><span>✓ ราคา validate โดยคนจริง</span>
+  </div></div>
+
+  <nav>
+    <div class="logo">Go<span>Nai</span></div>
+    <a class="on" href="#">วางแผน</a><a href="#">สำรวจ</a><a href="#">กลุ่ม</a><a href="#">ทริปของฉัน</a>
+    <div class="ava">K</div>
+  </nav>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="stamp">ไม่เกินงบ<br>การันตี!</div>
+      <h1>เสาร์นี้<span class="hl">เที่ยวสยาม</span><br>งบ <span class="baht">450฿</span> จบทุกบาท</h1>
+      <p>วิน + เรือ + BTS คิดให้หมดก่อนออกจากบ้าน — ไม่ต้องเดา ไม่ต้องลุ้น</p>
+    </div>
+
+    <span class="lbl">📍 ออกจากย่านไหน?</span>
+    <div class="chips">
+      <button class="chip">บางกะปิ</button><button class="chip on">ลาดพร้าว</button><button class="chip">อ่อนนุช</button><button class="chip">ปิ่นเกล้า</button><button class="chip">จตุจักร</button><button class="chip">บางนา</button><button class="chip">อื่นๆ</button>
+    </div>
+
+    <span class="lbl">⚡ อยากทำอะไร + เงื่อนไข</span>
+    <div class="chips">
+      <button class="chip on-g">💻 นั่งทำงาน</button><button class="chip">💛 เดท</button><button class="chip">📷 ถ่ายรูป</button><button class="chip">👨‍👩‍👧 ครอบครัว</button>
+      <button class="chip">🎧 เงียบ</button><button class="chip">🔌 ปลั๊ก</button><button class="chip">☂️ ในร่ม</button>
+    </div>
+
+    <span class="lbl">🏆 TOP 3 — 2 ที่ฮิต + 1 ที่ลับ</span>
+    <div class="grid">
+      <div class="card">
+        <div class="thumb">☕<span class="stick hit">HIT #1</span><span class="fare">🚈 44฿</span></div>
+        <div class="body">
+          <h3>เวิร์คคาเฟ่ สยามสแควร์</h3>
+          <div class="meta">🔌 ปลั๊กทุกโต๊ะ · 📶 200 Mbps · นั่งยาวได้</div>
+          <div class="price">~200฿ <small>/คน · เดิน 6 นาที</small></div>
+          <span class="verify">✓ คนจริงยืนยัน 12 ครั้ง</span>
+          <button class="go">+ เพิ่มเข้าแผน</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="thumb">🥐<span class="stick hit">HIT #2</span><span class="fare">🚈 44฿</span></div>
+        <div class="body">
+          <h3>บีนส์บาร์ ชั้นลอย</h3>
+          <div class="meta">🎧 เงียบ ประชุมได้ · 📶 100 Mbps · ขนมเด็ด</div>
+          <div class="price">~150฿ <small>/คน · เดิน 3 นาที</small></div>
+          <span class="verify">✓ คนจริงยืนยัน 9 ครั้ง</span>
+          <button class="go">+ เพิ่มเข้าแผน</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="thumb">🌿<span class="stick un">ที่ลับ!</span><span class="fare">🚈 44฿</span></div>
+        <div class="body">
+          <h3>โฮมคาเฟ่ ซอยเกษม</h3>
+          <div class="meta">ยังไม่ดัง คนน้อย · 🔌 ปลั๊กทุกโต๊ะ · 🍚 มีข้าว</div>
+          <div class="price">~160฿ <small>/คน · เดิน 12 นาที</small></div>
+          <span class="verify un">💜 ยืนยันแล้ว 5 คน</span>
+          <button class="go">+ เพิ่มเข้าแผน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dock">
+    <span class="n">งบ <b>450฿</b> · ใช้ไป 194฿</span>
+    <div class="track"><i></i></div>
+    <button>เริ่มเที่ยว ▶</button>
+  </div>
+</body>
+</html>

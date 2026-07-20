@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Option A · Neon Night</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090f; --panel: rgba(255,255,255,.045); --line: rgba(255,255,255,.09);
+    --neon: #00ffa3; --hot: #ff6b35; --vio: #a78bfa;
+    --ink: #eef2f0; --mut: #8b95a1;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Prompt', sans-serif; background: var(--bg); color: var(--ink);
+    min-height: 100vh; overflow-x: hidden;
+  }
+  /* mesh glow背景 */
+  .mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .mesh i { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .32; animation: drift 14s ease-in-out infinite alternate; }
+  .mesh i:nth-child(1) { width: 480px; height: 480px; background: #00ffa3; top: -160px; left: -100px; }
+  .mesh i:nth-child(2) { width: 420px; height: 420px; background: #ff6b35; top: 30%; right: -140px; animation-delay: -5s; }
+  .mesh i:nth-child(3) { width: 380px; height: 380px; background: #7c5cff; bottom: -120px; left: 30%; animation-delay: -9s; }
+  @keyframes drift { to { transform: translate(40px, 30px) scale(1.12); } }
+
+  .wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 24px 80px; }
+
+  nav { display: flex; align-items: center; gap: 20px; padding: 22px 0; }
+  .logo { font-family: 'Space Grotesk'; font-weight: 700; font-size: 26px; letter-spacing: -0.5px; }
+  .logo b { background: linear-gradient(90deg, var(--neon), #7cffd4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .logo span { color: var(--hot); }
+  nav .tabs { display: flex; gap: 4px; margin-left: 12px; }
+  nav .tabs a { color: var(--mut); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 999px; transition: all .2s; }
+  nav .tabs a.on { color: #041008; background: var(--neon); font-weight: 700; box-shadow: 0 0 24px rgba(0,255,163,.45); }
+  nav .tabs a:hover:not(.on) { color: var(--ink); background: var(--panel); }
+  .ava { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--hot), var(--vio)); display: grid; place-items: center; font-weight: 800; }
+
+  /* ticker */
+  .ticker { overflow: hidden; border-block: 1px solid var(--line); padding: 9px 0; margin-bottom: 40px; }
+  .ticker-track { display: flex; gap: 42px; white-space: nowrap; animation: tick 22s linear infinite; font-size: 13px; color: var(--mut); }
+  .ticker-track b { color: var(--neon); font-weight: 600; }
+  @keyframes tick { to { transform: translateX(-50%); } }
+
+  .hero { margin: 8px 0 36px; }
+  .hero h1 { font-size: clamp(40px, 6.2vw, 74px); font-weight: 900; line-height: 1.04; letter-spacing: -1px; }
+  .hero h1 .glow { background: linear-gradient(90deg, var(--neon) 0%, #6ef0ff 50%, var(--vio) 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: hue 5s linear infinite; }
+  @keyframes hue { to { background-position: 200% 0; } }
+  .hero p { color: var(--mut); font-size: 17px; margin-top: 14px; max-width: 520px; }
+  .hero .baht { font-family: 'Space Grotesk'; color: var(--hot); }
+
+  .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 26px 0 14px; }
+  .chip { border: 1px solid var(--line); background: var(--panel); color: var(--mut); border-radius: 999px; padding: 10px 18px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .22s cubic-bezier(.34,1.5,.64,1); backdrop-filter: blur(8px); }
+  .chip:hover { transform: translateY(-2px); color: var(--ink); }
+  .chip:active { transform: scale(.94); }
+  .chip.on { background: var(--neon); border-color: var(--neon); color: #041008; font-weight: 700; box-shadow: 0 0 26px rgba(0,255,163,.4); }
+  .chip.on.hot { background: var(--hot); border-color: var(--hot); color: #14060094; color: #1c0b04; box-shadow: 0 0 26px rgba(255,107,53,.45); }
+  .lbl { font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--mut); font-weight: 600; margin-top: 30px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-top: 18px; }
+  .card {
+    position: relative; border: 1px solid var(--line); background: var(--panel);
+    border-radius: 22px; overflow: hidden; backdrop-filter: blur(14px);
+    transition: all .3s cubic-bezier(.22,1,.36,1); animation: up .7s cubic-bezier(.22,1,.36,1) both;
+  }
+  .card:nth-child(2) { animation-delay: .1s; } .card:nth-child(3) { animation-delay: .2s; }
+  @keyframes up { from { opacity: 0; transform: translateY(26px); } }
+  .card:hover { transform: translateY(-6px); border-color: rgba(0,255,163,.5); box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 40px rgba(0,255,163,.12); }
+  .card.unseen:hover { border-color: rgba(167,139,250,.6); box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 40px rgba(167,139,250,.15); }
+  .thumb { height: 150px; display: grid; place-items: center; font-size: 52px; position: relative; }
+  .card:nth-child(1) .thumb { background: linear-gradient(135deg, #052e22, #0a5c48); }
+  .card:nth-child(2) .thumb { background: linear-gradient(135deg, #33150a, #7a3218); }
+  .card:nth-child(3) .thumb { background: linear-gradient(135deg, #1d1440, #4432a8); }
+  .badge { position: absolute; top: 12px; left: 12px; font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px; letter-spacing: .4px; }
+  .badge.hit { background: var(--hot); color: #1c0b04; box-shadow: 0 0 18px rgba(255,107,53,.6); }
+  .badge.un { background: var(--vio); color: #120a30; box-shadow: 0 0 18px rgba(167,139,250,.6); }
+  .price-tag { position: absolute; right: 12px; top: 12px; font-family: 'Space Grotesk'; background: rgba(0,0,0,.55); border: 1px solid var(--line); padding: 5px 12px; border-radius: 999px; font-size: 13px; color: var(--neon); backdrop-filter: blur(6px); }
+  .body { padding: 18px 20px 20px; }
+  .body h3 { font-size: 18px; font-weight: 700; }
+  .meta { color: var(--mut); font-size: 13px; margin: 8px 0 4px; line-height: 1.8; }
+  .verify { font-size: 12px; color: var(--neon); margin-top: 4px; }
+  .go { margin-top: 14px; width: 100%; border: 0; border-radius: 14px; padding: 13px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+    background: linear-gradient(90deg, var(--neon), #6ef0ff); color: #041008; transition: all .2s cubic-bezier(.34,1.5,.64,1); }
+  .go:hover { box-shadow: 0 0 30px rgba(0,255,163,.5); transform: translateY(-1px); }
+  .go:active { transform: scale(.97); }
+
+  /* budget dock */
+  .dock { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 5;
+    display: flex; align-items: center; gap: 18px; background: rgba(10,14,20,.82); border: 1px solid var(--line);
+    border-radius: 20px; padding: 14px 22px; backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(0,0,0,.6); animation: dockup .8s .4s cubic-bezier(.34,1.4,.64,1) both; min-width: 420px; }
+  @keyframes dockup { from { opacity: 0; transform: translate(-50%, 80px); } }
+  .dock .nums { font-family: 'Space Grotesk'; font-size: 15px; }
+  .dock .nums b { color: var(--neon); font-size: 20px; }
+  .dock .bar { flex: 1; height: 7px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; min-width: 120px; }
+  .dock .bar i { display: block; height: 100%; width: 43%; border-radius: 99px; background: linear-gradient(90deg, var(--neon), #6ef0ff); box-shadow: 0 0 14px rgba(0,255,163,.8); animation: fill 1.2s .7s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fill { from { width: 0; } }
+  .dock button { border: 0; background: var(--hot); color: #1c0b04; font-family: inherit; font-weight: 800; font-size: 14.5px; border-radius: 12px; padding: 11px 20px; cursor: pointer; box-shadow: 0 0 22px rgba(255,107,53,.45); transition: transform .15s; }
+  .dock button:active { transform: scale(.94); }
+</style>
+</head>
+<body>
+<div class="mesh"><i></i><i></i><i></i></div>
+<div class="wrap">
+  <nav>
+    <div class="logo"><b>Go</b><span>Nai</span></div>
+    <div class="tabs">
+      <a class="on" href="#">วางแผน</a><a href="#">สำรวจ</a><a href="#">กลุ่ม</a><a href="#">ทริปของฉัน</a>
+    </div>
+    <div class="ava">K</div>
+  </nav>
+
+  <div class="ticker"><div class="ticker-track">
+    <span>🛵 วิน ปากซอย→ท่าเรือ <b>20฿</b></span><span>⛴️ เรือแสนแสบ→ประตูน้ำ <b>27฿</b></span><span>🚈 BTS ลาดพร้าว→สยาม <b>44฿</b></span><span>🚗 Grab บางนา→สยาม <b>200-240฿</b></span><span>💚 validate แล้ว 128 ครั้งสัปดาห์นี้</span>
+    <span>🛵 วิน ปากซอย→ท่าเรือ <b>20฿</b></span><span>⛴️ เรือแสนแสบ→ประตูน้ำ <b>27฿</b></span><span>🚈 BTS ลาดพร้าว→สยาม <b>44฿</b></span><span>🚗 Grab บางนา→สยาม <b>200-240฿</b></span><span>💚 validate แล้ว 128 ครั้งสัปดาห์นี้</span>
+  </div></div>
+
+  <div class="hero">
+    <h1>คืนนี้เที่ยวไหน<br><span class="glow">รู้งบทุกบาท</span> ก่อนออกจากบ้าน</h1>
+    <p>ออกจาก<b style="color:var(--ink)">ลาดพร้าว</b> · งบ <b class="baht">450฿</b> — เส้นทางวิน เรือ BTS คิดให้ครบ ไม่มีเซอร์ไพรส์</p>
+  </div>
+
+  <div class="lbl">ออกจากย่านไหน</div>
+  <div class="row">
+    <button class="chip">บางกะปิ</button><button class="chip on">ลาดพร้าว</button><button class="chip">อ่อนนุช</button><button class="chip">ปิ่นเกล้า</button><button class="chip">จตุจักร</button><button class="chip">บางนา</button><button class="chip">อื่นๆ</button>
+  </div>
+
+  <div class="lbl">อยากทำอะไร</div>
+  <div class="row">
+    <button class="chip on hot">💻 นั่งทำงาน</button><button class="chip">💛 เดท</button><button class="chip">📷 ถ่ายรูป</button><button class="chip">👨‍👩‍👧 ครอบครัว</button>
+    <span style="width:14px"></span>
+    <button class="chip">🎧 เงียบ</button><button class="chip">🔌 ปลั๊ก</button><button class="chip">☂️ ในร่ม</button>
+  </div>
+
+  <div class="lbl">Top 3 คัดจากข้อมูลที่คนจริง validate</div>
+  <div class="grid">
+    <div class="card">
+      <div class="thumb">☕<span class="badge hit">🔥 HIT #1</span><span class="price-tag">BTS 44฿</span></div>
+      <div class="body">
+        <h3>เวิร์คคาเฟ่ สยามสแควร์</h3>
+        <div class="meta">🔌 ปลั๊กทุกโต๊ะ · 📶 200 Mbps · นั่งได้ไม่จำกัด<br>~200฿/คน · เดิน 6 นาทีจาก BTS</div>
+        <div class="verify">✓ validate โดยคนจริง 12 ครั้ง · 8 วันก่อน</div>
+        <button class="go">+ เพิ่มเข้าแผน</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="thumb">🥐<span class="badge hit">🔥 HIT #2</span><span class="price-tag">BTS 44฿</span></div>
+      <div class="body">
+        <h3>บีนส์บาร์ ชั้นลอย</h3>
+        <div class="meta">🔌 ปลั๊กบางโต๊ะ · 📶 100 Mbps · เงียบ ประชุมได้<br>~150฿/คน · เดิน 3 นาทีจาก BTS</div>
+        <div class="verify">✓ validate โดยคนจริง 9 ครั้ง · 8 วันก่อน</div>
+        <button class="go">+ เพิ่มเข้าแผน</button>
+      </div>
+    </div>
+    <div class="card unseen">
+      <div class="thumb">🌿<span class="badge un">💜 UNSEEN</span><span class="price-tag">BTS 44฿</span></div>
+      <div class="body">
+        <h3>โฮมคาเฟ่ ซอยเกษม</h3>
+        <div class="meta">ที่ลับ ยังไม่ดัง · 🔌 ปลั๊กทุกโต๊ะ · มีข้าว<br>~160฿/คน · เดิน 12 นาทีจาก BTS</div>
+        <div class="verify" style="color:var(--vio)">✓ ยืนยันแล้ว 5 คน ถึงเกณฑ์โชว์</div>
+        <button class="go">+ เพิ่มเข้าแผน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dock">
+  <div class="nums">งบวันนี้ <b>450฿</b> · ใช้ไป 194฿</div>
+  <div class="bar"><i></i></div>
+  <button>เริ่มเที่ยว ▶</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoNai — Option C · Soft Luxe</title>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #fbfaf7; --ink: #1c1a15; --mut: #9690827; --mut: #979083; --line: #ebe7dd;
+    --acc: #b4552a; /* terracotta */ --sage: #5d6e5f; }
+  * { margin: 0; box-sizing: border-box; }
+  body { font-family: 'Anuphan', sans-serif; background: var(--bg); color: var(--ink); letter-spacing: .1px; }
+
+  nav { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 20;
+    display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.7); backdrop-filter: blur(20px) saturate(1.5);
+    border: 1px solid rgba(28,26,21,.07); border-radius: 999px; padding: 8px 10px 8px 22px; box-shadow: 0 10px 40px rgba(28,26,21,.09); }
+  .logo { font-family: 'Playfair Display'; font-weight: 700; font-size: 20px; margin-right: 12px; }
+  .logo i { font-style: italic; color: var(--acc); }
+  nav a { text-decoration: none; color: var(--mut); font-size: 13.5px; font-weight: 500; padding: 8px 15px; border-radius: 999px; transition: all .25s; }
+  nav a.on { background: var(--ink); color: var(--bg); }
+  nav a:hover:not(.on) { color: var(--ink); }
+  .ava { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #d9a184, var(--acc)); margin-left: 8px; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 130px 32px 140px; }
+
+  .kicker { font-size: 12px; letter-spacing: 4px; color: var(--acc); font-weight: 600; text-transform: uppercase; animation: fade 1s ease both; }
+  h1 { font-family: 'Playfair Display', serif; font-size: clamp(44px, 6vw, 78px); font-weight: 600; line-height: 1.08; margin: 18px 0 22px; animation: fade 1s .15s ease both; }
+  h1 em { font-style: italic; color: var(--acc); }
+  h1 .th { font-family: 'Anuphan'; font-weight: 300; }
+  .sub { font-size: 17px; font-weight: 300; color: #5a554a; max-width: 480px; line-height: 1.75; animation: fade 1s .3s ease both; }
+  .sub b { font-weight: 600; color: var(--ink); }
+  @keyframes fade { from { opacity: 0; transform: translateY(18px); } }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 44px 0 12px; animation: fade 1s .45s ease both; }
+  .sel { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 12px 22px; font-size: 14.5px; cursor: pointer; transition: all .25s; }
+  .sel:hover { border-color: var(--ink); }
+  .sel b { font-weight: 600; }
+  .sel span.arrow { color: var(--mut); font-size: 11px; }
+  .dot-sep { color: var(--line); }
+  .pill { border: 1px solid var(--line); background: transparent; font-family: inherit; border-radius: 999px; padding: 11px 20px; font-size: 13.5px; color: #5a554a; cursor: pointer; transition: all .25s cubic-bezier(.22,1,.36,1); }
+  .pill:hover { border-color: var(--ink); color: var(--ink); transform: translateY(-1px); }
+  .pill.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+  .count { margin: 40px 0 20px; font-size: 13px; color: var(--mut); letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 16px; }
+  .count::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 26px; }
+  .card { background: #fff; border-radius: 26px; overflow: hidden; border: 1px solid rgba(28,26,21,.05);
+    box-shadow: 0 2px 6px rgba(28,26,21,.03), 0 24px 60px rgba(28,26,21,.06);
+    transition: all .45s cubic-bezier(.22,1,.36,1); animation: fade .9s ease both; }
+  .card:nth-child(2) { animation-delay: .12s; } .card:nth-child(3) { animation-delay: .24s; }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 4px 10px rgba(28,26,21,.04), 0 36px 90px rgba(28,26,21,.12); }
+  .ph { height: 210px; position: relative; overflow: hidden; }
+  .ph .img { position: absolute; inset: 0; transition: transform 1.2s cubic-bezier(.22,1,.36,1); display: grid; place-items: center; font-size: 64px; }
+  .card:hover .ph .img { transform: scale(1.06); }
+  .card:nth-child(1) .img { background: linear-gradient(160deg, #e8d5c0, #c9a184); }
+  .card:nth-child(2) .img { background: linear-gradient(160deg, #dde3d6, #a8b5a0); }
+  .card:nth-child(3) .img { background: linear-gradient(160deg, #e3dced, #b3a4cc); }
+  .tag { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,.85); backdrop-filter: blur(10px); font-size: 11.5px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 7px 14px; border-radius: 999px; }
+  .tag.un { color: #6b5a91; }
+  .tag.hit { color: var(--acc); }
+  .fare { position: absolute; right: 16px; bottom: 14px; background: rgba(28,26,21,.75); color: #fff; backdrop-filter: blur(8px); font-size: 12.5px; padding: 6px 14px; border-radius: 999px; font-weight: 500; }
+  .body { padding: 24px 26px 26px; }
+  .body h3 { font-family: 'Playfair Display'; font-size: 21px; font-weight: 600; }
+  .body h3 .th { font-family: 'Anuphan'; font-weight: 600; }
+  .attrs { display: flex; flex-wrap: wrap; gap: 6px 14px; color: #85806f; font-size: 13px; margin: 12px 0 16px; font-weight: 400; }
+  .rowline { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 16px; }
+  .p { font-size: 24px; font-weight: 600; }
+  .p small { font-size: 12.5px; color: var(--mut); font-weight: 400; }
+  .vf { font-size: 12px; color: var(--sage); font-weight: 500; }
+  .go { margin-top: 18px; width: 100%; font-family: inherit; font-size: 15px; font-weight: 500; letter-spacing: .5px;
+    background: transparent; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 999px; padding: 13px; cursor: pointer; transition: all .3s cubic-bezier(.22,1,.36,1); }
+  .go:hover { background: var(--ink); color: var(--bg); }
+  .go:active { transform: scale(.97); }
+
+  .dock { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 20;
+    display: flex; align-items: center; gap: 22px; background: rgba(28,26,21,.92); color: var(--bg); backdrop-filter: blur(16px);
+    border-radius: 999px; padding: 12px 14px 12px 28px; box-shadow: 0 30px 80px rgba(28,26,21,.35); animation: fade 1s .6s ease both; min-width: 430px; }
+  .dock .t { font-size: 14px; font-weight: 300; opacity: .85; }
+  .dock .t b { font-weight: 600; font-size: 17px; }
+  .dock .track { flex: 1; min-width: 110px; height: 4px; background: rgba(251,250,247,.18); border-radius: 99px; overflow: hidden; }
+  .dock .track i { display: block; height: 100%; width: 43%; background: linear-gradient(90deg, #d9a184, var(--acc)); border-radius: 99px; animation: fl 1.4s .9s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fl { from { width: 0; } }
+  .dock button { font-family: inherit; font-size: 14.5px; font-weight: 600; background: var(--acc); color: #fff; border: 0; border-radius: 999px; padding: 12px 26px; cursor: pointer; transition: all .25s; }
+  .dock button:hover { filter: brightness(1.08); }
+  .dock button:active { transform: scale(.95); }
+</style>
+</head>
+<body>
+  <nav>
+    <span class="logo">Go<i>Nai</i></span>
+    <a class="on" href="#">วางแผน</a><a href="#">สำรวจ</a><a href="#">กลุ่ม</a><a href="#">ทริปของฉัน</a>
+    <span class="ava"></span>
+  </nav>
+
+  <div class="wrap">
+    <div class="kicker">Siam · Saturday</div>
+    <h1><span class="th">เที่ยวหนึ่งวัน</span><br><em>ทุกบาทมีที่มา</em></h1>
+    <p class="sub">ออกจาก<b>ลาดพร้าว</b>ด้วยงบ <b>450 บาท</b> — เราคิดค่าวิน เรือ และ BTS ให้ครบก่อนก้าวออกจากบ้าน จากข้อมูลที่ผู้ใช้จริงยืนยัน</p>
+
+    <div class="controls">
+      <div class="sel">📍 <b>ลาดพร้าว</b> <span class="arrow">เปลี่ยน ▾</span></div>
+      <div class="sel">💻 <b>นั่งทำงาน</b> <span class="arrow">▾</span></div>
+      <span class="dot-sep">·</span>
+      <button class="pill on">เงียบ ประชุมได้</button>
+      <button class="pill">มีปลั๊ก</button>
+      <button class="pill">ในร่ม</button>
+      <button class="pill">เดิน ≤ 10 นาที</button>
+    </div>
+
+    <div class="count">คัดแล้ว 3 จาก 6 ที่ · เส้นทาง 44฿ · 33 นาที</div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="ph"><div class="img">☕</div><span class="tag hit">Hit Nº1</span><span class="fare">BTS · 44฿</span></div>
+        <div class="body">
+          <h3><span class="th">เวิร์คคาเฟ่ สยามสแควร์</span></h3>
+          <div class="attrs"><span>ปลั๊กทุกโต๊ะ</span><span>200 Mbps</span><span>นั่งได้ไม่จำกัด</span><span>เดิน 6 นาที</span></div>
+          <div class="rowline">
+            <span class="p">~200฿ <small>/ คน</small></span>
+            <span class="vf">✓ ยืนยันแล้ว 12 ครั้ง</span>
+          </div>
+          <button class="go">เพิ่มเข้าแผน</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ph"><div class="img">🥐</div><span class="tag hit">Hit Nº2</span><span class="fare">BTS · 44฿</span></div>
+        <div class="body">
+          <h3><span class="th">บีนส์บาร์ ชั้นลอย</span></h3>
+          <div class="attrs"><span>เงียบ ประชุมได้</span><span>100 Mbps</span><span>ขนมอบเช้า</span><span>เดิน 3 นาที</span></div>
+          <div class="rowline">
+            <span class="p">~150฿ <small>/ คน</small></span>
+            <span class="vf">✓ ยืนยันแล้ว 9 ครั้ง</span>
+          </div>
+          <button class="go">เพิ่มเข้าแผน</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ph"><div class="img">🌿</div><span class="tag un">Unseen</span><span class="fare">BTS · 44฿</span></div>
+        <div class="body">
+          <h3><span class="th">โฮมคาเฟ่ ซอยเกษม</span></h3>
+          <div class="attrs"><span>ที่ลับ คนยังน้อย</span><span>ปลั๊กทุกโต๊ะ</span><span>มีอาหาร</span><span>เดิน 12 นาที</span></div>
+          <div class="rowline">
+            <span class="p">~160฿ <small>/ คน</small></span>
+            <span class="vf" style="color:#6b5a91">✓ ยืนยัน 5 คน</span>
+          </div>
+          <button class="go">เพิ่มเข้าแผน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dock">
+    <span class="t">งบวันนี้ <b>450฿</b> — ใช้ไป 194฿</span>
+    <div class="track"><i></i></div>
+    <button>เริ่มเที่ยว →</button>
+  </div>
+</body>
+</html>

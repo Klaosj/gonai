@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* ===== Design tokens — PaiNai v0.3 (อ้างอิง painai-app-v3.html) ===== */
+@theme {
+  /* primary (mockup-aligned) */
+  --color-gn-green: #0d7a5f;
+  --color-gn-green-dark: #0a5c48;
+  --color-gn-orange: #ff6b35;
+  --color-gn-orange-dark: #e55a2a;
+  --color-gn-purple: #7c5cff;
+  --color-gn-purple-dark: #5b45c0;
+
+  /* neutral */
+  --color-gn-bg: #faf9f6;
+  --color-gn-ink: #1f2a26;
+  --color-gn-mut: #6b7a74;
+  --color-gn-line: #e7e3da;
+  --color-gn-card: #ffffff;
+  --color-gn-cream: #f1efe9;
+
+  /* semantic */
+  --color-gn-red: #c0392b;
+  --color-gn-gray: #6b7a74;
+
+  /* warning / hint palette (amber เดียวกับ mockup) */
+  --color-gn-amber-bg: #fff8ef;
+  --color-gn-amber-bd: #f3e3cc;
+  --color-gn-amber-fg: #7a5c2e;
+  --color-gn-amber-cta: #b4550f;
+  --color-gn-amber-cta-bd: #ffd9c2;
+  --color-gn-amber-cta-bg: #fff4ec;
+
+  /* mode toggle palette */
+  --color-gn-mint-bg: #eef7f3;
+  --color-gn-mint-bd: #cfe6dc;
+  --color-gn-mint-bar: #d7e9e0;
+
+  /* chat bubble palette */
+  --color-gn-chat-user: #0d7a5f;
+  --color-gn-chat-ai-bg: #f1f7f4;
+  --color-gn-chat-ai-bd: #dcebe3;
+  --color-gn-chat-cost-bg: #ffffff;
+  --color-gn-chat-cost-bd: #bcd8cc;
+
+  /* import box palette */
+  --color-gn-import-bg: #faf8ff;
+  --color-gn-import-bd: #cfc6e8;
+
+  /* danger box palette */
+  --color-gn-danger-bg: #fff2f0;
+  --color-gn-danger-bd: #ffd2ca;
+  --color-gn-danger-fg: #a3402e;
+
+  /* points/reward palette (purple) */
+  --color-gn-pts-bg: #f6f3ff;
+  --color-gn-pts-bd: #e3dbff;
+  --color-gn-pts-fg: #5b45c0;
+}
+
+body {
+  background: var(--color-gn-bg);
+  color: var(--color-gn-ink);
+}
+
+/* serif (Playfair Display) สำหรับ logo + hero titles */
+.gn-serif {
+  font-family: 'Playfair Display', serif;
+}
+
+/* hide scrollbar */
+.gn-noscroll::-webkit-scrollbar { display: none; }
+.gn-noscroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===== toast animation (mockup) ===== */
+@keyframes gn-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(80px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.gn-toast {
+  animation: gn-toast-in 0.3s ease-out forwards;
+}
+
+/* ===== live pulse (mockup on-trip) ===== */
+@keyframes gn-pulse {
+  50% { opacity: 0.3; }
+}
+.gn-live-dot {
+  animation: gn-pulse 1.2s infinite;
+}
+
+/* ===== skeleton shimmer ===== */
+@keyframes gn-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.gn-skeleton {
+  background: linear-gradient(90deg, var(--color-gn-cream) 0%, #f5f3ed 50%, var(--color-gn-cream) 100%);
+  background-size: 800px 100%;
+  animation: gn-shimmer 1.4s infinite linear;
+}
+
+/* ===== focus ring (a11y) ===== */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--color-gn-orange);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ===== step labels (3 colors) ===== */
+.gn-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
+.gn-step-green  { background: var(--color-gn-green); }
+.gn-step-orange { background: var(--color-gn-orange); }
+.gn-step-purple { background: var(--color-gn-purple); }

@@ -1,0 +1,10 @@
+venue_id,name_th,zone_id,category,intents,badge,hit_rank,unseen_rank,transition_rank,plugs,wifi_mbps,seat_hours,noise,parking,food_level,indoor,shade,price_per_head_min,price_per_head_max,open_time,close_time,walk_min_from_hub,video_url,source,last_validated_at,validation_count
+V001,เวิร์คคาเฟ่ สยามสแควร์,siam,cafe,work,hit,1,,,all,200,999,medium,false,meals,true,true,150,250,09:00,21:00,6,,sprint,2026-07-12,12
+V002,บีนส์บาร์ ชั้นลอย,siam,cafe,work,hit,2,,,some,100,4,quiet,false,drinks,true,true,120,180,08:00,20:00,3,,sprint,2026-07-12,9
+V003,สแน็คแล็บ,siam,cafe,work,hit,3,,,some,80,3,medium,false,snacks,true,true,100,150,10:00,20:00,8,,sprint,2026-07-12,6
+U001,โฮมคาเฟ่ ซอยเกษม,siam,cafe,work,unseen,,1,,all,150,999,quiet,true,meals,true,true,120,200,09:00,19:00,12,,tat,2026-07-12,5
+U002,สวนหลังตึก,siam,cafe,work,unseen,,2,,none,,2,quiet,false,drinks,false,true,100,160,10:00,19:00,10,,tat,2026-07-12,2
+V010,ริมน้ำบิสโทร,siam,restaurant,date,hit,1,,,none,,2,quiet,true,meals,true,true,400,600,11:00,22:00,5,,sprint,2026-07-12,7
+V012,ตลาดนัดหลังมอ,siam,market,family,hit,1,,3,,,loud,true,snacks,false,false,100,150,16:00,22:00,10,,sprint,2026-07-12,8
+V013,ครัวคุณยาย,siam,restaurant,work;date,hit,2,,1,none,,2,medium,false,meals,true,true,120,180,11:00,22:00,5,,sprint,2026-07-12,10
+U003,ดาดฟ้าแกลเลอรี,siam,activity,photo,unseen,,1,,none,,,quiet,false,drinks,false,true,0,100,08:00,18:00,15,,tat,2026-07-12,4

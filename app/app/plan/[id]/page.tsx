@@ -1,16 +1,17 @@
 "use client";
-// /app/plan/[id] — รวม plan + trip ในหน้าเดียว (mockup toggle plan⇄trip)
-// ใช้ plan.status เป็น implicit mode: draft→plan | active→trip | done→summary+price-confirm
-// อ้างอิง painai-app-v3.html (1 page, 2 mode toggle)
+// /app/plan/[id] — plan + trip + done ในหน้าเดียว
+// โหมดหลักตาม plan.status (draft→plan | active→trip | done→summary)
+// toggle ให้สลับ "ดู" ระหว่างแผน⇄เที่ยวได้จริงตอน active (ของเดิมกดแล้วไม่เกิดอะไร)
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import BudgetBar from "@/components/BudgetBar";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import RouteLegs from "@/components/RouteLegs";
+import TripRecap from "@/components/TripRecap";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
 import type { ExpandedPlan } from "@/lib/server";
-import type { Venue } from "@/lib/types";
+import { MODE_LABELS, type Route, type Venue } from "@/lib/types";
 
 const CATEGORY_EMOJI: Record<Venue["category"], string> = {
   cafe: "☕",
@@ -19,29 +20,44 @@ const CATEGORY_EMOJI: Record<Venue["category"], string> = {
   market: "🛍️",
 };
 
+// สรุปเส้นทางจาก data จริง — แทน string hardcode เดิม (ถูกเฉพาะบางกะปิ)
+function legsSummary(r: Route) {
+  const modes = [...new Set(r.legs.map((l) => MODE_LABELS[l.mode]))].join("+");
+  const min = r.legs.reduce((s, l) => s + l.price_min, 0);
+  const max = r.legs.reduce((s, l) => s + l.price_max, 0);
+  const mins = r.legs.reduce((s, l) => s + l.minutes, 0);
+  return { modes, price: min === max ? `${min}฿` : `~${min}-${max}฿`, mins };
+}
+
+function mapsUrl(v: Venue) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${v.name_th} สยาม กรุงเทพ`)}`;
+}
+
 export default function PlanPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [plan, setPlan] = useState<ExpandedPlan | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [view, setView] = useState<"plan" | "trip" | null>(null); // null = ตาม status
   const [suggestions, setSuggestions] = useState<{ list: Venue[]; indoor: boolean } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
-  const [now, setNow] = useState(() => new Date());
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [spendingSeq, setSpendingSeq] = useState<number | null>(null); // stop ที่กำลังพิมพ์จำนวนเงินเอง
 
   const showToast = (m: string) => {
     setToast(m);
     setTimeout(() => setToast(null), 2600);
   };
 
-  // update clock every 30s สำหรับ live indicator
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    gn<ExpandedPlan>(`/api/plans/${id}`).then(setPlan).catch(() => {});
+  const load = useCallback(() => {
+    setLoadError(false);
+    gn<ExpandedPlan>(`/api/plans/${id}`)
+      .then(setPlan)
+      .catch(() => setLoadError(true));
   }, [id]);
+
+  useEffect(load, [load]);
 
   const act = useCallback(
     async (action: string, extra: Record<string, unknown> = {}) => {
@@ -58,56 +74,92 @@ export default function PlanPage() {
   const openChain = async (opts: { indoor?: boolean } = {}) => {
     const params = new URLSearchParams({ planId: plan!.id });
     if (opts.indoor) params.set("indoor", "1");
-    const list = await gn<Venue[]>(`/api/chain?${params}`);
-    setSuggestions({ list, indoor: !!opts.indoor });
+    try {
+      const list = await gn<Venue[]>(`/api/chain?${params}`);
+      setSuggestions({ list, indoor: !!opts.indoor });
+    } catch {
+      showToast("โหลดคำแนะนำไม่สำเร็จ");
+    }
   };
 
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <p className="text-4xl">🧭</p>
+        <p className="mt-3 font-bold">โหลดแผนไม่สำเร็จ</p>
+        <p className="mt-1 text-sm text-gn-mut">แผนอาจถูกลบไปแล้ว หรืออินเทอร์เน็ตมีปัญหา</p>
+        <div className="mt-4 flex justify-center gap-2">
+          <button onClick={load} className="rounded-full bg-gn-orange px-6 py-2.5 font-bold text-white">
+            ลองอีกครั้ง ↻
+          </button>
+          <button
+            onClick={() => router.push("/app")}
+            className="rounded-full border border-gn-line px-6 py-2.5 font-bold"
+          >
+            กลับหน้าวางแผน
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (!plan) return <LoadingSkeleton lines={5} />;
 
-  const isPlan = plan.status === "draft";
-  const isTrip = plan.status === "active";
   const isDone = plan.status === "done";
+  // view จริงที่แสดง: done ล็อคเป็น summary · active เลือกดู plan/trip ได้ · draft ล็อคเป็น plan
+  const effectiveView = isDone ? "done" : plan.status === "draft" ? "plan" : (view ?? "trip");
+  const showPlan = effectiveView === "plan";
+  const showTrip = effectiveView === "trip";
+  const cheap = legsSummary(plan.route.kind === "cheapest" ? plan.route : plan.route_alt);
+  const fast = legsSummary(plan.route.kind === "fastest" ? plan.route : plan.route_alt);
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-4 px-4 py-4">
-      {/* ===== header + mode toggle ===== */}
+      {/* ===== header ===== */}
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="gn-serif text-[22px] font-extrabold">
-            {isDone ? "จบทริป ✓" : isTrip ? "กำลังเที่ยวอยู่" : "แผนวันเสาร์ของคุณ"}
+            {isDone ? "จบทริป ✓" : plan.status === "active" ? "กำลังเที่ยวอยู่" : "แผนของคุณ"}
           </h1>
           <p className="text-sm text-gn-mut">ออกจาก {plan.origin_name} → สยาม</p>
         </div>
-        {isTrip && (
+        {plan.status === "active" && (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-gn-danger-bg px-3 py-1 text-xs font-extrabold text-gn-red">
             <span className="gn-live-dot inline-block h-2 w-2 rounded-full bg-gn-red" />
-            LIVE · GPS: สยาม
+            LIVE
           </span>
         )}
       </div>
 
-      {/* ===== mode toggle (mockup ①) ===== */}
-      <div className="flex rounded-[11px] bg-gn-cream p-1">
-        <button
-          onClick={() => router.replace(`/app/plan/${id}#plan`)}
-          className={`flex-1 rounded-lg py-2 text-[13px] font-bold ${
-            isPlan ? "bg-gn-card text-gn-green-dark shadow-sm" : "text-gn-mut"
-          }`}
-        >
-          🗓 วางแผน
-        </button>
-        <button
-          onClick={() => router.replace(`/app/plan/${id}#trip`)}
-          className={`flex-1 rounded-lg py-2 text-[13px] font-bold ${
-            isTrip ? "bg-gn-card text-gn-green-dark shadow-sm" : "text-gn-mut"
-          }`}
-        >
-          🧭 กำลังเที่ยว
-        </button>
-      </div>
+      {/* ===== view toggle — ใช้ได้จริงเมื่อ active ===== */}
+      {!isDone && (
+        <div className="flex rounded-[11px] bg-gn-cream p-1">
+          <button
+            onClick={() => setView("plan")}
+            className={`flex-1 rounded-lg py-2 text-[13px] font-bold ${
+              showPlan ? "bg-gn-card text-gn-green-dark shadow-sm" : "text-gn-mut"
+            }`}
+          >
+            🗓 แผน + เส้นทาง
+          </button>
+          <button
+            onClick={() => {
+              if (plan.status === "draft") {
+                showToast("กด 'เริ่มเที่ยว ▶' ก่อน แล้วโหมดนี้จะเปิด");
+                return;
+              }
+              setView("trip");
+            }}
+            className={`flex-1 rounded-lg py-2 text-[13px] font-bold ${
+              showTrip ? "bg-gn-card text-gn-green-dark shadow-sm" : "text-gn-mut"
+            } ${plan.status === "draft" ? "opacity-50" : ""}`}
+          >
+            🧭 กำลังเที่ยว
+          </button>
+        </div>
+      )}
 
-      {/* ===== PLAN MODE ===== */}
-      {isPlan && (
+      {/* ===== PLAN VIEW ===== */}
+      {showPlan && (
         <>
           <RouteLegs
             route={plan.route}
@@ -135,36 +187,52 @@ export default function PlanPage() {
             ))}
           </ol>
 
-          <BudgetBar
-            est={plan.est_total}
-            budget={plan.budget_planned}
-            onEdit={() => {
-              const v = window.prompt("งบใหม่ (฿)", String(plan.budget_planned));
-              const n = v ? parseInt(v, 10) : NaN;
-              if (n > 0) {
-                act("budget_edit", { value: n });
-                track("budget_edit", { value: n, screen: "S3" });
-              }
-            }}
-          />
+          <BudgetBar est={plan.est_total} budget={plan.budget_planned} onEdit={() => setEditingBudget(true)} />
 
-          {/* alt mode callout (mockup ③) */}
+          {editingBudget && (
+            <div className="flex items-center gap-2 rounded-xl border border-gn-orange/40 bg-gn-card p-3">
+              <span className="text-sm font-semibold">งบใหม่:</span>
+              <input
+                type="number"
+                autoFocus
+                defaultValue={plan.budget_planned}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const n = parseInt((e.target as HTMLInputElement).value, 10);
+                    if (n > 0) {
+                      act("budget_edit", { value: n });
+                      track("budget_edit", { value: n, screen: "S3" });
+                    }
+                    setEditingBudget(false);
+                  }
+                  if (e.key === "Escape") setEditingBudget(false);
+                }}
+                className="w-24 rounded-lg border border-gn-line px-2.5 py-1.5 text-sm"
+              />
+              <span className="text-xs text-gn-mut">฿ · Enter เพื่อยืนยัน</span>
+              <button onClick={() => setEditingBudget(false)} className="ml-auto text-xs text-gn-mut underline">
+                ยกเลิก
+              </button>
+            </div>
+          )}
+
+          {/* callout สลับเส้นทาง — ตัวเลขจาก data จริงของ origin นี้ */}
           {plan.route.kind === "cheapest" ? (
             <div className="rounded-[10px] border border-gn-amber-bd bg-gn-amber-bg px-3 py-2 text-[12.5px] text-gn-amber-fg">
-              🚗 ขี้เกียจต่อรถ? Grab ทั้งขา ~180–210฿ · 35 นาที
+              🚗 ขี้เกียจต่อรถ? {fast.modes} {fast.price} · {fast.mins} นาที
               <button
                 onClick={() => {
                   act("route_toggle");
-                  showToast("สลับเป็น Grab แล้ว — งบรวมปรับตามทันที");
+                  showToast("สลับเส้นทางแล้ว — งบรวมปรับตามทันที");
                 }}
                 className="ml-1.5 rounded-lg border border-gn-amber-cta-bd bg-gn-card px-2.5 py-0.5 text-xs font-bold text-gn-amber-cta"
               >
-                สลับเป็น Grab
+                สลับเป็นเร็วสุด
               </button>
             </div>
           ) : (
             <div className="rounded-[10px] border border-gn-amber-bd bg-gn-amber-bg px-3 py-2 text-[12.5px] text-gn-amber-fg">
-              🛵 ประหยัดกว่า: วิน+เรือ+เดิน ~47฿ · 48 นาที
+              🛵 ประหยัดกว่า: {cheap.modes} {cheap.price} · {cheap.mins} นาที
               <button
                 onClick={() => {
                   act("route_toggle");
@@ -177,24 +245,25 @@ export default function PlanPage() {
             </div>
           )}
 
-          <button
-            onClick={async () => {
-              await act("start");
-              track("plan_start_trip", { plan_id: plan.id });
-              showToast("โหมดกำลังเที่ยว: ติ๊กบันทึกค่าใช้จ่ายจริงได้เลย");
-              router.replace(`/app/plan/${id}#trip`);
-            }}
-            className="w-full rounded-xl bg-gn-orange py-3.5 text-base font-extrabold text-white shadow-md hover:bg-gn-orange-dark"
-          >
-            เริ่มเที่ยว ▶
-          </button>
+          {plan.status === "draft" && (
+            <button
+              onClick={async () => {
+                await act("start");
+                track("plan_start_trip", { plan_id: plan.id });
+                setView("trip");
+                showToast("โหมดกำลังเที่ยว: เช็คอิน + บันทึกจ่ายจริงได้เลย");
+              }}
+              className="w-full rounded-xl bg-gn-orange py-3.5 text-base font-extrabold text-white shadow-md hover:bg-gn-orange-dark"
+            >
+              เริ่มเที่ยว ▶
+            </button>
+          )}
         </>
       )}
 
-      {/* ===== TRIP MODE ===== */}
-      {isTrip && (
+      {/* ===== TRIP VIEW ===== */}
+      {showTrip && (
         <>
-          {/* budget box with orange progress (mockup live mode) */}
           <div className="rounded-xl border border-gn-mint-bd bg-gn-mint-bg p-3">
             <div className="flex justify-between font-extrabold text-gn-green-dark">
               <span>จ่ายจริงแล้ว {plan.spent}฿ / {plan.budget_planned}฿</span>
@@ -220,7 +289,6 @@ export default function PlanPage() {
             </div>
           ))}
 
-          {/* stops — expense checklist (mockup ④) */}
           <ol className="space-y-3">
             {plan.stops.map((s) => (
               <li key={s.seq} className="rounded-2xl bg-gn-card p-4 shadow-sm">
@@ -234,7 +302,18 @@ export default function PlanPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{s.venue.name_th}</p>
-                    <p className="text-xs text-gn-gray">ประเมิน ~{s.est_cost}฿/คน</p>
+                    <p className="text-xs text-gn-gray">
+                      ประเมิน ~{s.est_cost}฿/คน ·{" "}
+                      <a
+                        href={mapsUrl(s.venue)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-gn-green underline"
+                        onClick={() => track("open_maps", { venue_id: s.venue.id })}
+                      >
+                        นำทาง 🗺
+                      </a>
+                    </p>
                   </div>
                   {!s.checked_in_at && (
                     <button
@@ -252,30 +331,49 @@ export default function PlanPage() {
                 {s.checked_in_at && s.actual_cost === null && (
                   <div className="mt-3 border-t border-gn-line/30 pt-3">
                     <p className="mb-2 text-sm font-medium">จ่ายจริงเท่าไหร่?</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={async () => {
-                          await act("spend", { seq: s.seq, amount: s.est_cost });
-                          track("spend_log", { seq: s.seq, amount: s.est_cost });
-                        }}
-                        className="flex-1 rounded-full bg-gn-orange py-2 text-sm font-medium text-white"
-                      >
-                        ตามประเมิน {s.est_cost}฿
-                      </button>
-                      <button
-                        onClick={async () => {
-                          const v = window.prompt("จ่ายจริง (฿)");
-                          const n = v ? parseInt(v, 10) : NaN;
-                          if (n >= 0) {
-                            await act("spend", { seq: s.seq, amount: n });
-                            track("spend_log", { seq: s.seq, amount: n });
-                          }
-                        }}
-                        className="flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
-                      >
-                        พิมพ์เอง…
-                      </button>
-                    </div>
+                    {spendingSeq === s.seq ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          autoFocus
+                          placeholder="฿"
+                          onKeyDown={async (e) => {
+                            if (e.key === "Enter") {
+                              const n = parseInt((e.target as HTMLInputElement).value, 10);
+                              if (n >= 0) {
+                                await act("spend", { seq: s.seq, amount: n });
+                                track("spend_log", { seq: s.seq, amount: n });
+                              }
+                              setSpendingSeq(null);
+                            }
+                            if (e.key === "Escape") setSpendingSeq(null);
+                          }}
+                          className="w-28 rounded-full border border-gn-line px-3 py-2 text-sm"
+                        />
+                        <span className="text-xs text-gn-mut">Enter เพื่อบันทึก</span>
+                        <button onClick={() => setSpendingSeq(null)} className="ml-auto text-xs text-gn-mut underline">
+                          ยกเลิก
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={async () => {
+                            await act("spend", { seq: s.seq, amount: s.est_cost });
+                            track("spend_log", { seq: s.seq, amount: s.est_cost });
+                          }}
+                          className="flex-1 rounded-full bg-gn-orange py-2 text-sm font-medium text-white"
+                        >
+                          ตามประเมิน {s.est_cost}฿
+                        </button>
+                        <button
+                          onClick={() => setSpendingSeq(s.seq)}
+                          className="flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
+                        >
+                          พิมพ์เอง…
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -286,7 +384,6 @@ export default function PlanPage() {
             ))}
           </ol>
 
-          {/* replan (mockup ⑤) */}
           <button
             onClick={async () => {
               track("replan", { plan_id: plan.id });
@@ -301,8 +398,7 @@ export default function PlanPage() {
             onClick={async () => {
               await act("done");
               track("plan_done", { plan_id: plan.id });
-              showToast("จบทริปแล้ว — ช่วย confirm ราคา 2 จุดแรกหน่อย 🙏");
-              router.replace(`/app/plan/${id}#done`);
+              showToast("จบทริปแล้ว 🎉 ช่วยยืนยันราคาให้เพื่อนนักเที่ยวหน่อย");
             }}
             className="w-full rounded-full bg-gn-navy py-3.5 text-base font-extrabold text-white shadow-md"
           >
@@ -311,14 +407,9 @@ export default function PlanPage() {
         </>
       )}
 
-      {/* ===== DONE MODE (summary + price confirm) ===== */}
+      {/* ===== DONE ===== */}
       {isDone && (
-        <DoneSummary
-          plan={plan}
-          confirmed={confirmed}
-          setConfirmed={setConfirmed}
-          showToast={showToast}
-        />
+        <DoneSummary plan={plan} confirmed={confirmed} setConfirmed={setConfirmed} showToast={showToast} />
       )}
 
       {/* ===== chain / replan bottom sheet ===== */}
@@ -336,11 +427,9 @@ export default function PlanPage() {
             <p className="text-sm text-gn-gray">
               {(() => {
                 const h = parseInt(
-                  new Intl.DateTimeFormat("en-GB", {
-                    timeZone: "Asia/Bangkok",
-                    hour: "2-digit",
-                    hour12: false,
-                  }).format(now),
+                  new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Bangkok", hour: "2-digit", hour12: false }).format(
+                    new Date(),
+                  ),
                   10,
                 );
                 return h >= 22 || h < 8
@@ -392,24 +481,40 @@ function DoneSummary({
   setConfirmed: (s: Set<string>) => void;
   showToast: (m: string) => void;
 }) {
+  const [editingPrice, setEditingPrice] = useState<string | null>(null);
   const toConfirm = plan.stops.filter((s) => s.actual_cost !== null).slice(0, 2);
   const over = (plan.budget_actual ?? 0) > plan.budget_planned;
+  const diff = (plan.budget_actual ?? 0) - plan.budget_planned;
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-gn-card p-4 shadow-sm">
-        <p className="text-sm">
-          แผน ~<b>{plan.est_total}฿</b> → จ่ายจริง{" "}
-          <b className={over ? "text-gn-red" : "text-gn-green"}>
-            {plan.budget_actual}฿
-          </b>{" "}
-          (งบตั้งไว้ {plan.budget_planned}฿)
+      {/* สรุปทริป */}
+      <div className="rounded-2xl bg-gn-card p-5 shadow-sm">
+        <p className="text-sm text-gn-mut">จ่ายจริงทั้งวัน</p>
+        <p className={`gn-serif text-[40px] font-extrabold leading-tight ${over ? "text-gn-red" : "text-gn-green-dark"}`}>
+          {plan.budget_actual}฿
         </p>
+        <p className="text-sm text-gn-mut">
+          งบตั้งไว้ {plan.budget_planned}฿ · แผนประเมิน ~{plan.est_total}฿ ·{" "}
+          {diff > 0 ? `เกินงบ ${diff}฿` : diff === 0 ? "ตรงงบเป๊ะ" : `ต่ำกว่างบ ${-diff}฿ ✓`}
+        </p>
+        <div className="mt-3 space-y-1 border-t border-dashed border-gn-line pt-3 text-sm">
+          {plan.stops.map((s) => (
+            <div key={s.seq} className="flex justify-between">
+              <span className="truncate">{CATEGORY_EMOJI[s.venue.category]} {s.venue.name_th}</span>
+              <b className="ml-2 shrink-0">{s.actual_cost ?? s.est_cost}฿</b>
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* แชร์ recap — ปิดวง sharing */}
+      <TripRecap plan={plan} onShared={showToast} />
+
+      {/* confirm ราคา — copy ตรงกับสิ่งที่เกิดจริง: ส่งเข้าคิว validate ของทีม */}
       {toConfirm.filter((s) => !confirmed.has(s.venue.id)).length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-bold">ช่วย confirm ราคาให้เพื่อนนักเที่ยวหน่อย 🙏</h2>
+          <h2 className="text-sm font-bold">ช่วยยืนยันราคาให้เพื่อนนักเที่ยวหน่อย 🙏</h2>
           {toConfirm
             .filter((s) => !confirmed.has(s.venue.id))
             .map((s) => (
@@ -418,40 +523,55 @@ function DoneSummary({
                   ราคาที่ <b>{s.venue.name_th}</b> ยัง ~{mid(s.venue.price_per_head_min, s.venue.price_per_head_max)}
                   ฿/คน อยู่ไหม?
                 </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      track("price_confirm", { venue_id: s.venue.id, ok: true, new_price: null });
-                      setConfirmed(new Set(confirmed).add(s.venue.id));
-                      showToast("ขอบคุณ! +10 แต้ม — ราคา Slowbar อัปเดตเข้าระบบแล้ว");
-                    }}
-                    className="flex-1 rounded-full bg-gn-green py-2 text-sm font-medium text-white"
-                  >
-                    ใช่ ✓
-                  </button>
-                  <button
-                    onClick={() => {
-                      const v = window.prompt("ราคาจริงตอนนี้ (฿/คน)");
-                      const n = v ? parseInt(v, 10) : NaN;
-                      if (n > 0) {
-                        track("price_confirm", { venue_id: s.venue.id, ok: false, new_price: n });
+                {editingPrice === s.venue.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      autoFocus
+                      placeholder="฿/คน"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          const n = parseInt((e.target as HTMLInputElement).value, 10);
+                          if (n > 0) {
+                            track("price_confirm", { venue_id: s.venue.id, ok: false, new_price: n });
+                            setConfirmed(new Set(confirmed).add(s.venue.id));
+                            showToast("ส่งราคาใหม่ให้ทีม validate แล้ว — ขอบคุณ!");
+                          }
+                          setEditingPrice(null);
+                        }
+                        if (e.key === "Escape") setEditingPrice(null);
+                      }}
+                      className="w-28 rounded-full border border-gn-line px-3 py-2 text-sm"
+                    />
+                    <span className="text-xs text-gn-mut">Enter เพื่อส่ง</span>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        track("price_confirm", { venue_id: s.venue.id, ok: true, new_price: null });
                         setConfirmed(new Set(confirmed).add(s.venue.id));
-                        showToast(`อัปเดตเป็น ${n}฿ แล้ว — ขอบคุณ!`);
-                      }
-                    }}
-                    className="flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
-                  >
-                    เปลี่ยนเป็น…
-                  </button>
-                </div>
+                        showToast("ขอบคุณ! ข้อมูลนี้ช่วยให้งบของเพื่อนคนถัดไปแม่นขึ้น");
+                      }}
+                      className="flex-1 rounded-full bg-gn-green py-2 text-sm font-medium text-white"
+                    >
+                      ใช่ ✓
+                    </button>
+                    <button
+                      onClick={() => setEditingPrice(s.venue.id)}
+                      className="flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
+                    >
+                      เปลี่ยนเป็น…
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
         </div>
       )}
 
-      {/* points box (mockup ⑥) */}
       <div className="rounded-[10px] border border-gn-pts-bd bg-gn-pts-bg px-3 py-2.5 text-[12.5px] text-gn-pts-fg">
-        🎁 หลังทริป: ยืนยันราคาจริง 3 รายการ รับ <b>+10 แต้ม</b> — ข้อมูลของคุณช่วยให้เพื่อนคนถัดไปประเมินงบแม่นขึ้น
+        💚 ทุกการยืนยันถูกส่งเข้าคิว validate ของทีม — ที่ที่ยืนยันครบ 3 คนถึงจะขึ้นป้าย &quot;ราคาเช็คแล้ว&quot;
       </div>
     </div>
   );

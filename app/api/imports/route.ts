@@ -21,9 +21,15 @@ export async function POST(req: NextRequest) {
   } catch {
     return attachAuth(new NextResponse("url ไม่ถูกต้อง", { status: 400 }), auth);
   }
-  const platform = host.includes("tiktok") ? "tiktok" : host.includes("instagram") ? "ig" : null;
+  const platform = host.includes("tiktok")
+    ? "tiktok"
+    : host.includes("instagram")
+      ? "ig"
+      : host.includes("youtu")
+        ? "youtube"
+        : null;
   if (!platform) {
-    return attachAuth(new NextResponse("รองรับเฉพาะลิงก์ TikTok / Instagram", { status: 400 }), auth);
+    return attachAuth(new NextResponse("รองรับเฉพาะลิงก์ TikTok / Instagram / YouTube", { status: 400 }), auth);
   }
 
   await store.ensureUser(auth.id);

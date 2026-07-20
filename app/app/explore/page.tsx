@@ -1,8 +1,11 @@
 "use client";
-// /app/explore — วิดีโอครีเอเตอร์ (3-col) + กำลัง Hit ในย่านใกล้คุณ (4-col)
-// mockup painai-app-v3.html
-import { useState } from "react";
-import { track } from "@/lib/api";
+// /app/explore — วิดีโอครีเอเตอร์ (เล่นได้จริง) + กำลัง Hit จาก data จริง
+// ปุ่ม "ส่งคลิปให้ทีมดึงที่เที่ยว" → เข้าคิว imports จริง (ไม่มี toast หลอกอีกต่อไป)
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { gn, track } from "@/lib/api";
+import { mid } from "@/lib/costing";
+import type { Venue } from "@/lib/types";
 
 const VIDEOS = [
   { id: "3_Fg14DzVhA", title: "5 Aesthetic Cafes in Bangkok — Relaxing Cafe Hopping", date: "ม.ค. 2026", tag: "☕ คาเฟ่ 5 ที่ในคลิป" },
@@ -13,19 +16,41 @@ const VIDEOS = [
   { id: "nFTdc4OW1dc", title: "Bangkok Travel Guide 2025 — ตลาด อาหาร สยามสแควร์", date: "ม.ค. 2026", tag: "🇹🇭 มุมมองนักท่องเที่ยว" },
 ];
 
-const HOT_PLACES = [
-  { name: "Slowbar Siam", emoji: "☕", zone: "สยาม", price: "~280฿", badge: "🔥 #1 สัปดาห์นี้", unseen: false },
-  { name: "ตลาดนัดจุฬาฯ", emoji: "🛍", zone: "สามย่าน", price: "~80฿", badge: "🔥 มาแรง", unseen: false },
-  { name: "บ้านครูโฮมคาเฟ่", emoji: "☕", zone: "ริมคลอง", price: "~190฿", badge: "✨ Unseen", unseen: true },
-  { name: "ชุมชนบ้านบุ", emoji: "🏺", zone: "บางกอกน้อย", price: "จาก TAT", badge: "✨ Unseen", unseen: true },
-];
+const CATEGORY_EMOJI: Record<Venue["category"], string> = {
+  cafe: "☕",
+  restaurant: "🍜",
+  activity: "🎨",
+  market: "🛍️",
+};
 
 export default function ExplorePage() {
   const [openVideo, setOpenVideo] = useState<string | null>(null);
+  const [hot, setHot] = useState<Venue[]>([]);
+  const [sentVideos, setSentVideos] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (m: string) => {
     setToast(m);
     setTimeout(() => setToast(null), 2600);
+  };
+
+  useEffect(() => {
+    gn<{ hot: Venue[] }>("/api/explore")
+      .then((d) => setHot(d.hot))
+      .catch(() => {});
+  }, []);
+
+  const sendVideo = async (v: { id: string; title: string }) => {
+    try {
+      await gn("/api/imports", {
+        method: "POST",
+        body: JSON.stringify({ url: `https://www.youtube.com/watch?v=${v.id}` }),
+      });
+      track("import_video_places", { id: v.id });
+      setSentVideos((s) => new Set(s).add(v.id));
+      showToast("ส่งคลิปเข้าคิวแล้ว 🎬 ทีมงานดึงที่เที่ยวใน 24 ชม. — ดูสถานะใน ทริปของฉัน");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message.replace(/^\d+: /, "") : "ส่งไม่สำเร็จ");
+    }
   };
 
   return (
@@ -33,7 +58,8 @@ export default function ExplorePage() {
       <span className="gn-step gn-step-purple">🔎 สำรวจ</span>
       <h1 className="gn-serif mt-2 text-[22px] font-extrabold">วิดีโอเที่ยวจริงจากครีเอเตอร์</h1>
       <p className="mb-4 text-gn-mut">
-        ดูคลิปแล้วกด &quot;เพิ่มที่จากคลิปนี้&quot; — AI จะดึงสถานที่ในคลิปเข้าแผนให้พร้อมค่าเดินทาง (คลิปเปิดดูได้จริง)
+        ดูคลิปแล้วกด &quot;ส่งคลิปให้ทีมดึงที่เที่ยว&quot; — ทีมงานดึงสถานที่ในคลิปพร้อมราคา/เส้นทางให้ใน 24 ชม.
+        (ทำโดยคนจริง ไม่ scrape)
       </p>
 
       <div className="mb-7 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -65,43 +91,54 @@ export default function ExplorePage() {
               <span className="mt-1.5 inline-block rounded-full bg-gn-mint-bg px-2.5 py-0.5 text-[11px] font-bold text-gn-green">
                 {v.tag}
               </span>
-              <button
-                onClick={() => {
-                  track("import_video_places", { id: v.id });
-                  showToast(`ดึงสถานที่จากคลิป "${v.title}" เข้า wishlist แล้ว — ดูในแท็บ ทริปของฉัน`);
-                }}
-                className="mt-2 block rounded-lg border-[1.5px] border-gn-line px-3 py-1.5 text-[12.5px] font-semibold hover:border-gn-orange hover:text-gn-orange"
-              >
-                + เพิ่มที่จากคลิปนี้
-              </button>
+              {sentVideos.has(v.id) ? (
+                <p className="mt-2 text-[12.5px] font-semibold text-gn-green">✓ อยู่ในคิวทีมงานแล้ว</p>
+              ) : (
+                <button
+                  onClick={() => sendVideo(v)}
+                  className="mt-2 block rounded-lg border-[1.5px] border-gn-line px-3 py-1.5 text-[12.5px] font-semibold hover:border-gn-orange hover:text-gn-orange"
+                >
+                  🎬 ส่งคลิปให้ทีมดึงที่เที่ยว
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      <h2 className="gn-serif text-[18px] font-extrabold">กำลัง Hit ในย่านใกล้คุณ</h2>
-      <p className="mb-3 text-sm text-gn-mut">จากยอด save ของผู้ใช้ + TAT open data — อัปเดตทุกวัน</p>
+      <h2 className="gn-serif text-[18px] font-extrabold">กำลัง Hit + Unseen ที่ยืนยันแล้ว</h2>
+      <p className="mb-3 text-sm text-gn-mut">จัดอันดับจาก data จริงในระบบ — กดเพื่อเริ่มวางแผนด้วยที่นั้นเลย</p>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {HOT_PLACES.map((p) => (
-          <div key={p.name} className="overflow-hidden rounded-2xl border border-gn-line bg-gn-card">
+        {hot.map((p) => (
+          <Link
+            key={p.id}
+            href={`/app?add=${p.id}`}
+            onClick={() => track("explore_pick", { venue_id: p.id })}
+            className="overflow-hidden rounded-2xl border border-gn-line bg-gn-card transition hover:border-gn-orange"
+          >
             <div className="relative h-[110px] bg-gradient-to-br from-[#d8ede4] to-[#efe9ff]">
               <span
                 className={`absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white ${
-                  p.unseen ? "bg-gn-purple" : "bg-gn-orange"
+                  p.badge === "unseen" ? "bg-gn-purple" : "bg-gn-orange"
                 }`}
               >
-                {p.badge}
+                {p.badge === "unseen" ? `✨ Unseen · ยืนยัน ${p.validation_count} คน` : `🔥 Hit #${p.hit_rank}`}
               </span>
+              <span className="absolute bottom-2 right-3 text-3xl">{CATEGORY_EMOJI[p.category]}</span>
             </div>
             <div className="p-3">
-              <h4 className="text-[14.5px] font-bold leading-snug">{p.name}</h4>
+              <h4 className="text-[14.5px] font-bold leading-snug">{p.name_th}</h4>
               <div className="text-xs text-gn-mut">
-                {p.emoji} · {p.zone} · {p.price}
+                ~{mid(p.price_per_head_min, p.price_per_head_max)}฿/คน · เปิด {p.open_time}–{p.close_time}
               </div>
+              <div className="mt-1 text-[11.5px] font-semibold text-gn-green">+ เริ่มวางแผนด้วยที่นี่ →</div>
             </div>
-          </div>
+          </Link>
         ))}
+        {hot.length === 0 && (
+          <p className="col-span-full py-6 text-center text-sm text-gn-mut">กำลังโหลด…</p>
+        )}
       </div>
 
       {openVideo && (

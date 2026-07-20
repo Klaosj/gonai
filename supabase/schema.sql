@@ -59,7 +59,7 @@ create table if not exists public.imports (
   id uuid primary key default uuid_generate_v4(),
   user_id text not null references public.users(id) on delete cascade,
   url text not null,
-  platform text not null check (platform in ('tiktok','ig')),
+  platform text not null check (platform in ('tiktok','ig','youtube')),
   status text not null default 'queued' check (status in ('queued','processing','done','failed')),
   created_at timestamptz not null default now()
 );

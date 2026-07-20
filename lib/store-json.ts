@@ -131,6 +131,13 @@ export const jsonStore: Store = {
     persist();
   },
 
+  async importsOf(user_id) {
+    return load()
+      .imports.filter((x) => x.user_id === user_id)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .map(({ url, platform, status, created_at }) => ({ url, platform, status, created_at }));
+  },
+
   async addWaitlist(entry) {
     load().waitlist.push({ ...entry, created_at: new Date().toISOString() });
     persist();

@@ -12,9 +12,17 @@ import { INTENT_LABELS, type Venue } from "@/lib/types";
 interface MeResponse {
   saves: Venue[];
   plans: ExpandedPlan[];
+  imports: { url: string; platform: string; status: string; created_at: string }[];
   taste: Record<string, number>;
   auth: { provider: "line" | "anonymous"; displayName: string | null };
 }
+
+const IMPORT_STATUS_TH: Record<string, string> = {
+  queued: "⏳ รอทีมงานดึงข้อมูล",
+  processing: "🔎 กำลังดึงข้อมูล",
+  done: "✅ เพิ่มเข้าระบบแล้ว",
+  failed: "⚠️ ดึงไม่สำเร็จ",
+};
 
 const CATEGORY_EMOJI: Record<Venue["category"], string> = {
   cafe: "☕",
@@ -26,6 +34,7 @@ const CATEGORY_EMOJI: Record<Venue["category"], string> = {
 export default function TripsPage() {
   const router = useRouter();
   const [me, setMe] = useState<MeResponse | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [confirmingWipe, setConfirmingWipe] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (m: string) => {
@@ -33,10 +42,23 @@ export default function TripsPage() {
     setTimeout(() => setToast(null), 2600);
   };
 
-  useEffect(() => {
-    gn<MeResponse>("/api/me").then(setMe).catch(() => {});
-  }, []);
+  const load = () => {
+    setLoadError(false);
+    gn<MeResponse>("/api/me").then(setMe).catch(() => setLoadError(true));
+  };
+  useEffect(load, []);
 
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <p className="text-4xl">🎒</p>
+        <p className="mt-3 font-bold">โหลดข้อมูลไม่สำเร็จ</p>
+        <button onClick={load} className="mt-4 rounded-full bg-gn-orange px-6 py-2.5 font-bold text-white">
+          ลองอีกครั้ง ↻
+        </button>
+      </div>
+    );
+  }
   if (!me) return <LoadingSkeleton lines={4} />;
 
   const donePlans = me.plans.filter((p) => p.status === "done");
@@ -212,13 +234,29 @@ export default function TripsPage() {
                 </small>
               </div>
               <button
-                onClick={() => showToast(`ใส่ในแผนเสาร์หน้าแล้ว: ${v.name_th}`)}
+                onClick={() => router.push(`/app?add=${v.id}`)}
                 className="shrink-0 rounded-lg border border-gn-navy/15 px-2.5 py-1 text-xs font-semibold hover:border-gn-orange hover:text-gn-orange"
               >
-                วางแผนไป
+                วางแผนไป →
               </button>
             </div>
           ))}
+
+          {/* ลิงก์คลิปที่ส่งมา — ปิด dead end เดิม (ส่งแล้วหายเงียบ) */}
+          {me.imports.length > 0 && (
+            <>
+              <h4 className="mb-2.5 mt-5 font-bold">🎬 คลิปที่ส่งให้ทีมงาน</h4>
+              {me.imports.map((im) => (
+                <div key={im.created_at + im.url} className="mb-2 rounded-xl border border-gn-line bg-gn-card p-2.5">
+                  <div className="truncate text-[12.5px]">{im.url}</div>
+                  <small className="text-gn-mut">
+                    {IMPORT_STATUS_TH[im.status] ?? im.status} ·{" "}
+                    {new Date(im.created_at).toLocaleDateString("th-TH", { month: "short", day: "numeric" })}
+                  </small>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </div>
 

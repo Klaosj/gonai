@@ -6,10 +6,11 @@ import { store } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
   const auth = resolveUser(req);
-  const [user, savedIds, plans, catalog] = await Promise.all([
+  const [user, savedIds, plans, imports, catalog] = await Promise.all([
     store.ensureUser(auth.id),
     store.savedVenueIdsOf(auth.id),
     store.plansOf(auth.id),
+    store.importsOf(auth.id),
     getCatalog(),
   ]);
 
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
     NextResponse.json({
       saves,
       plans: expanded,
+      imports,
       taste: user.taste,
       auth: { provider: auth.provider, displayName: displayNameFrom(req) },
     }),

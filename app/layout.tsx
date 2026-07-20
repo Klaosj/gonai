@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Thai, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import Shell from "./shell";
 
 const noto = Noto_Sans_Thai({
   weight: ["400", "500", "600", "700", "800"],
@@ -30,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="min-h-screen antialiased"
         style={{ fontFamily: "var(--font-noto), system-ui, sans-serif" }}
       >
-        <Shell>{children}</Shell>
+        {children}
       </body>
     </html>
   );

@@ -1,23 +1,21 @@
 "use client";
-// Shell — header (active tab + budget chip + avatar) + hint bar + footer
-// อ้างอิง painai-app-v3.html เป๊ะ: 4 tabs · sticky header · hint bar dismissible · footer 4 chips
-// font class variables (--font-noto, --font-playfair) ถูก apply ที่ <html> ใน app/layout.tsx
+// Shell — header (active tab + avatar) + hint bar + footer — ใช้เฉพาะโซนแอป (/app/*)
+// landing (/) ไม่ใช้ Shell — แยกโลก marketing กับแอปออกจากกัน
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { track } from "@/lib/api";
 
 const TABS = [
   { key: "planner", label: "🗺️ วางแผน", href: "/app" },
   { key: "explore", label: "🔎 สำรวจ", href: "/app/explore" },
-  { key: "group",   label: "👥 กลุ่ม",   href: "/app/group" },
-  { key: "trips",   label: "🎒 ทริปของฉัน", href: "/app/me" },
+  { key: "group", label: "👥 กลุ่ม · เร็วๆ นี้", href: "/app/group" },
+  { key: "trips", label: "🎒 ทริปของฉัน", href: "/app/me" },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/app") {
-    return pathname === "/app"
-      || pathname.startsWith("/app/plan")
-      || pathname.startsWith("/app/trip");
+    return pathname === "/app" || pathname.startsWith("/app/plan") || pathname.startsWith("/app/trip");
   }
   return pathname === href || pathname.startsWith(href + "/");
 }
@@ -31,9 +29,31 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       if (localStorage.getItem("gn_hint_dismissed") === "1") setShowHint(false);
     } catch {}
   }, []);
+
+  // client error reporter — ส่งเข้า events ให้เห็นปัญหาจริงจากเครื่องผู้ใช้ (สูงสุด 1 ครั้ง/30 วิ)
+  useEffect(() => {
+    let last = 0;
+    const report = (message: string) => {
+      const now = Date.now();
+      if (now - last < 30_000) return;
+      last = now;
+      track("client_error", { message: message.slice(0, 300), path: window.location.pathname });
+    };
+    const onError = (e: ErrorEvent) => report(e.message);
+    const onReject = (e: PromiseRejectionEvent) => report(String(e.reason).slice(0, 300));
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onReject);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onReject);
+    };
+  }, []);
+
   const dismissHint = () => {
     setShowHint(false);
-    try { localStorage.setItem("gn_hint_dismissed", "1"); } catch {}
+    try {
+      localStorage.setItem("gn_hint_dismissed", "1");
+    } catch {}
   };
 
   return (
@@ -60,26 +80,20 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="ml-auto" />
-        <div className="hidden items-center gap-2 rounded-full border border-gn-mint-bd bg-gn-mint-bg px-3.5 py-1.5 font-bold text-gn-green-dark md:flex">
-          <span>💰 งบวันนี้</span>
-          <b>800฿</b>
-          <small className="font-medium text-gn-mut">ตั้งให้อัตโนมัติจากประวัติ</small>
-          <Link href="/app" className="text-gn-green underline">แก้</Link>
-        </div>
         <Link
           href="/app/me"
           className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-gn-orange font-extrabold text-white"
           aria-label="ทริปของฉัน"
         >
-          K
+          👤
         </Link>
       </header>
 
       {showHint && (
         <div className="flex items-center gap-3 border-b border-gn-amber-bd bg-gn-amber-bg px-5 py-2 text-[13px] text-gn-amber-fg">
           <span>
-            💡 <b className="text-gn-orange">วิธีใช้:</b>&nbsp;
-            ① บอก AI ว่าอยากทำอะไร (ซ้าย) → ② เลือกจาก Top 3 ที่คัดให้ (กลาง) → ③ ดูแผน + งบรวม (ขวา) — พอออกเดินทางจริง สลับเป็นโหมด &quot;กำลังเที่ยว&quot; ที่คอลัมน์ขวา
+            💡 <b className="text-gn-orange">วิธีใช้:</b>&nbsp; ① เลือกย่านที่ออก + เงื่อนไข → ② เลือกจาก Top 3 ที่คัดให้
+            → ③ เห็นแผน + งบรวมทุกบาท — พอออกเดินทางจริง กด &quot;เริ่มเที่ยว&quot; เพื่อบันทึกจ่ายจริง
           </span>
           <button
             onClick={dismissHint}
@@ -93,9 +107,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {children}
 
       <footer className="flex flex-wrap justify-center gap-5 border-t border-gn-line bg-gn-card px-5 py-3.5 text-xs text-gn-mut">
-        <span>✅ ข้อมูล validate โดยผู้ใช้จริง 128 คนใน 14 วัน</span>
-        <span>🏛 สถานที่ unseen จาก TAT open data</span>
-        <span>🗺 เส้นทางฐาน GrabMaps + วิน/เรือ/สองแถวเก็บเอง</span>
+        <span>🚧 เบต้า — ข้อมูลชุดตัวอย่าง กำลังเก็บข้อมูลจริงย่านสยาม</span>
+        <span>✨ ที่ Unseen ต้องมีคนยืนยัน ≥ 3 คนถึงจะโชว์</span>
+        <span>🗺 เส้นทางวิน/เรือ/BTS เก็บภาคสนาม · ที่ยังไม่ validate ใช้สูตร Grab</span>
         <span>🔒 ข้อมูลส่วนตัวตาม PDPA — ดู/ลบได้ทุกเมื่อ</span>
       </footer>
     </>

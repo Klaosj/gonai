@@ -128,6 +128,15 @@ export const supabaseStore: Store = {
     );
   },
 
+  async importsOf(user_id) {
+    const { data } = await sb()
+      .from("imports")
+      .select("url,platform,status,created_at")
+      .eq("user_id", user_id)
+      .order("created_at", { ascending: false });
+    return (data ?? []) as { url: string; platform: string; status: string; created_at: string }[];
+  },
+
   async addWaitlist(entry) {
     must("addWaitlist", (await sb().from("waitlist").insert({ ...entry, created_at: new Date().toISOString() })).error);
   },

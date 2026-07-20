@@ -6,6 +6,16 @@ import WaitlistForm from "@/components/WaitlistForm";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gn-bg">
+      {/* mini header — landing ไม่ใช้ Shell ของแอป */}
+      <header className="flex items-center justify-between px-6 py-3.5">
+        <span className="flex items-baseline gap-2">
+          <b className="gn-serif text-[19px] font-bold text-gn-green">ไปไหน PaiNai</b>
+          <span className="text-[11px] text-gn-mut">plan · go · ไม่เกินงบ</span>
+        </span>
+        <Link href="/app" className="rounded-full border border-gn-line px-4 py-1.5 text-sm font-bold text-gn-green">
+          เข้าแอป →
+        </Link>
+      </header>
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gn-green to-gn-purple px-6 py-20 text-white">
         <div className="mx-auto max-w-4xl text-center">

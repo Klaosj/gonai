@@ -25,6 +25,7 @@ export interface Store {
   addEvent(user_id: string, type: string, payload?: Record<string, unknown>): Promise<void>;
   bumpTaste(user_id: string, key: string): Promise<void>;
   addImport(user_id: string, url: string, platform: string): Promise<void>;
+  importsOf(user_id: string): Promise<{ url: string; platform: string; status: string; created_at: string }[]>;
   addWaitlist(entry: Omit<WaitlistEntry, "created_at">): Promise<void>;
 }
 

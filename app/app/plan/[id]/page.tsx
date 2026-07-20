@@ -10,6 +10,7 @@ import RouteLegs from "@/components/RouteLegs";
 import TripRecap from "@/components/TripRecap";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
+import { useCountUp } from "@/lib/use-count-up";
 import type { ExpandedPlan } from "@/lib/server";
 import { MODE_LABELS, type Route, type Venue } from "@/lib/types";
 
@@ -89,12 +90,12 @@ export default function PlanPage() {
         <p className="mt-3 font-bold">โหลดแผนไม่สำเร็จ</p>
         <p className="mt-1 text-sm text-gn-mut">แผนอาจถูกลบไปแล้ว หรืออินเทอร์เน็ตมีปัญหา</p>
         <div className="mt-4 flex justify-center gap-2">
-          <button onClick={load} className="rounded-full bg-gn-orange px-6 py-2.5 font-bold text-white">
+          <button onClick={load} className="gn-press gn-cta rounded-full bg-gn-orange px-6 py-2.5 font-bold text-white">
             ลองอีกครั้ง ↻
           </button>
           <button
             onClick={() => router.push("/app")}
-            className="rounded-full border border-gn-line px-6 py-2.5 font-bold"
+            className="gn-press rounded-full border border-gn-line px-6 py-2.5 font-bold"
           >
             กลับหน้าวางแผน
           </button>
@@ -135,7 +136,7 @@ export default function PlanPage() {
         <div className="flex rounded-[11px] bg-gn-cream p-1">
           <button
             onClick={() => setView("plan")}
-            className={`flex-1 rounded-lg py-2 text-[13px] font-bold ${
+            className={`gn-press flex-1 rounded-lg py-2 text-[13px] font-bold ${
               showPlan ? "bg-gn-card text-gn-green-dark shadow-sm" : "text-gn-mut"
             }`}
           >
@@ -149,7 +150,7 @@ export default function PlanPage() {
               }
               setView("trip");
             }}
-            className={`flex-1 rounded-lg py-2 text-[13px] font-bold ${
+            className={`gn-press flex-1 rounded-lg py-2 text-[13px] font-bold ${
               showTrip ? "bg-gn-card text-gn-green-dark shadow-sm" : "text-gn-mut"
             } ${plan.status === "draft" ? "opacity-50" : ""}`}
           >
@@ -172,7 +173,7 @@ export default function PlanPage() {
 
           <ol className="space-y-3">
             {plan.stops.map((s) => (
-              <li key={s.seq} className="flex items-center gap-3 rounded-2xl bg-gn-card p-4 shadow-sm">
+              <li key={s.seq} className="gn-card-e flex items-center gap-3 p-4">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gn-orange font-bold text-white">
                   {CATEGORY_EMOJI[s.venue.category]}
                 </span>
@@ -253,7 +254,7 @@ export default function PlanPage() {
                 setView("trip");
                 showToast("โหมดกำลังเที่ยว: เช็คอิน + บันทึกจ่ายจริงได้เลย");
               }}
-              className="w-full rounded-xl bg-gn-orange py-3.5 text-base font-extrabold text-white shadow-md hover:bg-gn-orange-dark"
+              className="gn-press gn-cta w-full rounded-xl bg-gn-orange py-3.5 text-base font-extrabold text-white hover:bg-gn-orange-dark"
             >
               เริ่มเที่ยว ▶
             </button>
@@ -277,7 +278,7 @@ export default function PlanPage() {
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-gn-mint-bar">
               <div
-                className="h-full rounded-full bg-gn-orange"
+                className="gn-bar h-full rounded-full bg-gn-orange"
                 style={{ width: `${Math.min(100, (plan.spent / Math.max(1, plan.budget_planned)) * 100)}%` }}
               />
             </div>
@@ -291,14 +292,14 @@ export default function PlanPage() {
 
           <ol className="space-y-3">
             {plan.stops.map((s) => (
-              <li key={s.seq} className="rounded-2xl bg-gn-card p-4 shadow-sm">
+              <li key={s.seq} className="gn-card-e p-4">
                 <div className="flex items-center gap-3">
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-extrabold text-white ${
                       s.checked_in_at ? "bg-gn-green" : "bg-gn-orange"
                     }`}
                   >
-                    {s.checked_in_at ? "✓" : s.seq}
+                    {s.checked_in_at ? <span className="gn-pop inline-block">✓</span> : s.seq}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{s.venue.name_th}</p>
@@ -321,7 +322,7 @@ export default function PlanPage() {
                         await act("checkin", { seq: s.seq });
                         track("checkin", { seq: s.seq, venue_id: s.venue.id });
                       }}
-                      className="shrink-0 rounded-full bg-gn-navy px-4 py-1.5 text-sm font-medium text-white"
+                      className="gn-press shrink-0 rounded-full bg-gn-navy px-4 py-1.5 text-sm font-medium text-white"
                     >
                       เช็คอิน
                     </button>
@@ -362,13 +363,13 @@ export default function PlanPage() {
                             await act("spend", { seq: s.seq, amount: s.est_cost });
                             track("spend_log", { seq: s.seq, amount: s.est_cost });
                           }}
-                          className="flex-1 rounded-full bg-gn-orange py-2 text-sm font-medium text-white"
+                          className="gn-press flex-1 rounded-full bg-gn-orange py-2 text-sm font-medium text-white"
                         >
                           ตามประเมิน {s.est_cost}฿
                         </button>
                         <button
                           onClick={() => setSpendingSeq(s.seq)}
-                          className="flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
+                          className="gn-press flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
                         >
                           พิมพ์เอง…
                         </button>
@@ -389,7 +390,7 @@ export default function PlanPage() {
               track("replan", { plan_id: plan.id });
               await openChain({ indoor: true });
             }}
-            className="w-full rounded-full border border-gn-navy/15 bg-gn-card py-2.5 text-sm font-medium hover:border-gn-orange"
+            className="gn-press w-full rounded-full border border-gn-navy/15 bg-gn-card py-2.5 text-sm font-medium hover:border-gn-orange"
           >
             ☔ ฝนตก / แผนพัง — ปรับแผนใหม่ในงบที่เหลือ
           </button>
@@ -400,7 +401,7 @@ export default function PlanPage() {
               track("plan_done", { plan_id: plan.id });
               showToast("จบทริปแล้ว 🎉 ช่วยยืนยันราคาให้เพื่อนนักเที่ยวหน่อย");
             }}
-            className="w-full rounded-full bg-gn-navy py-3.5 text-base font-extrabold text-white shadow-md"
+            className="gn-press w-full rounded-full bg-gn-navy py-3.5 text-base font-extrabold text-white shadow-md"
           >
             จบทริป ✓
           </button>
@@ -414,7 +415,7 @@ export default function PlanPage() {
 
       {/* ===== chain / replan bottom sheet ===== */}
       {suggestions && (
-        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border-t border-gn-navy/10 bg-gn-card p-5 shadow-2xl">
+        <div className="gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border-t border-gn-navy/10 bg-gn-card p-5 shadow-2xl">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-bold">
               {suggestions.indoor ? `ที่ในร่ม ในงบที่เหลือ (${plan.remaining}฿)` : `ไปต่อในงบที่เหลือ`}
@@ -485,14 +486,15 @@ function DoneSummary({
   const toConfirm = plan.stops.filter((s) => s.actual_cost !== null).slice(0, 2);
   const over = (plan.budget_actual ?? 0) > plan.budget_planned;
   const diff = (plan.budget_actual ?? 0) - plan.budget_planned;
+  const actualAnim = useCountUp(plan.budget_actual ?? 0, 900);
 
   return (
     <div className="space-y-4">
       {/* สรุปทริป */}
-      <div className="rounded-2xl bg-gn-card p-5 shadow-sm">
+      <div className="gn-card-e gn-rise p-5">
         <p className="text-sm text-gn-mut">จ่ายจริงทั้งวัน</p>
-        <p className={`gn-serif text-[40px] font-extrabold leading-tight ${over ? "text-gn-red" : "text-gn-green-dark"}`}>
-          {plan.budget_actual}฿
+        <p className={`gn-serif gn-num text-[40px] font-extrabold leading-tight ${over ? "text-gn-red" : "text-gn-green-dark"}`}>
+          {actualAnim}฿
         </p>
         <p className="text-sm text-gn-mut">
           งบตั้งไว้ {plan.budget_planned}฿ · แผนประเมิน ~{plan.est_total}฿ ·{" "}
@@ -518,7 +520,7 @@ function DoneSummary({
           {toConfirm
             .filter((s) => !confirmed.has(s.venue.id))
             .map((s) => (
-              <div key={s.venue.id} className="rounded-2xl bg-gn-card p-4 shadow-sm">
+              <div key={s.venue.id} className="gn-card-e p-4">
                 <p className="mb-2 text-sm">
                   ราคาที่ <b>{s.venue.name_th}</b> ยัง ~{mid(s.venue.price_per_head_min, s.venue.price_per_head_max)}
                   ฿/คน อยู่ไหม?
@@ -553,13 +555,13 @@ function DoneSummary({
                         setConfirmed(new Set(confirmed).add(s.venue.id));
                         showToast("ขอบคุณ! ข้อมูลนี้ช่วยให้งบของเพื่อนคนถัดไปแม่นขึ้น");
                       }}
-                      className="flex-1 rounded-full bg-gn-green py-2 text-sm font-medium text-white"
+                      className="gn-press flex-1 rounded-full bg-gn-green py-2 text-sm font-medium text-white"
                     >
                       ใช่ ✓
                     </button>
                     <button
                       onClick={() => setEditingPrice(s.venue.id)}
-                      className="flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
+                      className="gn-press flex-1 rounded-full border border-gn-navy/15 py-2 text-sm"
                     >
                       เปลี่ยนเป็น…
                     </button>

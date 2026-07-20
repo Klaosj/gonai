@@ -9,6 +9,7 @@ import VenueCard from "@/components/VenueCard";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
 import { filtersToParams, type VenueFilters } from "@/lib/filters";
+import { useCountUp } from "@/lib/use-count-up";
 import { BUDGET_DEFAULTS } from "@/lib/fixtures";
 import type { ExpandedPlan } from "@/lib/server";
 import type { Intent, Route, Venue, Zone } from "@/lib/types";
@@ -192,6 +193,12 @@ export default function PlannerClient() {
     });
   };
 
+  // hooks ต้องมาก่อน early return ทุกตัว
+  const spent = plan?.spent ?? 0;
+  const left = budget - spent;
+  const spentAnim = useCountUp(spent);
+  const leftAnim = useCountUp(Math.abs(left));
+
   if (loadError) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
@@ -200,7 +207,7 @@ export default function PlannerClient() {
         <p className="mt-1 text-sm text-gn-mut">เช็คอินเทอร์เน็ตแล้วลองใหม่</p>
         <button
           onClick={load}
-          className="mt-4 rounded-full bg-gn-orange px-6 py-2.5 font-bold text-white"
+          className="gn-press gn-cta mt-4 rounded-full bg-gn-orange px-6 py-2.5 font-bold text-white"
         >
           ลองอีกครั้ง ↻
         </button>
@@ -210,8 +217,8 @@ export default function PlannerClient() {
   if (!data) return <LoadingSkeleton />;
 
   const list = showMore ? [...data.cards, ...data.more] : data.cards;
-  const spent = plan?.spent ?? 0;
-  const left = budget - spent;
+  // key เปลี่ยนตามชุดผลลัพธ์ → การ์ดเล่น entrance ใหม่ทุกครั้งที่กรอง/เปลี่ยน intent
+  const listKey = list.map((v) => v.id).join(",");
   const pct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
   const originName = data.zones.find((z) => z.id === origin)?.name_th ?? "อื่นๆ";
   const intentLabel = INTENTS.find((i) => i.key === intent)!.label;
@@ -223,7 +230,7 @@ export default function PlannerClient() {
     <div className="mx-auto max-w-[1500px] px-4 py-4">
       <div className="grid gap-4 lg:grid-cols-[330px_1fr_360px]">
         {/* ====== col 1: เงื่อนไข + ตัวกรอง + import ====== */}
-        <aside className="flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto rounded-2xl border border-gn-line bg-gn-card p-4 gn-noscroll">
+        <aside className="gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
           <span className="gn-step gn-step-green">① เงื่อนไขของคุณ</span>
 
           <div className="flex flex-col gap-2.5">
@@ -282,7 +289,7 @@ export default function PlannerClient() {
                 <button
                   key={c.key}
                   onClick={() => toggleFilter(c.key)}
-                  className={`rounded-full border px-3 py-1.5 text-[12.5px] transition ${
+                  className={`gn-press rounded-full border px-3 py-1.5 text-[12.5px] ${
                     on
                       ? "border-gn-green-dark bg-gn-green-dark font-semibold text-white"
                       : "border-gn-line bg-gn-card hover:border-gn-green hover:text-gn-green"
@@ -306,7 +313,7 @@ export default function PlannerClient() {
               />
               <button
                 onClick={submitImport}
-                className="rounded-lg bg-gn-purple px-3 py-1.5 text-[12.5px] font-bold text-white"
+                className="gn-press rounded-lg bg-gn-purple px-3 py-1.5 text-[12.5px] font-bold text-white"
               >
                 ส่ง
               </button>
@@ -316,10 +323,10 @@ export default function PlannerClient() {
         </aside>
 
         {/* ====== col 2: Top 3 + hero + intent chips ====== */}
-        <section className="rounded-2xl border border-gn-line bg-gn-card p-4">
+        <section className="gn-card-e gn-rise gn-d1 p-4">
           <span className="gn-step gn-step-orange">② เลือกสถานที่ — คัดมา {data.cards.length} จาก {data.total} ที่</span>
 
-          <div className="relative mb-3 mt-2 h-[150px] overflow-hidden rounded-xl bg-gradient-to-br from-gn-green to-gn-purple">
+          <div className="gn-shine relative mb-3 mt-2 h-[150px] overflow-hidden rounded-xl bg-gradient-to-br from-gn-green to-gn-purple">
             <div className="absolute bottom-3 left-4 text-white drop-shadow-md">
               <b className="gn-serif text-[19px]">{originName} → สยาม</b>
               <br />
@@ -335,7 +342,7 @@ export default function PlannerClient() {
                 <button
                   key={z.id}
                   onClick={() => pickOrigin(z.id)}
-                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                  className={`gn-press rounded-full border px-3 py-1 text-xs ${
                     origin === z.id
                       ? "border-gn-navy bg-gn-navy font-bold text-white"
                       : "border-gn-line bg-gn-card text-gn-mut hover:border-gn-navy"
@@ -346,7 +353,7 @@ export default function PlannerClient() {
               ))}
               <button
                 onClick={() => pickOrigin("other")}
-                className={`rounded-full border px-3 py-1 text-xs transition ${
+                className={`gn-press rounded-full border px-3 py-1 text-xs ${
                   origin === "other"
                     ? "border-gn-navy bg-gn-navy font-bold text-white"
                     : "border-gn-line bg-gn-card text-gn-mut hover:border-gn-navy"
@@ -374,7 +381,7 @@ export default function PlannerClient() {
                     setBudget(BUDGET_DEFAULTS[i.key]);
                     track("search", { intent: i.key, origin });
                   }}
-                  className={`rounded-full border-[1.5px] px-3.5 py-1.5 text-[13px] font-semibold transition ${
+                  className={`gn-press rounded-full border-[1.5px] px-3.5 py-1.5 text-[13px] font-semibold ${
                     on
                       ? "border-gn-green-dark bg-gn-green-dark text-white"
                       : "border-gn-line bg-gn-card hover:border-gn-green"
@@ -391,10 +398,10 @@ export default function PlannerClient() {
               ไม่มีที่ตรงทุกเงื่อนไขเลย 😅 — ลองปิดตัวกรองบางตัวดู
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {list.map((v) => (
+            <div key={listKey} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map((v, i) => (
+                <div key={v.id} className={`gn-rise ${i < 6 ? `gn-d${i + 1}` : ""}`}>
                 <VenueCard
-                  key={v.id}
                   venue={v}
                   cheapest={data.routes.cheapest}
                   fastest={data.routes.fastest}
@@ -403,6 +410,7 @@ export default function PlannerClient() {
                   onSave={() => toggleSave(v)}
                   onToggleRoute={(kind) => track("route_alt_toggle", { venue_id: v.id, kind, screen: "planner" })}
                 />
+                </div>
               ))}
             </div>
           )}
@@ -414,7 +422,7 @@ export default function PlannerClient() {
                   setShowMore(true);
                   track("card_view_more", { count: data.more.length });
                 }}
-                className="rounded-full border-[1.5px] border-gn-line bg-gn-card px-5 py-2 font-bold text-gn-mut"
+                className="gn-press rounded-full border-[1.5px] border-gn-line bg-gn-card px-5 py-2 font-bold text-gn-mut hover:border-gn-green"
               >
                 ดูตัวเลือกเพิ่มอีก {data.more.length} ที่ ▾
               </button>
@@ -423,17 +431,17 @@ export default function PlannerClient() {
         </section>
 
         {/* ====== col 3: plan + budget ====== */}
-        <aside className="rounded-2xl border border-gn-line bg-gn-card p-4">
+        <aside className="gn-card-e gn-rise gn-d2 p-4">
           <span className="gn-step gn-step-green">③ แผน + งบของคุณ</span>
 
           <div className="mt-2 mb-3 rounded-xl border border-gn-mint-bd bg-gn-mint-bg p-3">
-            <div className="flex justify-between font-extrabold text-gn-green-dark">
-              <span>ใช้ไป {spent}฿ / {budget}฿</span>
-              <span>{left >= 0 ? `เหลือ ${left}฿` : `เกินงบ ${-left}฿ ⚠️`}</span>
+            <div className="gn-num flex justify-between font-extrabold text-gn-green-dark">
+              <span>ใช้ไป {spentAnim}฿ / {budget}฿</span>
+              <span>{left >= 0 ? `เหลือ ${leftAnim}฿` : `เกินงบ ${leftAnim}฿ ⚠️`}</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-gn-mint-bar">
               <div
-                className={`h-full rounded-full ${left < 0 ? "bg-gn-red" : "bg-gn-green"}`}
+                className={`gn-bar h-full rounded-full ${left < 0 ? "bg-gn-red" : "bg-gn-green"}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -501,7 +509,7 @@ export default function PlannerClient() {
                         showToast("โหลดคำแนะนำไม่สำเร็จ");
                       }
                     }}
-                    className="w-full rounded-lg border border-gn-line bg-gn-card py-2 text-[12.5px] font-semibold hover:border-gn-green"
+                    className="gn-press w-full rounded-lg border border-gn-line bg-gn-card py-2 text-[12.5px] font-semibold hover:border-gn-green"
                   >
                     + ไปไหนต่อดี
                   </button>
@@ -514,7 +522,7 @@ export default function PlannerClient() {
                   track("plan_start_trip", { plan_id: plan.id });
                   router.push(`/app/plan/${plan.id}`);
                 }}
-                className="mt-3 w-full rounded-xl bg-gn-orange py-3 font-extrabold text-white hover:bg-gn-orange-dark"
+                className="gn-press gn-cta mt-3 w-full rounded-xl bg-gn-orange py-3 font-extrabold text-white hover:bg-gn-orange-dark"
               >
                 เริ่มเที่ยว ▶
               </button>
@@ -533,7 +541,7 @@ export default function PlannerClient() {
 
       {/* chain picker — เลือกแล้วเพิ่มเข้าแผนได้จริง */}
       {chainList && plan && (
-        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border-t border-gn-navy/10 bg-gn-card p-5 shadow-2xl">
+        <div className="gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border-t border-gn-navy/10 bg-gn-card p-5 shadow-2xl">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-bold">ไปต่อในงบที่เหลือ ({plan.remaining}฿)</h2>
             <button onClick={() => setChainList(null)} className="text-sm text-gn-gray">
@@ -556,7 +564,7 @@ export default function PlannerClient() {
                     setChainList(null);
                     showToast(`เพิ่ม ${v.name_th} เข้าแผนแล้ว`);
                   }}
-                  className="shrink-0 rounded-full bg-gn-orange px-3 py-1.5 text-sm font-medium text-white"
+                  className="gn-press shrink-0 rounded-full bg-gn-orange px-3 py-1.5 text-sm font-medium text-white"
                 >
                   + เพิ่ม
                 </button>

@@ -12,31 +12,36 @@ export default function LandingPage() {
           <b className="gn-serif text-[19px] font-bold text-gn-green">ไปไหน PaiNai</b>
           <span className="text-[11px] text-gn-mut">plan · go · ไม่เกินงบ</span>
         </span>
-        <Link href="/app" className="rounded-full border border-gn-line px-4 py-1.5 text-sm font-bold text-gn-green">
+        <Link href="/app" className="gn-press rounded-full border border-gn-line px-4 py-1.5 text-sm font-bold text-gn-green hover:bg-gn-cream">
           เข้าแอป →
         </Link>
       </header>
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gn-green to-gn-purple px-6 py-20 text-white">
-        <div className="mx-auto max-w-4xl text-center">
-          <span className="inline-block rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold">
+        {/* แสงลอยหลังฉาก */}
+        <div className="gn-orb left-[8%] top-[-40px] h-64 w-64 bg-white/60" />
+        <div className="gn-orb right-[6%] bottom-[-60px] h-72 w-72 bg-gn-orange/70" style={{ animationDelay: "-4s" }} />
+        <div className="relative mx-auto max-w-4xl text-center">
+          <span className="gn-rise inline-block rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold backdrop-blur">
             🎉 เบต้า · ฟรีช่วงทดลอง
           </span>
-          <h1 className="gn-serif mt-6 text-4xl font-bold leading-tight sm:text-5xl">
+          <h1 className="gn-serif gn-rise gn-d1 mt-6 text-4xl font-bold leading-tight sm:text-5xl">
             วางแผนเที่ยว 1 วัน
             <br />
             รู้งบจริงทุกบาท ก่อนออกจากบ้าน
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg opacity-90">
+          <p className="gn-rise gn-d2 mx-auto mt-5 max-w-xl text-lg opacity-90">
             คัด Top 3 จากเงื่อนไขของคุณ ด้วยข้อมูลที่คนจริง validate — พร้อมค่าวิน เรือ สองแถว รวมในงบเดียว
           </p>
-          <Link
-            href="/app"
-            className="mt-8 inline-block rounded-full bg-gn-orange px-8 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-gn-orange-dark"
-          >
-            เริ่มวางแผนฟรี ▶
-          </Link>
-          <p className="mt-3 text-xs opacity-75">ไม่ต้องสมัคร · ใช้งานได้เลย</p>
+          <div className="gn-rise gn-d3">
+            <Link
+              href="/app"
+              className="gn-press gn-cta mt-8 inline-block rounded-full bg-gn-orange px-8 py-3.5 text-base font-bold text-white hover:bg-gn-orange-dark"
+            >
+              เริ่มวางแผนฟรี ▶
+            </Link>
+            <p className="mt-3 text-xs opacity-75">ไม่ต้องสมัคร · ใช้งานได้เลย</p>
+          </div>
         </div>
       </section>
 
@@ -56,7 +61,7 @@ export default function LandingPage() {
           ].map((p) => (
             <div
               key={p.title}
-              className="rounded-2xl border border-gn-line bg-white p-5 text-center"
+              className="gn-card-e gn-lift p-5 text-center"
             >
               <div className="text-3xl">{p.icon}</div>
               <h3 className="mt-2 font-bold text-gn-ink">{p.title}</h3>
@@ -122,7 +127,7 @@ export default function LandingPage() {
           ].map((f) => (
             <div
               key={f.text}
-              className="flex items-start gap-3 rounded-xl border border-gn-line bg-white p-4"
+              className="gn-card-e flex items-start gap-3 p-4"
             >
               <span className="text-xl">{f.icon}</span>
               <span className="text-sm text-gn-ink">{f.text}</span>
@@ -137,7 +142,7 @@ export default function LandingPage() {
         <p className="mt-2 opacity-90">ฟรี · ไม่ต้องสมัคร · ใช้งานได้เลย</p>
         <Link
           href="/app"
-          className="mt-6 inline-block rounded-full bg-gn-orange px-8 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-gn-orange-dark"
+          className="gn-press gn-cta mt-6 inline-block rounded-full bg-gn-orange px-8 py-3.5 text-base font-bold text-white hover:bg-gn-orange-dark"
         >
           เริ่มเลย ▶
         </Link>

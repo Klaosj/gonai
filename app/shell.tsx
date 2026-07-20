@@ -58,7 +58,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 flex items-center gap-4 border-b border-gn-line bg-gn-card px-5 py-2.5">
+      <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 py-2.5">
         <Link href="/app" className="flex items-baseline gap-2">
           <b className="gn-serif text-[19px] font-bold text-gn-green">ไปไหน PaiNai</b>
           <span className="text-[11px] text-gn-mut">plan · go · ไม่เกินงบ</span>
@@ -70,8 +70,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <Link
                 key={t.key}
                 href={t.href}
-                className={`rounded-[10px] px-4 py-2 text-sm font-semibold transition ${
-                  on ? "bg-gn-green text-white" : "text-gn-mut hover:bg-gn-cream"
+                className={`gn-press rounded-full px-4 py-2 text-sm font-semibold ${
+                  on ? "bg-gn-green text-white shadow-sm" : "text-gn-mut hover:bg-gn-cream"
                 }`}
               >
                 {t.label}
@@ -82,7 +82,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="ml-auto" />
         <Link
           href="/app/me"
-          className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-gn-orange font-extrabold text-white"
+          className="gn-press flex h-[34px] w-[34px] items-center justify-center rounded-full bg-gn-orange font-extrabold text-white shadow-sm"
           aria-label="ทริปของฉัน"
         >
           👤

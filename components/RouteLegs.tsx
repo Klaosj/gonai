@@ -35,7 +35,7 @@ export default function RouteLegs({
   const minutesAlt = other.minutes;
 
   return (
-    <div className="rounded-2xl bg-gn-card p-4 shadow-sm">
+    <div className="gn-card-e p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
         <BahtChip legs={route.legs} />
         <span className="text-xs text-gn-gray">{minutesCur} นาที · เที่ยวเดียว</span>
@@ -57,7 +57,7 @@ export default function RouteLegs({
       {onToggle && (
         <button
           onClick={onToggle}
-          className="w-full rounded-full border border-gn-navy/15 bg-gn-cream px-3 py-1.5 text-[13px] hover:border-gn-orange"
+          className="gn-press w-full rounded-full border border-gn-navy/15 bg-gn-cream px-3 py-1.5 text-[13px] hover:border-gn-orange"
         >
           {KIND_LABEL[route.kind]} {fmtRange(cur.min, cur.max)} · {minutesCur} นาที{" "}
           <span className="mx-1 text-gn-orange">⇄</span>{" "}

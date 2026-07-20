@@ -45,20 +45,24 @@ export default function VenueCard({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-      <div className="relative flex h-32 items-center justify-center bg-gradient-to-br from-[#FDE9D7] to-[#F8BE8D] text-5xl">
-        <span aria-hidden>{CATEGORY_EMOJI[venue.category]}</span>
+    <div className="gn-card-e gn-lift overflow-hidden">
+      <div className="gn-shine relative flex h-32 items-center justify-center overflow-hidden bg-gradient-to-br from-[#FDE9D7] to-[#F8BE8D] text-5xl">
+        <span aria-hidden className="transition-transform duration-500 ease-out group-hover:scale-110">
+          {CATEGORY_EMOJI[venue.category]}
+        </span>
         <BahtChip legs={route.legs} className="absolute right-2 top-2" />
         <button
           onClick={onSave}
           aria-label="บันทึกไว้"
-          className={`absolute left-2 top-2 rounded-full bg-white/90 p-1.5 shadow ${saved ? "text-gn-red" : "text-gn-gray"}`}
+          className={`gn-press absolute left-2 top-2 rounded-full bg-white/90 p-1.5 shadow backdrop-blur ${saved ? "text-gn-red" : "text-gn-gray"}`}
         >
-          <Heart size={16} fill={saved ? "currentColor" : "none"} />
+          <span className={saved ? "gn-pop inline-block" : "inline-block"}>
+            <Heart size={16} fill={saved ? "currentColor" : "none"} />
+          </span>
         </button>
         <button
           onClick={toggle}
-          className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-xs shadow"
+          className="gn-press absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-xs shadow backdrop-blur"
           title="สลับเส้นทาง ประหยัด ⇄ เร็ว"
         >
           ⇄ {kind === "cheapest" ? "ดูแบบเร็ว" : "ดูแบบประหยัด"}
@@ -116,12 +120,12 @@ export default function VenueCard({
         <div className="flex gap-2 pt-1">
           <button
             onClick={onAdd}
-            className="flex-1 rounded-full bg-gn-orange px-4 py-2 text-sm font-medium text-white hover:bg-gn-orange-dark"
+            className="gn-press gn-cta flex-1 rounded-full bg-gn-orange px-4 py-2 text-sm font-semibold text-white hover:bg-gn-orange-dark"
           >
             + เพิ่มเข้าแผน
           </button>
           {venue.video_url && (
-            <button className="inline-flex items-center gap-1 rounded-full border border-gn-navy/15 px-3 py-2 text-sm">
+            <button className="gn-press inline-flex items-center gap-1 rounded-full border border-gn-navy/15 px-3 py-2 text-sm">
               <Play size={14} /> ดูคลิป
             </button>
           )}

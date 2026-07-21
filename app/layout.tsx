@@ -46,6 +46,11 @@ export const metadata: Metadata = {
     icon: "/icon.svg",
     apple: "/apple-icon.png",
   },
+  openGraph: {
+    title: "GoNai — plan · go · never over budget",
+    description: "Plan a full Bangkok day out with every baht counted before you leave",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
+  },
   manifest: "/manifest.webmanifest",
 };
 

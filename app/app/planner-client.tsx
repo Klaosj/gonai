@@ -233,7 +233,7 @@ export default function PlannerClient() {
     const a = fromEl.getBoundingClientRect();
     const b = target.getBoundingClientRect();
     const ghost = document.createElement("div");
-    ghost.style.cssText = `position:fixed;left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${Math.min(a.height, 128)}px;border-radius:16px;z-index:150;pointer-events:none;opacity:.9;background:linear-gradient(150deg,#dcefe3,#a8c9ee);box-shadow:0 18px 44px rgba(18,20,17,.18)`;
+    ghost.style.cssText = `position:fixed;left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${Math.min(a.height, 128)}px;border-radius:16px;z-index:150;pointer-events:none;opacity:.9;background:linear-gradient(150deg,#d9f0ea,#a8c9ee);box-shadow:0 18px 44px rgba(18,20,17,.18)`;
     document.body.appendChild(ghost);
     ghost
       .animate(

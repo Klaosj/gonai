@@ -11,22 +11,22 @@
   --color-line: #e3e3dd;
   --color-ink: #121411;
   --color-mut: #63675f;
-  --color-accent: #1e7f4f;
-  --color-accent-bright: #34a869;
-  --color-tint: #dcefe3;
+  --color-accent: #107f6b;
+  --color-accent-bright: #41b982;
+  --color-tint: #d9f0ea;
   --color-pill: #121411;
-  --color-ok: #1e7f4f;
+  --color-ok: #107f6b;
   --color-warn: #a8641d;
   --color-bad: #c6362c;
 
   /* ===== legacy gn-* tokens — remapped into the light palette so any class we
      didn't touch (bg-gn-*, text-gn-*, border-gn-*) still renders correctly ===== */
-  --color-gn-green: #1e7f4f;
-  --color-gn-green-dark: #16663f;
+  --color-gn-green: #107f6b;
+  --color-gn-green-dark: #0c6354;
   --color-gn-orange: #121411;
   --color-gn-orange-dark: #3a3d3a;
-  --color-gn-purple: #1e7f4f;
-  --color-gn-purple-dark: #16663f;
+  --color-gn-purple: #107f6b;
+  --color-gn-purple-dark: #0c6354;
   --color-gn-navy: #f2f2ee;
 
   --color-gn-bg: #ffffff;
@@ -46,8 +46,8 @@
   --color-gn-amber-cta-bd: rgba(168, 100, 29, 0.4);
   --color-gn-amber-cta-bg: rgba(168, 100, 29, 0.08);
 
-  --color-gn-mint-bg: rgba(30, 127, 79, 0.08);
-  --color-gn-mint-bd: rgba(30, 127, 79, 0.25);
+  --color-gn-mint-bg: rgba(16, 127, 107, 0.08);
+  --color-gn-mint-bd: rgba(16, 127, 107, 0.25);
   --color-gn-mint-bar: rgba(18, 20, 17, 0.08);
 
   --color-gn-chat-user: #121411;
@@ -56,16 +56,16 @@
   --color-gn-chat-cost-bg: rgba(18, 20, 17, 0.02);
   --color-gn-chat-cost-bd: rgba(18, 20, 17, 0.15);
 
-  --color-gn-import-bg: rgba(30, 127, 79, 0.05);
-  --color-gn-import-bd: rgba(30, 127, 79, 0.25);
+  --color-gn-import-bg: rgba(16, 127, 107, 0.05);
+  --color-gn-import-bd: rgba(16, 127, 107, 0.25);
 
   --color-gn-danger-bg: rgba(198, 54, 44, 0.08);
   --color-gn-danger-bd: rgba(198, 54, 44, 0.3);
   --color-gn-danger-fg: #c6362c;
 
-  --color-gn-pts-bg: rgba(30, 127, 79, 0.06);
-  --color-gn-pts-bd: rgba(30, 127, 79, 0.25);
-  --color-gn-pts-fg: #1e7f4f;
+  --color-gn-pts-bg: rgba(16, 127, 107, 0.06);
+  --color-gn-pts-bd: rgba(16, 127, 107, 0.25);
+  --color-gn-pts-fg: #107f6b;
 }
 
 /* ===== Motion + material vocabulary ===== */
@@ -78,11 +78,11 @@
   --line: #e3e3dd;
   --ink: #121411;
   --mut: #70746e;
-  --accent: #1e7f4f;
-  --accent-bright: #34a869;
-  --tint: #dcefe3;
+  --accent: #107f6b;
+  --accent-bright: #41b982;
+  --tint: #d9f0ea;
   --pill: #121411;
-  --ok: #1e7f4f;
+  --ok: #107f6b;
   --warn: #a8641d;
   --bad: #c6362c;
 
@@ -93,6 +93,13 @@
   --gn-fast: 180ms;
   --gn-med: 340ms;
   --gn-slow: 600ms;
+
+  /* brand gradient — ดึงจากตัว G ของโลโก้ (teal → เขียว → เขียวมะนาว) */
+  --brand-teal: #0f9fa6;
+  --brand-mid: #41b982;
+  --brand-lime: #6ccf63;
+  /* 38deg = teal ล่างซ้าย → เขียวมะนาวบนขวา ตามต้นฉบับ */
+  --gn-brand-grad: linear-gradient(38deg, var(--brand-teal) 0%, var(--brand-mid) 55%, var(--brand-lime) 100%);
 
   /* เงาหลายชั้นแบบนุ่ม บนพื้นขาว — ชุดจากต้นแบบ Mindtrip (plan §1) */
   --gn-shadow-1: 0 2px 6px rgba(18, 20, 17, 0.05), 0 18px 44px rgba(18, 20, 17, 0.1);
@@ -108,7 +115,7 @@ body {
 }
 
 ::selection {
-  background: rgba(52, 168, 105, 0.28);
+  background: rgba(65, 185, 130, 0.28);
 }
 
 /* ตัวเลขเงินทุกตัวเรียงหลักตรงกัน ไม่กระโดดตอนเปลี่ยนค่า */
@@ -132,6 +139,65 @@ body {
 .o-marker {
   font-style: normal;
   box-shadow: inset 0 -0.34em 0 var(--accent-bright);
+}
+
+/* ===== GoNai logo lockup (components/Logo.tsx) =====
+   ทุกระยะเป็น em — คุมขนาดด้วย font-size ที่จุดใช้งาน (เช่น className="text-[19px]") */
+.gn-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.gn-logo-word {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-fraunces), "Bricolage Grotesque", sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  color: var(--ink);
+  /* กันธงบนหัว i ล้นไปทับของที่อยู่ถัดไป */
+  padding-right: 0.55em;
+}
+.gn-logo-g {
+  background: var(--gn-brand-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.gn-logo-o,
+.gn-logo-i {
+  position: relative;
+}
+/* เครื่องบินเชิดหัวขึ้นขวา — เกาะเหนือช่อง o→N ตามโลโก้ต้นฉบับ */
+.gn-logo-plane {
+  position: absolute;
+  left: 38%;
+  bottom: 0.58em;
+  width: 1.2em;
+  height: 1.2em;
+  color: var(--ink);
+}
+/* ธงชาติบนหัว i — เสาโผล่จากจุดของ i ธงสะบัดขวา */
+.gn-logo-flag {
+  position: absolute;
+  left: 26%;
+  bottom: 0.78em;
+  width: 1.05em;
+  height: auto;
+}
+.gn-logo-tag {
+  margin-top: 0.4em;
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 700;
+  font-size: 0.26em;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em; /* ชดเชย tracking ตัวท้ายให้กลางจริง */
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink);
 }
 
 /* mono uppercase micro-labels — ลายเซ็นสำคัญที่สุดของดีไซน์นี้ (ปุ่ม/badge/หัวคอลัมน์/ชิป)
@@ -160,7 +226,7 @@ body {
 
 /* ===== Ambience gradients — บรรยากาศต่อ intent (แทนภาพถ่ายที่ยังไม่มี) — pastel จากต้นแบบ (plan §1) ===== */
 .o-ambience-work {
-  background-image: linear-gradient(150deg, #dcefe3 0%, #a8c9ee 100%);
+  background-image: linear-gradient(150deg, #d9f0ea 0%, #a8c9ee 100%);
 }
 .o-ambience-date {
   background-image: linear-gradient(150deg, #f6e7dc 0%, #eecfc0 100%);
@@ -484,13 +550,13 @@ input:focus-visible {
 
 @keyframes gn-pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(30, 127, 79, 0.4);
+    box-shadow: 0 0 0 0 rgba(16, 127, 107, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 14px rgba(30, 127, 79, 0);
+    box-shadow: 0 0 0 14px rgba(16, 127, 107, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(30, 127, 79, 0);
+    box-shadow: 0 0 0 0 rgba(16, 127, 107, 0);
   }
 }
 .gn-pulse-ring {
@@ -507,7 +573,7 @@ input:focus-visible {
 .gn-bump { display: inline-block; animation: gn-bump 0.45s var(--gn-spring); }
 
 /* (3) check-in ripple — วงเขียวกระเพื่อมครั้งเดียว */
-@keyframes gn-ripple { 0% { box-shadow: 0 0 0 0 rgba(30, 127, 79, 0.45); } 100% { box-shadow: 0 0 0 18px rgba(30, 127, 79, 0); } }
+@keyframes gn-ripple { 0% { box-shadow: 0 0 0 0 rgba(16, 127, 107, 0.45); } 100% { box-shadow: 0 0 0 18px rgba(16, 127, 107, 0); } }
 .gn-ripple-once { animation: gn-ripple 0.9s var(--gn-ease) 1; }
 
 /* (4) chip bounce — เด้ง overshoot ตอนสลับ active (replay ด้วย key) */

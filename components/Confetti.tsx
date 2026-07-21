@@ -3,7 +3,7 @@
 // เคารพ prefers-reduced-motion (คลาสถูก kill ใน globals — เศษจะไม่ขยับ เลยไม่ render เลยดีกว่า)
 import { useEffect, useMemo, useState } from "react";
 
-const COLORS = ["#1e7f4f", "#34a869", "#dcefe3", "#121411", "#7fce9f"];
+const COLORS = ["#107f6b", "#41b982", "#0f9fa6", "#121411", "#6ccf63"];
 
 export default function Confetti() {
   const [gone, setGone] = useState(false);

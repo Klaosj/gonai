@@ -1,9 +1,18 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GoNai">
-  <rect width="512" height="512" rx="113" ry="113" fill="#1e7f4f"/>
-  <rect x="146" y="336" width="220" height="46" rx="6" fill="#34a869"/>
+  <defs>
+    <linearGradient id="gn-brand" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#0f9fa6"/>
+      <stop offset="0.55" stop-color="#41b982"/>
+      <stop offset="1" stop-color="#6ccf63"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="113" ry="113" fill="url(#gn-brand)"/>
+  <g transform="translate(296,58) scale(7)" fill="#ffffff">
+    <path d="M22.07 9.64c-.21-.8-1.04-1.28-1.84-1.06L14.92 10L8.02 3.57L6.09 4.08l4.14 7.17l-4.97 1.33l-1.97-1.54l-1.45.39l2.59 4.49s7.12-1.9 16.57-4.43c.81-.23 1.28-1.05 1.07-1.85z"/>
+  </g>
   <text
-    x="256"
-    y="252"
+    x="243"
+    y="300"
     text-anchor="middle"
     dominant-baseline="central"
     font-family="'Bricolage Grotesque', 'Arial Black', Arial, sans-serif"

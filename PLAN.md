@@ -9,11 +9,11 @@
 
 - **Tech**: Next.js 15 (App Router) + React 19 + Tailwind v4 + Zustand
 - **UI**: Mobile-first (max-w-md), ไทยล้วน, IBM Plex Sans Thai
-- **Design tokens** (ห้ามเปลี่ยน — spec 2.7):
-  - `--gn-orange: #f25c05` / `--gn-orange-dark: #d14e04` (CTA primary)
-  - `--gn-navy: #1a2238` (text + header) / `--gn-cream: #faf6f0` (bg)
-  - `--gn-green: #1e7f4f` (under budget) / `--gn-red: #c6362c` (over budget)
-  - `--gn-purple: #6b4fa0` (unseen badge) / `--gn-gray: #8a8578`
+- **Design tokens** (v0.7 "Forest on White + brand gradient" — ค่าจริงอยู่ที่ `app/globals.css`):
+  - พื้นขาว `#ffffff` + หมึก `#121411` + accent `#107f6b` / bright `#41b982`
+  - brand gradient จากตัว G ของโลโก้: teal `#0f9fa6` → `#41b982` → lime `#6ccf63` (`--gn-brand-grad`, 38deg)
+  - `--gn-red: #c6362c` (over budget) / warn `#a8641d`
+  - โลโก้: `components/Logo.tsx` (เครื่องบิน + G gradient + ธงชาติบนหัว i + tagline) · ต้นฉบับ `public/logo.png` · icons ทั้งชุด gen จาก `public/icon.svg`
 
 ## สถานะปัจจุบัน (2026-07-20)
 

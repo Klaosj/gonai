@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import WaitlistForm from "@/components/WaitlistForm";
 
 // Landing page (PART B) — แทน redirect เดิม
@@ -7,11 +8,10 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-bg">
       {/* mini header — landing ไม่ใช้ Shell ของแอป */}
-      <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-6 py-3.5">
+      {/* pt สูงกว่า pb — เผื่อหัวเครื่องบินของโลโก้ที่ยื่นเหนือ cap height */}
+      <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-6 pb-3 pt-5">
         <span className="flex items-baseline gap-2">
-          <b className="o-serif text-[19px] font-semibold text-ink">
-            <em className="o-marker">Go</em>Nai
-          </b>
+          <Logo className="text-[19px]" />
           <span className="hidden text-[11px] text-ink/70 sm:inline">plan · go · never over budget</span>
         </span>
         <Link
@@ -43,6 +43,10 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="relative z-[2] mx-auto max-w-4xl text-center">
+          {/* โลโก้เต็มตัว (เครื่องบิน + gradient G + ธง + tagline) — พระเอกของ hero */}
+          <div className="gn-rise mb-8">
+            <Logo tagline className="text-[clamp(38px,6vw,52px)]" />
+          </div>
           <span className="gn-rise o-mono inline-block rounded-full bg-tint px-4 py-1.5 text-[11px] text-ink">
             🎉 Beta · free while we test
           </span>
@@ -163,7 +167,7 @@ export default function LandingPage() {
       {/* CTA — พื้น gradient เขียวสดตามต้นแบบ (plan §3), ไม่ใช้ o-ambience-* เดิม (นั่นคือ pastel ของ mood tiles) */}
       <section
         className="o-grain relative px-6 py-16 text-center text-ink"
-        style={{ background: "linear-gradient(160deg, #34a869, #7fce9f)" }}
+        style={{ background: "linear-gradient(160deg, #2db3a4, #41b982 55%, #6ccf63)" }}
       >
         <div className="relative z-[2]">
           <h2 className="o-serif text-3xl font-medium">

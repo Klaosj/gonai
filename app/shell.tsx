@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Logo from "@/components/Logo";
 import { gn, track } from "@/lib/api";
 import type { ExpandedPlan } from "@/lib/server";
 import type { Venue } from "@/lib/types";
@@ -115,11 +116,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 py-2.5">
+      {/* pt สูงกว่า pb เล็กน้อย — เผื่อหัวเครื่องบินของโลโก้ยื่นเหนือ cap height ไม่ให้โดนขอบจอตัด */}
+      <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 pb-2 pt-3.5">
         <Link href="/app" className="flex items-baseline gap-2">
-          <b className="o-serif text-[19px] font-semibold text-ink">
-            <em className="o-marker">Go</em>Nai
-          </b>
+          <Logo className="text-[19px]" />
           <span className="hidden text-[11px] text-mut sm:inline">plan · go · never over budget</span>
         </Link>
         <nav className="ml-2 hidden gap-1 sm:flex">

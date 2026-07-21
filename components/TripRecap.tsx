@@ -7,9 +7,15 @@ import type { ExpandedPlan } from "@/lib/server";
 const INK = "#121411";
 const MUT = "#70746e";
 const HAIRLINE = "rgba(18,20,17,0.14)";
-const ACCENT = "#1e7f4f";
-const BRIGHT = "#34a869";
-const OK = "#1e7f4f";
+const ACCENT = "#107f6b";
+const BRIGHT = "#41b982";
+const OK = "#107f6b";
+// gradient ของตัว G ตามโลโก้ (teal → เขียว → เขียวมะนาว)
+const BRAND_GRAD: [number, string][] = [
+  [0, "#0f9fa6"],
+  [0.55, "#41b982"],
+  [1, "#6ccf63"],
+];
 const BAD = "#c6362c";
 
 function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -188,6 +194,12 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
 
   g.fillStyle = INK;
   g.fillText(pre + marked + post, M, footerBaseline);
+
+  // ทับตัว G ด้วย gradient แบรนด์ — ให้การ์ดแชร์ถือโลโก้เดียวกับในแอป
+  const gGrad = g.createLinearGradient(M, footerBaseline, M + footerSize * 0.85, footerBaseline - footerSize * 0.9);
+  for (const [stop, color] of BRAND_GRAD) gGrad.addColorStop(stop, color);
+  g.fillStyle = gGrad;
+  g.fillText("G", M, footerBaseline);
 
   return c;
 }

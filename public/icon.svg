@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GoNai">
+  <rect width="512" height="512" rx="113" ry="113" fill="#1e7f4f"/>
+  <rect x="146" y="336" width="220" height="46" rx="6" fill="#34a869"/>
+  <text
+    x="256"
+    y="252"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-family="'Bricolage Grotesque', 'Arial Black', Arial, sans-serif"
+    font-weight="800"
+    font-size="252"
+    fill="#ffffff"
+  >G</text>
+</svg>

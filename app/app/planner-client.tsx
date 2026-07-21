@@ -2,6 +2,7 @@
 // /app — รวม S1 (intent/origin/budget) + S2 (Top3 + ดูเพิ่ม + import) ในหน้าเดียว
 // 3-col grid (เงื่อนไข | Top3 | plan+budget)
 // หลักการ: ทุกอย่างที่ UI บอกว่าทำ ต้องทำจริง — ไม่มี toast หลอก
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -136,7 +137,13 @@ export default function PlannerClient() {
   const [plan, setPlan] = useState<ExpandedPlan | null>(null);
   const [chainList, setChainList] = useState<Venue[] | null>(null);
   const autoAdded = useRef(false);
-  const firstCards = useRef(true); // gn-rise เฉพาะโหลดแรก — กันการ์ดวูบตอนเปลี่ยน filter/intent
+  const firstCards = useRef(true);
+  const [addingId, setAddingId] = useState<string | null>(null); // in-flight lock ของ + Add to plan
+  const [sendingImport, setSendingImport] = useState(false); // gn-rise เฉพาะโหลดแรก — กันการ์ดวูบตอนเปลี่ยน filter/intent
+
+  // return-visit memory moment — "ทริปล่าสุดของคุณ" การ์ดเงียบๆ เหนือ mood tiles
+  const [lastDonePlan, setLastDonePlan] = useState<ExpandedPlan | null>(null);
+  const [memoryDismissedId, setMemoryDismissedId] = useState<string | null>(null);
 
   const showToast = (m: string) => {
     setToast(m);
@@ -163,6 +170,30 @@ export default function PlannerClient() {
     }
   }, [data]);
 
+  // ทริปล่าสุด (ถ้าจบแล้ว + ภายใน 7 วัน) — ยิงคู่ขนานกับ /api/venues ไม่บล็อก first paint
+  // โชว์เฉพาะตอนยังไม่มีแผน active ในสเตท (เช็คตอน render จาก lastDonePlan + plan ปัจจุบัน)
+  useEffect(() => {
+    try {
+      setMemoryDismissedId(localStorage.getItem("gn_memory_dismissed"));
+    } catch {}
+    gn<{ plans: ExpandedPlan[] }>("/api/me")
+      .then((d) => {
+        const mostRecent = d.plans[0];
+        if (!mostRecent || mostRecent.status !== "done") return;
+        const ageMs = Date.now() - new Date(mostRecent.created_at).getTime();
+        if (ageMs <= 7 * 24 * 60 * 60 * 1000) setLastDonePlan(mostRecent);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dismissMemory = (id: string) => {
+    try {
+      localStorage.setItem("gn_memory_dismissed", id);
+    } catch {}
+    setMemoryDismissedId(id);
+  };
+
   // onboarding redirect (plan §3) — เฉพาะตอนไม่มี query param ใดๆ เลย (add/intent/origin/budget)
   // และยังไม่เคยทำ onboarding มาก่อน · เช็คครั้งเดียวตอน mount
   useEffect(() => {
@@ -175,15 +206,21 @@ export default function PlannerClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const actingRef = useRef(false);
   const act = useCallback(
     async (action: string, extra: Record<string, unknown> = {}) => {
-      if (!plan) return null;
+      if (!plan || actingRef.current) return null;
+      actingRef.current = true;
+      try {
       const p = await gn<ExpandedPlan>(`/api/plans/${plan.id}`, {
         method: "PATCH",
         body: JSON.stringify({ action, ...extra }),
       });
       setPlan(p);
       return p;
+      } finally {
+        actingRef.current = false;
+      }
     },
     [plan],
   );
@@ -214,11 +251,17 @@ export default function PlannerClient() {
 
   const addToPlan = useCallback(
     async (venueId: string, venueName: string, cardEl?: HTMLElement | null) => {
+      if (addingId) return; // กันกดรัว — stop ซ้ำคือบั๊กจริง
+      setAddingId(venueId);
       flyToBudget(cardEl);
       if (plan) {
-        await act("add_stop", { venue_id: venueId });
-        track("add_stop", { venue_id: venueId, via: "card" });
-        showToast(`Added ${venueName} to your plan`);
+        try {
+          await act("add_stop", { venue_id: venueId });
+          track("add_stop", { venue_id: venueId, via: "card" });
+          showToast(`Added ${venueName} to your plan`);
+        } finally {
+          setAddingId(null);
+        }
         return;
       }
       try {
@@ -232,9 +275,11 @@ export default function PlannerClient() {
         showToast(`Plan created with ${venueName}`);
       } catch {
         showToast("Couldn't create the plan — try again");
+      } finally {
+        setAddingId(null);
       }
     },
-    [plan, act, intent, origin, budget],
+    [plan, act, intent, origin, budget, addingId],
   );
 
   // มาจาก "วางแผนไป" ใน S5 (?add=<venueId>) → สร้างแผนด้วยที่นั้นทันที
@@ -267,13 +312,16 @@ export default function PlannerClient() {
   };
 
   const submitImport = async () => {
-    if (!importUrl.trim()) return;
+    if (!importUrl.trim() || sendingImport) return;
+    setSendingImport(true);
     try {
       await gn("/api/imports", { method: "POST", body: JSON.stringify({ url: importUrl.trim() }) });
       setImportUrl("");
       showToast("Link received 🎬 Our team pulls the data within 24h — track it in My trips");
     } catch (e) {
       showToast(e instanceof Error ? e.message.replace(/^\d+: /, "") : "Couldn't send the link");
+    } finally {
+      setSendingImport(false);
     }
   };
 
@@ -339,8 +387,37 @@ export default function PlannerClient() {
   // base สำหรับ split-pay = ตัวเลขจริงที่โชว์อยู่ในกล่องงบ (plan §1)
   const splitBase = plan ? (plan.status === "draft" ? plan.est_total : plan.spent) : spent;
 
+  // โชว์การ์ดความทรงจำเฉพาะตอนไม่มีแผน active + ยังไม่เคยปิดทริปนี้ทิ้ง
+  const showMemory = !plan && lastDonePlan !== null && lastDonePlan.id !== memoryDismissedId;
+  const memoryActual = lastDonePlan ? (lastDonePlan.budget_actual ?? lastDonePlan.spent) : 0;
+  const memoryDiff = lastDonePlan ? lastDonePlan.budget_planned - memoryActual : 0;
+  const memoryUnder = memoryDiff >= 0;
+
   return (
     <div className="mx-auto max-w-[1500px] px-4 py-4">
+      {/* Return-visit memory moment — เงียบๆ แถวเดียว เหนือ mood tiles, เฉพาะทริปที่จบแล้วภายใน 7 วัน */}
+      {showMemory && lastDonePlan && (
+        <div className="gn-card-e gn-rise mb-4 flex items-center justify-between gap-3 px-4 py-3">
+          <span className="text-[13px] text-ink">
+            Last trip: <b className="gn-num">{memoryActual}฿</b> ·{" "}
+            <b className={`gn-num ${memoryUnder ? "text-ok" : "text-bad"}`}>{Math.abs(memoryDiff)}฿</b>{" "}
+            {memoryUnder ? "under budget ✓" : "over budget"}
+          </span>
+          <span className="flex shrink-0 items-center gap-3">
+            <Link href="/app/me" className="o-btn-label text-[12.5px] font-semibold text-accent hover:underline">
+              View →
+            </Link>
+            <button
+              onClick={() => dismissMemory(lastDonePlan.id)}
+              aria-label="Dismiss"
+              className="gn-press text-mut hover:text-ink"
+            >
+              ✕
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Mood tiles — แทน hint bar เดิม: แตะเดียวตั้ง intent+filters+budget จริงแล้ว refetch (plan §1) */}
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {MOODS.map((m, i) => {
@@ -365,7 +442,7 @@ export default function PlannerClient() {
 
       <div className="grid gap-4 lg:grid-cols-[330px_1fr_360px]">
         {/* ====== col 1: เงื่อนไข + ตัวกรอง + import ====== */}
-        <aside className="gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
+        <aside className="order-2 lg:order-none gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
           <span className="gn-step">01 — Your conditions</span>
 
           <div className="flex flex-col gap-2.5">
@@ -428,7 +505,7 @@ export default function PlannerClient() {
                 <button
                   key={c.key}
                   onClick={() => toggleFilter(c.key)}
-                  className={`gn-press rounded-full border px-3 py-1.5 text-[12.5px] ${
+                  className={`gn-press rounded-full border px-3.5 py-2.5 text-[13px] ${
                     on
                       ? "gn-boing border-pill bg-pill font-semibold text-bg"
                       : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
@@ -453,8 +530,8 @@ export default function PlannerClient() {
               <button
                 onClick={submitImport}
                 className="gn-press o-btn-label rounded-lg bg-accent px-3 py-1.5 text-[12.5px] text-bg"
-              >
-                Send
+               aria-busy={sendingImport}>
+                {sendingImport ? <span className="gn-spinner" /> : null}Send
               </button>
             </div>
             <p className="mt-1.5 text-[11px] text-mut">Real humans pull the data within 24h — not a bot</p>
@@ -462,7 +539,7 @@ export default function PlannerClient() {
         </aside>
 
         {/* ====== col 2: Top 3 + hero + intent chips ====== */}
-        <section className="gn-card-e gn-rise gn-d1 p-4">
+        <section className="order-1 lg:order-none gn-card-e gn-rise gn-d1 p-4">
           <span className="gn-step">02 — Pick a spot · top {data.cards.length} of {data.total}</span>
 
           <div
@@ -487,7 +564,7 @@ export default function PlannerClient() {
                 <button
                   key={z.id}
                   onClick={() => pickOrigin(z.id)}
-                  className={`gn-press rounded-full border px-3 py-1 text-xs ${
+                  className={`gn-press rounded-full border px-3.5 py-2 text-xs ${
                     origin === z.id
                       ? "gn-boing border-pill bg-pill font-semibold text-bg"
                       : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
@@ -498,7 +575,7 @@ export default function PlannerClient() {
               ))}
               <button
                 onClick={() => pickOrigin("other")}
-                className={`gn-press rounded-full border px-3 py-1 text-xs ${
+                className={`gn-press rounded-full border px-3.5 py-2 text-xs ${
                   origin === "other"
                     ? "gn-boing border-pill bg-pill font-semibold text-bg"
                     : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
@@ -526,7 +603,7 @@ export default function PlannerClient() {
                     setBudget(BUDGET_DEFAULTS[i.key]);
                     track("search", { intent: i.key, origin });
                   }}
-                  className={`gn-press rounded-full border-[1.5px] px-3.5 py-1.5 text-[13px] font-semibold ${
+                  className={`gn-press rounded-full border-[1.5px] px-4 py-2.5 text-[13px] font-semibold ${
                     on
                       ? "gn-boing border-pill bg-pill text-bg"
                       : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
@@ -552,6 +629,7 @@ export default function PlannerClient() {
                   fastest={data.routes.fastest}
                   saved={saved.has(v.id)}
                   onAdd={(el) => addToPlan(v.id, v.name_th, el)}
+                  adding={addingId === v.id}
                   onSave={() => toggleSave(v)}
                   onToggleRoute={(kind) => track("route_alt_toggle", { venue_id: v.id, kind, screen: "planner" })}
                 />
@@ -576,7 +654,7 @@ export default function PlannerClient() {
         </section>
 
         {/* ====== col 3: plan + budget ====== */}
-        <aside className="gn-card-e gn-rise gn-d2 p-4">
+        <aside className="order-3 lg:order-none gn-card-e gn-rise gn-d2 p-4">
           <span className="gn-step">03 — Your plan + budget</span>
 
           <div id="gn-budget-target" className="mt-2 mb-3 rounded-xl border border-line bg-card-solid/60 p-3">
@@ -692,7 +770,14 @@ export default function PlannerClient() {
 
       {/* chain picker — เลือกแล้วเพิ่มเข้าแผนได้จริง */}
       {chainList && plan && (
-        <div className="gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
+        <div
+          className="gn-backdrop fixed inset-0 z-[29] bg-ink/20"
+          onClick={() => setChainList(null)}
+          aria-hidden
+        />
+      )}
+      {chainList && plan && (
+        <div role="dialog" aria-modal="true" aria-label="Next stop suggestions" tabIndex={-1} ref={(el) => el?.focus()} onKeyDown={(e) => e.key === "Escape" && setChainList(null)} className="outline-none gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-bold text-ink">Next stop within budget ({plan.remaining}฿)</h2>
             <button onClick={() => setChainList(null)} className="text-sm text-mut">
@@ -726,7 +811,7 @@ export default function PlannerClient() {
       )}
 
       {toast && (
-        <div className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
+        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
           {toast}
         </div>
       )}

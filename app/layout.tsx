@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono, IBM_Plex_Sans_Thai, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -37,6 +37,20 @@ export const metadata: Metadata = {
   title: "GoNai — plan · go · never over budget",
   description:
     "Plan a full Bangkok day out with every baht counted before you leave — Top 3 picks validated by real visitors",
+  // ชี้ตรงไปที่ public/icon.svg + public/apple-icon.png แทน Next's app/icon.svg
+  // + app/apple-icon.png convention — เครื่อง dev นี้ path มี apostrophe
+  // ("Klao's Workspace") ที่ทำให้ next-metadata-route-loader gen โค้ดพัง (unescaped
+  // ' ใน string literal) จนทั้งแอป 500 ทุกหน้า ถ้ามีไฟล์ static convention พวกนี้ใน app/.
+  // public/ ไม่ผ่าน loader นั้นเลย จึงปลอดภัย — ผลลัพธ์ที่ผู้ใช้เห็นเหมือนกันทุกประการ.
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon.png",
+  },
+  manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

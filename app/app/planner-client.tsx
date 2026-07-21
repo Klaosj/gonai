@@ -135,6 +135,7 @@ export default function PlannerClient() {
   const [plan, setPlan] = useState<ExpandedPlan | null>(null);
   const [chainList, setChainList] = useState<Venue[] | null>(null);
   const autoAdded = useRef(false);
+  const firstCards = useRef(true); // gn-rise เฉพาะโหลดแรก — กันการ์ดวูบตอนเปลี่ยน filter/intent
 
   const showToast = (m: string) => {
     setToast(m);
@@ -153,6 +154,13 @@ export default function PlannerClient() {
   }, [intent, origin, filters]);
 
   useEffect(load, [load]);
+
+  useEffect(() => {
+    if (data && firstCards.current) {
+      const t = setTimeout(() => (firstCards.current = false), 900); // หลัง entrance ชุดแรกจบ
+      return () => clearTimeout(t);
+    }
+  }, [data]);
 
   // onboarding redirect (plan §3) — เฉพาะตอนไม่มี query param ใดๆ เลย (add/intent/origin/budget)
   // และยังไม่เคยทำ onboarding มาก่อน · เช็คครั้งเดียวตอน mount
@@ -511,7 +519,7 @@ export default function PlannerClient() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {list.map((v, i) => (
-                <div key={v.id} className={`gn-rise ${i < 6 ? `gn-d${i + 1}` : ""}`}>
+                <div key={v.id} className={firstCards.current ? `gn-rise ${i < 6 ? `gn-d${i + 1}` : ""}` : undefined}>
                 <VenueCard
                   venue={v}
                   cheapest={data.routes.cheapest}

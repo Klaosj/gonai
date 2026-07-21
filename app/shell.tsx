@@ -9,10 +9,10 @@ import type { ExpandedPlan } from "@/lib/server";
 import type { Venue } from "@/lib/types";
 
 const TABS = [
-  { key: "planner", label: "🗺️ วางแผน", href: "/app" },
-  { key: "explore", label: "🔎 สำรวจ", href: "/app/explore" },
-  { key: "group", label: "👥 กลุ่ม · เร็วๆ นี้", href: "/app/group" },
-  { key: "trips", label: "🎒 ทริปของฉัน", href: "/app/me" },
+  { key: "planner", label: "🗺️ Plan", href: "/app" },
+  { key: "explore", label: "🔎 Explore", href: "/app/explore" },
+  { key: "group", label: "👥 Group · soon", href: "/app/group" },
+  { key: "trips", label: "🎒 My trips", href: "/app/me" },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
@@ -28,17 +28,17 @@ interface MeResponse {
 }
 
 const INTENT_DNA_LABELS: Record<string, string> = {
-  work: "สายทำงาน",
-  date: "สายเดท",
-  family: "สายครอบครัว",
-  photo: "สายรูป",
+  work: "Worker",
+  date: "Dater",
+  family: "Family-first",
+  photo: "Shutterbug",
 };
 
 const CATEGORY_DNA_LABELS: Record<Venue["category"], string> = {
-  cafe: "คาเฟ่",
-  restaurant: "ร้านอาหาร",
-  activity: "กิจกรรม",
-  market: "ตลาด",
+  cafe: "Cafe lover",
+  restaurant: "Foodie",
+  activity: "Activity fan",
+  market: "Market hopper",
 };
 
 // สูงสุดของ key แบบ "prefix:value" — คืน value ที่นับสูงสุด (ไม่มี = null)
@@ -70,8 +70,8 @@ function tasteDnaLabels(me: MeResponse): string[] {
   const done = me.plans.filter((p) => p.status === "done" && p.budget_actual !== null);
   if (done.length >= 2) {
     const overCount = done.filter((p) => (p.budget_actual ?? 0) > p.budget_planned).length;
-    if (overCount === 0) labels.push("งบเซฟ");
-    else if (overCount > done.length - overCount) labels.push("สายจัดเต็ม");
+    if (overCount === 0) labels.push("Budget saver");
+    else if (overCount > done.length - overCount) labels.push("Big spender");
   }
 
   return labels.slice(0, 3);
@@ -120,7 +120,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <b className="o-serif text-[19px] font-semibold text-ink">
             <em>Go</em>Nai
           </b>
-          <span className="hidden text-[11px] text-mut sm:inline">plan · go · ไม่เกินงบ</span>
+          <span className="hidden text-[11px] text-mut sm:inline">plan · go · never over budget</span>
         </Link>
         <nav className="ml-2 hidden gap-1 sm:flex">
           {TABS.map((t) => {
@@ -143,7 +143,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           {showDna && (
             <Link
               href="/app/me"
-              title={`สร้างจาก ${donePlans.length} ทริปที่จบจริง`}
+              title={`Built from ${donePlans.length} completed trips`}
               className="gn-press hidden items-center gap-2.5 rounded-full border border-line bg-card px-3.5 py-1.5 sm:flex"
             >
               <span className="o-mono text-[10px] text-accent">Taste DNA</span>
@@ -163,7 +163,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <Link
           href="/app/me"
           className="gn-press flex h-[34px] w-[34px] items-center justify-center rounded-full border border-line bg-card text-ink"
-          aria-label="ทริปของฉัน"
+          aria-label="My trips"
         >
           👤
         </Link>
@@ -172,10 +172,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {children}
 
       <footer className="o-mono-text flex flex-wrap justify-center gap-5 border-t border-line bg-bg px-5 py-3.5 text-[11px] text-mut">
-        <span>🚧 เบต้า — ข้อมูลชุดตัวอย่าง กำลังเก็บข้อมูลจริงย่านสยาม</span>
-        <span>✨ ที่ Unseen ต้องมีคนยืนยัน ≥ 3 คนถึงจะโชว์</span>
-        <span>🗺 เส้นทางวิน/เรือ/BTS เก็บภาคสนาม · ที่ยังไม่ validate ใช้สูตร Grab</span>
-        <span>🔒 ข้อมูลส่วนตัวตาม PDPA — ดู/ลบได้ทุกเมื่อ</span>
+        <span>🚧 Beta — sample data; collecting real Siam data now</span>
+        <span>✨ Unseen spots need ≥ 3 real confirmations to show</span>
+        <span>🗺 Win/boat/BTS routes field-collected · Grab formula until validated</span>
+        <span>🔒 PDPA compliant — view/delete your data anytime</span>
       </footer>
     </>
   );

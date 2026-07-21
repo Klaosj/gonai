@@ -36,12 +36,12 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   g.fillRect(0, 0, W, 140);
   g.fillStyle = "#f4f3ef";
   g.font = font(40, 800);
-  g.fillText("สรุปทริปวันนี้ 🎉", 48, 78);
+  g.fillText("Trip recap 🎉", 48, 78);
   g.font = font(24, 500);
   g.globalAlpha = 0.75;
   g.fillText(
-    new Date(plan.created_at).toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" }) +
-      ` · ${plan.origin_name} → สยาม`,
+    new Date(plan.created_at).toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" }) +
+      ` · ${plan.origin_name} → Siam`,
     48,
     116,
   );
@@ -65,7 +65,7 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   if (plan.stops.length > 6) {
     g.font = font(24, 500);
     g.fillStyle = "#9b9a94";
-    g.fillText(`+ อีก ${plan.stops.length - 6} ที่`, 48, y);
+    g.fillText(`+ ${plan.stops.length - 6} more stops`, 48, y);
     y += 50;
   }
 
@@ -82,14 +82,14 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   const over = actual > plan.budget_planned;
   g.fillStyle = "#9b9a94";
   g.font = font(30, 600);
-  g.fillText("จ่ายจริงทั้งวัน", 48, y);
+  g.fillText("Actually spent today", 48, y);
   g.fillStyle = over ? "#e07a5f" : "#7ad0a6";
   g.font = monoFont(84, 700);
   g.fillText(`${actual}฿`, 48, y + 96);
   g.fillStyle = "#9b9a94";
   g.font = font(28, 500);
   g.fillText(
-    over ? `งบตั้งไว้ ${plan.budget_planned}฿ · เกิน ${actual - plan.budget_planned}฿` : `งบตั้งไว้ ${plan.budget_planned}฿ · ${over ? "" : "ไม่เกินงบ ✓"}`,
+    over ? `Budget ${plan.budget_planned}฿ · over by ${actual - plan.budget_planned}฿` : `Budget ${plan.budget_planned}฿ · ${over ? "" : "under budget ✓"}`,
     48,
     y + 148,
   );
@@ -107,7 +107,7 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   g.fillText("GoNai", 48, H - 62);
   g.font = font(22, 500);
   g.globalAlpha = 0.9;
-  g.fillText("วางแผนเที่ยว 1 วัน · รู้งบทุกบาทก่อนออกจากบ้าน", 48, H - 28);
+  g.fillText("Plan a full day · know every baht before you leave", 48, H - 28);
   g.globalAlpha = 1;
 
   return c;
@@ -122,8 +122,8 @@ export default function TripRecap({ plan, onShared }: { plan: ExpandedPlan; onSh
       const file = new File([blob], "gonai-trip.png", { type: "image/png" });
       if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], title: "สรุปทริปวันนี้ — GoNai" });
-          onShared("แชร์สรุปทริปแล้ว 🎉");
+          await navigator.share({ files: [file], title: "Trip recap — GoNai" });
+          onShared("Recap shared 🎉");
           return;
         } catch {
           // ผู้ใช้กดยกเลิก share sheet — เงียบไว้
@@ -136,13 +136,13 @@ export default function TripRecap({ plan, onShared }: { plan: ExpandedPlan; onSh
       a.download = "gonai-trip.png";
       a.click();
       URL.revokeObjectURL(a.href);
-      onShared("บันทึกรูปสรุปทริปแล้ว — เอาไปโพสต์ได้เลย 📸");
+      onShared("Recap image saved — ready to post 📸");
     }, "image/png");
   };
 
   return (
     <button onClick={share} className="gn-press o-pill-primary o-btn-label w-full py-3">
-      📸 แชร์สรุปทริป (รูปสวยพร้อมโพสต์)
+      📸 Share trip recap (ready to post)
     </button>
   );
 }

@@ -57,16 +57,16 @@ function SpendPrompt({ estCost, onQuick, onCustom }: { estCost: number; onQuick:
   return (
     <div className="flex gap-2">
       <button onClick={onQuick} className="gn-press o-pill-primary o-btn-label flex-1 py-2 text-sm">
-        ตามประเมิน {estCost}฿
+        As estimated {estCost}฿
       </button>
       <button onClick={onCustom} className="gn-press o-pill-dark o-btn-label flex-1 py-2 text-sm">
-        พิมพ์เอง…
+        Type amount…
       </button>
     </div>
   );
 }
 
-// ช่องกรอกจำนวนเงินเอง — Enter เพื่อบันทึก (logic เดิม ย้ายมาใช้ร่วมกัน)
+// ช่องกรอกจำนวนเงินเอง — Enter to save (logic เดิม ย้ายมาใช้ร่วมกัน)
 function SpendInput({ onSave, onClose }: { onSave: (amount: number) => void; onClose: () => void }) {
   return (
     <div className="flex items-center gap-2">
@@ -84,9 +84,9 @@ function SpendInput({ onSave, onClose }: { onSave: (amount: number) => void; onC
         }}
         className="w-28 rounded-full border border-line bg-bg px-3 py-2 text-sm text-ink"
       />
-      <span className="text-xs text-mut">Enter เพื่อบันทึก</span>
+      <span className="text-xs text-mut">Enter to save</span>
       <button onClick={onClose} className="ml-auto text-xs text-mut underline">
-        ยกเลิก
+        Cancel
       </button>
     </div>
   );
@@ -137,7 +137,7 @@ export default function PlanPage() {
       const list = await gn<Venue[]>(`/api/chain?${params}`);
       setSuggestions({ list, indoor: !!opts.indoor });
     } catch {
-      showToast("โหลดคำแนะนำไม่สำเร็จ");
+      showToast("Couldn't load suggestions");
     }
   };
 
@@ -149,17 +149,17 @@ export default function PlanPage() {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
         <p className="text-4xl">🧭</p>
-        <p className="mt-3 font-bold text-ink">โหลดแผนไม่สำเร็จ</p>
-        <p className="mt-1 text-sm text-mut">แผนอาจถูกลบไปแล้ว หรืออินเทอร์เน็ตมีปัญหา</p>
+        <p className="mt-3 font-bold text-ink">Couldn't load this plan</p>
+        <p className="mt-1 text-sm text-mut">It may have been deleted, or your connection dropped</p>
         <div className="mt-4 flex justify-center gap-2">
           <button onClick={load} className="gn-press gn-cta o-pill-primary o-btn-label px-6 py-2.5">
-            ลองอีกครั้ง ↻
+            Try again ↻
           </button>
           <button
             onClick={() => router.push("/app")}
             className="gn-press o-pill-dark o-btn-label px-6 py-2.5"
           >
-            กลับหน้าวางแผน
+            Back to planner
           </button>
         </div>
       </div>
@@ -184,9 +184,9 @@ export default function PlanPage() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="o-serif text-[22px] font-medium text-ink">
-            {isDone ? "จบทริป ✓" : plan.status === "active" ? "กำลังเที่ยวอยู่" : "แผนของคุณ"}
+            {isDone ? "Trip done ✓" : plan.status === "active" ? "On the trip" : "Your plan"}
           </h1>
-          <p className="text-sm text-mut">ออกจาก {plan.origin_name} → สยาม</p>
+          <p className="text-sm text-mut">{plan.origin_name} → Siam</p>
         </div>
         {plan.status === "active" && (
           <span className="o-mono inline-flex items-center gap-1.5 rounded-full border border-bad/40 bg-card-solid px-3 py-1 text-[10px] text-bad">
@@ -205,12 +205,12 @@ export default function PlanPage() {
               showPlan ? "bg-pill text-bg" : "text-mut"
             }`}
           >
-            🗓 แผน + เส้นทาง
+            🗓 Plan + route
           </button>
           <button
             onClick={() => {
               if (plan.status === "draft") {
-                showToast("กด 'เริ่มเที่ยว ▶' ก่อน แล้วโหมดนี้จะเปิด");
+                showToast("Hit 'Start the trip ▶' first to unlock this view");
                 return;
               }
               setView("trip");
@@ -219,7 +219,7 @@ export default function PlanPage() {
               showTrip ? "bg-pill text-bg" : "text-mut"
             } ${plan.status === "draft" ? "opacity-50" : ""}`}
           >
-            🧭 กำลังเที่ยว
+            🧭 On the trip
           </button>
         </div>
       )}
@@ -245,7 +245,7 @@ export default function PlanPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-ink">{s.venue.name_th}</p>
                   <p className="text-xs text-mut">
-                    ~{s.est_cost}฿/คน · เดิน {s.venue.walk_min_from_hub} นาทีจาก BTS สยาม
+                    ~{s.est_cost}฿/person · {s.venue.walk_min_from_hub} min walk from BTS Siam
                   </p>
                 </div>
                 <div className="gn-num whitespace-nowrap font-semibold text-ink">~{s.est_cost}฿</div>
@@ -257,7 +257,7 @@ export default function PlanPage() {
 
           {editingBudget && (
             <div className="flex items-center gap-2 rounded-xl border border-line bg-card-solid p-3">
-              <span className="text-sm font-semibold text-ink">งบใหม่:</span>
+              <span className="text-sm font-semibold text-ink">New budget:</span>
               <input
                 type="number"
                 autoFocus
@@ -275,9 +275,9 @@ export default function PlanPage() {
                 }}
                 className="w-24 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-sm text-ink"
               />
-              <span className="text-xs text-mut">฿ · Enter เพื่อยืนยัน</span>
+              <span className="text-xs text-mut">฿ · Enter to confirm</span>
               <button onClick={() => setEditingBudget(false)} className="ml-auto text-xs text-mut underline">
-                ยกเลิก
+                Cancel
               </button>
             </div>
           )}
@@ -285,28 +285,28 @@ export default function PlanPage() {
           {/* callout สลับเส้นทาง — ตัวเลขจาก data จริงของ origin นี้ */}
           {plan.route.kind === "cheapest" ? (
             <div className="rounded-[10px] border border-warn/40 bg-card-solid px-3 py-2 text-[12.5px] text-warn">
-              🚗 ขี้เกียจต่อรถ? {fast.modes} {fast.price} · {fast.mins} นาที
+              🚗 Tired of transfers? {fast.modes} {fast.price} · {fast.mins} min
               <button
                 onClick={() => {
                   act("route_toggle");
-                  showToast("สลับเส้นทางแล้ว — งบรวมปรับตามทันที");
+                  showToast("Route switched — total updates instantly");
                 }}
                 className="gn-press ml-1.5 rounded-lg border border-warn/50 bg-bg px-2.5 py-0.5 text-xs font-bold text-warn"
               >
-                สลับเป็นเร็วสุด
+                Switch to fastest
               </button>
             </div>
           ) : (
             <div className="rounded-[10px] border border-warn/40 bg-card-solid px-3 py-2 text-[12.5px] text-warn">
-              🛵 ประหยัดกว่า: {cheap.modes} {cheap.price} · {cheap.mins} นาที
+              🛵 Cheaper: {cheap.modes} {cheap.price} · {cheap.mins} min
               <button
                 onClick={() => {
                   act("route_toggle");
-                  showToast("สลับเป็นเส้นทางประหยัดแล้ว");
+                  showToast("Switched to the cheapest route");
                 }}
                 className="gn-press ml-1.5 rounded-lg border border-warn/50 bg-bg px-2.5 py-0.5 text-xs font-bold text-warn"
               >
-                สลับเป็นประหยัด
+                Switch to cheapest
               </button>
             </div>
           )}
@@ -317,11 +317,11 @@ export default function PlanPage() {
                 await act("start");
                 track("plan_start_trip", { plan_id: plan.id });
                 setView("trip");
-                showToast("โหมดกำลังเที่ยว: เช็คอิน + บันทึกจ่ายจริงได้เลย");
+                showToast("Trip mode on: check in and log real spending");
               }}
               className="gn-press gn-cta o-pill-primary o-btn-label w-full py-3.5 text-base"
             >
-              เริ่มเที่ยว ▶
+              Start the trip ▶
             </button>
           )}
         </>
@@ -335,16 +335,16 @@ export default function PlanPage() {
             <div className="flex items-center justify-between">
               <span className="o-mono inline-flex items-center gap-1.5 text-[10px] text-bad">
                 <span className="gn-live-dot inline-block h-2 w-2 rounded-full bg-bad" />
-                LIVE · กำลังเที่ยว
+                LIVE · on the trip
               </span>
-              <span className="o-mono text-[10px] text-mut">{plan.origin_name} → สยาม</span>
+              <span className="o-mono text-[10px] text-mut">{plan.origin_name} → Siam</span>
             </div>
             <div className="gn-num mt-1.5 flex items-baseline gap-2 text-[22px] font-bold text-ink">
               <span>
-                จ่ายจริง {spentAnim}฿ / {plan.budget_planned}฿
+                Spent {spentAnim}฿ / {plan.budget_planned}฿
               </span>
               <small className={`text-[13px] font-medium ${plan.spent > plan.budget_planned ? "text-bad" : "text-ok"}`}>
-                · {plan.spent > plan.budget_planned ? `เกิน ${remainingAnim}฿ ⚠️` : `เหลือ ${remainingAnim}฿`}
+                · {plan.spent > plan.budget_planned ? `${remainingAnim}฿ over ⚠️` : `${remainingAnim}฿ left`}
               </small>
             </div>
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-line">
@@ -366,7 +366,7 @@ export default function PlanPage() {
             <div className="gn-rise gn-card-e overflow-hidden">
               <div className={`o-grain relative flex h-[170px] flex-col justify-between p-4 ${CATEGORY_AMBIENCE[currentStop.venue.category]}`}>
                 <span className="o-mono relative z-[2] self-start rounded-full bg-bg/60 px-3 py-1 text-[10px] text-accent backdrop-blur">
-                  {currentStop.checked_in_at ? "อยู่ที่นี่" : "ถัดไป"} · จุดที่ {currentStopIndex + 1}/{plan.stops.length}
+                  {currentStop.checked_in_at ? "You are here" : "Next up"} · stop {currentStopIndex + 1}/{plan.stops.length}
                 </span>
                 <h2 className="o-serif relative z-[2] text-[24px] font-semibold text-ink drop-shadow">
                   {currentStop.venue.name_th}
@@ -375,8 +375,8 @@ export default function PlanPage() {
               <div className="bg-card-solid p-4">
                 <p className="mb-3.5 text-[13.5px] text-mut">
                   {currentStop.checked_in_at
-                    ? `เช็คอินแล้ว ${fmtTimeBKK(currentStop.checked_in_at)} · เดิน ${currentStop.venue.walk_min_from_hub} นาทีจาก BTS สยาม`
-                    : `เดิน ${currentStop.venue.walk_min_from_hub} นาทีจาก BTS สยาม · เปิดถึง ${currentStop.venue.close_time}`}
+                    ? `Checked in ${fmtTimeBKK(currentStop.checked_in_at)} · ${currentStop.venue.walk_min_from_hub} min walk from BTS Siam`
+                    : `${currentStop.venue.walk_min_from_hub} min walk from BTS Siam · open till ${currentStop.venue.close_time}`}
                 </p>
                 <div className="flex gap-2.5">
                   <a
@@ -386,7 +386,7 @@ export default function PlanPage() {
                     onClick={() => track("open_maps", { venue_id: currentStop.venue.id })}
                     className="gn-press o-pill-dark o-btn-label flex-1 py-2.5 text-center text-sm"
                   >
-                    🗺 นำทาง
+                    🗺 Navigate
                   </a>
                   {!currentStop.checked_in_at && (
                     <button
@@ -396,14 +396,14 @@ export default function PlanPage() {
                       }}
                       className="gn-press o-pill-primary o-btn-label flex-1 py-2.5 text-sm"
                     >
-                      เช็คอิน
+                      Check in
                     </button>
                   )}
                 </div>
 
                 {currentStop.checked_in_at && currentStop.actual_cost === null && (
                   <div className="mt-3.5 border-t border-line pt-3.5">
-                    <p className="mb-2 text-sm font-medium text-ink">จ่ายจริงเท่าไหร่?</p>
+                    <p className="mb-2 text-sm font-medium text-ink">How much did you pay?</p>
                     {spendingSeq === currentStop.seq ? (
                       <SpendInput
                         onSave={(n) => {
@@ -428,13 +428,13 @@ export default function PlanPage() {
             </div>
           ) : (
             <div className="gn-card-e p-5 text-center text-sm text-mut">
-              ครบทุกจุดแล้ว 🎉 กด &quot;จบทริป ✓&quot; ด้านล่างได้เลย
+              All stops done 🎉 Hit &quot;End trip ✓&quot; below
             </div>
           )}
 
           {/* เส้นทางวันนี้ ทีละก้าว — ขาไป (นับเป็นจ่ายแล้วตั้งแต่เริ่มเที่ยว) + stops ตามลำดับจริง */}
           <div className="gn-rise gn-d1 gn-card-e p-4">
-            <p className="o-mono mb-3 text-[10px] text-mut">เส้นทางวันนี้ · ทีละก้าว</p>
+            <p className="o-mono mb-3 text-[10px] text-mut">Today's route · step by step</p>
             <div>
               {plan.route.legs.map((l, i) => (
                 <div key={l.seq} className="relative flex gap-3.5 pb-4 last:pb-0">
@@ -446,7 +446,7 @@ export default function PlanPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14.5px] font-medium text-ink">{l.detail_th}</p>
-                    <p className="text-xs text-mut">{l.minutes} นาที</p>
+                    <p className="text-xs text-mut">{l.minutes} min</p>
                   </div>
                   <span className="gn-num shrink-0 whitespace-nowrap text-[13px] text-ok">
                     {fmtRange(l.price_min, l.price_max)}
@@ -477,14 +477,14 @@ export default function PlanPage() {
                       <p className="truncate text-[14.5px] font-medium text-ink">{s.venue.name_th}</p>
                       <p className="text-xs text-mut">
                         {doneStop
-                          ? `จ่ายแล้ว ${s.actual_cost}฿ ✓`
+                          ? `Paid ${s.actual_cost}฿ ✓`
                           : isCurrent
                             ? currentStop?.checked_in_at
-                              ? "กำลังอยู่ที่นี่"
-                              : "จุดปัจจุบัน"
+                              ? "You are here"
+                              : "Current stop"
                             : s.checked_in_at
-                              ? "เช็คอินแล้ว · รอกรอกจ่าย"
-                              : `เดินต่อ ${s.venue.walk_min_from_hub} นาที · ประเมิน ~${s.est_cost}฿`}
+                              ? "Checked in · log spending"
+                              : `${s.venue.walk_min_from_hub} min walk on · est ~${s.est_cost}฿`}
                       </p>
 
                       {/* จุดอื่นที่ไม่ใช่ปัจจุบัน — กดเพื่อเช็คอิน/กรอกจ่ายได้เหมือนเดิม (plan §4.4) */}
@@ -498,7 +498,7 @@ export default function PlanPage() {
                               }}
                               className="gn-press o-mono rounded-full bg-pill px-3 py-1 text-[10px] text-bg"
                             >
-                              เช็คอิน →
+                              Check in →
                             </button>
                           ) : spendingSeq === s.seq ? (
                             <SpendInput
@@ -522,7 +522,7 @@ export default function PlanPage() {
                       )}
                     </div>
                     <span className={`gn-num shrink-0 whitespace-nowrap text-[13px] ${doneStop ? "text-ok" : isCurrent ? "text-accent" : "text-mut"}`}>
-                      {doneStop ? `${s.actual_cost}฿` : isCurrent ? "ตอนนี้" : "ถัดไป"}
+                      {doneStop ? `${s.actual_cost}฿` : isCurrent ? "now" : "next"}
                     </span>
                   </div>
                 );
@@ -539,18 +539,18 @@ export default function PlanPage() {
             }}
             className="gn-press o-pill-dark o-btn-label w-full py-2.5 text-sm"
           >
-            ☔ ฝนตก / แผนพัง — ปรับแผนใหม่ในงบที่เหลือ
+            ☔ Raining / plan fell apart — replan within what's left
           </button>
 
           <button
             onClick={async () => {
               await act("done");
               track("plan_done", { plan_id: plan.id });
-              showToast("จบทริปแล้ว 🎉 ช่วยยืนยันราคาให้เพื่อนนักเที่ยวหน่อย");
+              showToast("Trip done 🎉 Help confirm prices for the next traveler");
             }}
             className="gn-press o-pill-primary o-btn-label w-full py-3.5 text-base"
           >
-            จบทริป ✓
+            End trip ✓
           </button>
         </div>
       )}
@@ -565,10 +565,10 @@ export default function PlanPage() {
         <div className="gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-bold text-ink">
-              {suggestions.indoor ? `ที่ในร่ม ในงบที่เหลือ (${plan.remaining}฿)` : `ไปต่อในงบที่เหลือ`}
+              {suggestions.indoor ? `Indoor spots within budget (${plan.remaining}฿)` : `Next stop within budget`}
             </h2>
             <button onClick={() => setSuggestions(null)} className="text-sm text-mut">
-              ปิด
+              Close
             </button>
           </div>
           {suggestions.list.length === 0 && (
@@ -581,8 +581,8 @@ export default function PlanPage() {
                   10,
                 );
                 return h >= 22 || h < 8
-                  ? "เวลานี้ที่ใกล้ๆ ปิดหมดแล้ว — กลับบ้านก็ไม่ผิดนะ"
-                  : "งบเหลือไม่พอสำหรับที่ใกล้ๆ — กลับบ้านก็ไม่ผิดนะ";
+                  ? "Everything nearby is closed now — heading home is fine too"
+                  : "Not enough budget left for nearby spots — heading home is fine too";
               })()}
             </p>
           )}
@@ -591,17 +591,17 @@ export default function PlanPage() {
               <li key={v.id} className="flex items-center gap-3 rounded-xl border border-line bg-bg-elev p-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink">{v.name_th}</p>
-                  <p className="text-xs text-mut">~{mid(v.price_per_head_min, v.price_per_head_max)}฿/คน</p>
+                  <p className="text-xs text-mut">~{mid(v.price_per_head_min, v.price_per_head_max)}฿/person</p>
                 </div>
                 <button
                   onClick={async () => {
                     await act("add_stop", { venue_id: v.id });
                     setSuggestions(null);
-                    showToast(`เพิ่ม ${v.name_th} เข้าแผนแล้ว`);
+                    showToast(`Added ${v.name_th} to your plan`);
                   }}
                   className="gn-press o-pill-primary o-btn-label shrink-0 px-3 py-1.5 text-sm"
                 >
-                  + เพิ่ม
+                  + Add
                 </button>
               </li>
             ))}
@@ -639,13 +639,13 @@ function DoneSummary({
     <div className="space-y-4">
       {/* สรุปทริป */}
       <div className="gn-card-e gn-rise p-5">
-        <p className="o-mono text-[10px] text-mut">จ่ายจริงทั้งวัน</p>
+        <p className="o-mono text-[10px] text-mut">Actually spent today</p>
         <p className={`o-serif gn-num text-[64px] font-medium leading-tight ${over ? "text-bad" : "text-ink"}`}>
           {actualAnim}฿
         </p>
         <p className="text-sm text-mut">
-          งบตั้งไว้ {plan.budget_planned}฿ · แผนประเมิน ~{plan.est_total}฿ ·{" "}
-          {diff > 0 ? `เกินงบ ${diff}฿` : diff === 0 ? "ตรงงบเป๊ะ" : `ต่ำกว่างบ ${-diff}฿ ✓`}
+          Budget {plan.budget_planned}฿ · estimated ~{plan.est_total}฿ ·{" "}
+          {diff > 0 ? `${diff}฿ over budget` : diff === 0 ? "Exactly on budget" : `${-diff}฿ under budget ✓`}
         </p>
         <div className="mt-3 space-y-1 divide-y divide-line border-t border-line pt-3 text-sm text-ink">
           {plan.stops.map((s) => (
@@ -665,28 +665,28 @@ function DoneSummary({
       {/* confirm ราคา — copy ตรงกับสิ่งที่เกิดจริง: ส่งเข้าคิว validate ของทีม */}
       {toConfirm.filter((s) => !confirmed.has(s.venue.id)).length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-bold text-ink">ช่วยยืนยันราคาให้เพื่อนนักเที่ยวหน่อย 🙏</h2>
+          <h2 className="text-sm font-bold text-ink">Help confirm prices for the next traveler 🙏</h2>
           {toConfirm
             .filter((s) => !confirmed.has(s.venue.id))
             .map((s) => (
               <div key={s.venue.id} className="gn-card-e p-4">
                 <p className="mb-2 text-sm text-ink">
-                  ราคาที่ <b>{s.venue.name_th}</b> ยัง ~{mid(s.venue.price_per_head_min, s.venue.price_per_head_max)}
-                  ฿/คน อยู่ไหม?
+                  Is <b>{s.venue.name_th}</b> still ~{mid(s.venue.price_per_head_min, s.venue.price_per_head_max)}
+                  ฿/person?
                 </p>
                 {editingPrice === s.venue.id ? (
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       autoFocus
-                      placeholder="฿/คน"
+                      placeholder="฿/person"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           const n = parseInt((e.target as HTMLInputElement).value, 10);
                           if (n > 0) {
                             track("price_confirm", { venue_id: s.venue.id, ok: false, new_price: n });
                             setConfirmed(new Set(confirmed).add(s.venue.id));
-                            showToast("ส่งราคาใหม่ให้ทีม validate แล้ว — ขอบคุณ!");
+                            showToast("New price sent to the validation queue — thanks!");
                           }
                           setEditingPrice(null);
                         }
@@ -694,7 +694,7 @@ function DoneSummary({
                       }}
                       className="w-28 rounded-full border border-line bg-bg px-3 py-2 text-sm text-ink"
                     />
-                    <span className="text-xs text-mut">Enter เพื่อส่ง</span>
+                    <span className="text-xs text-mut">Enter to send</span>
                   </div>
                 ) : (
                   <div className="flex gap-2">
@@ -702,17 +702,17 @@ function DoneSummary({
                       onClick={() => {
                         track("price_confirm", { venue_id: s.venue.id, ok: true, new_price: null });
                         setConfirmed(new Set(confirmed).add(s.venue.id));
-                        showToast("ขอบคุณ! ข้อมูลนี้ช่วยให้งบของเพื่อนคนถัดไปแม่นขึ้น");
+                        showToast("Thanks! This makes the next traveler's budget sharper");
                       }}
                       className="gn-press o-pill-primary o-btn-label flex-1 py-2 text-sm"
                     >
-                      ใช่ ✓
+                      Yes ✓
                     </button>
                     <button
                       onClick={() => setEditingPrice(s.venue.id)}
                       className="gn-press o-pill-dark o-btn-label flex-1 py-2 text-sm"
                     >
-                      เปลี่ยนเป็น…
+                      Change to…
                     </button>
                   </div>
                 )}
@@ -722,7 +722,7 @@ function DoneSummary({
       )}
 
       <div className="rounded-[10px] border border-line bg-card-solid px-3 py-2.5 text-[12.5px] text-accent">
-        💚 ทุกการยืนยันถูกส่งเข้าคิว validate ของทีม — ที่ที่ยืนยันครบ 3 คนถึงจะขึ้นป้าย &quot;ราคาเช็คแล้ว&quot;
+        💚 Every confirmation goes to the validation queue — spots earn a &quot;price checked&quot; badge at 3 confirmations
       </div>
     </div>
   );

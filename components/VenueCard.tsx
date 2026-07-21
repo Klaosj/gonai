@@ -23,7 +23,7 @@ const CATEGORY_AMBIENCE: Record<Venue["category"], string> = {
   market: "o-ambience-family",
 };
 
-const FOOD_LABELS = { meals: "มีข้าว", snacks: "ของว่าง", drinks: "เครื่องดื่ม" } as const;
+const FOOD_LABELS = { meals: "Real meals", snacks: "Snacks", drinks: "Drinks" } as const;
 
 export default function VenueCard({
   venue,
@@ -64,7 +64,7 @@ export default function VenueCard({
         <BahtChip legs={route.legs} className="absolute right-2 top-2 z-[2]" />
         <button
           onClick={onSave}
-          aria-label="บันทึกไว้"
+          aria-label="Save"
           className={`gn-press absolute left-2 top-2 z-[2] rounded-full bg-bg/70 p-1.5 backdrop-blur ${saved ? "text-bad" : "text-ink"}`}
         >
           <span className={saved ? "gn-pop inline-block" : "inline-block"}>
@@ -74,9 +74,9 @@ export default function VenueCard({
         <button
           onClick={toggle}
           className="o-mono gn-press absolute bottom-2 right-2 z-[2] rounded-full bg-bg/70 px-2 py-1 text-[10px] text-ink backdrop-blur"
-          title="สลับเส้นทาง ประหยัด ⇄ เร็ว"
+          title="Toggle route: cheapest ⇄ fastest"
         >
-          ⇄ {kind === "cheapest" ? "ดูแบบเร็ว" : "ดูแบบประหยัด"}
+          ⇄ {kind === "cheapest" ? "See fastest" : "See cheapest"}
         </button>
       </div>
 
@@ -97,7 +97,7 @@ export default function VenueCard({
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mut">
           {a.plugs !== "none" && (
             <span className="inline-flex items-center gap-1">
-              <Plug size={13} /> ปลั๊ก{a.plugs === "all" ? "ทุกโต๊ะ" : "บางโต๊ะ"}
+              <Plug size={13} /> Plugs {a.plugs === "all" ? "every table" : "some tables"}
             </span>
           )}
           {a.wifi_mbps && (
@@ -107,7 +107,7 @@ export default function VenueCard({
           )}
           {a.seat_hours && (
             <span className="inline-flex items-center gap-1">
-              <Clock3 size={13} /> นั่งได้{a.seat_hours === 999 ? "ไม่จำกัด" : ` ${a.seat_hours} ชม.`}
+              <Clock3 size={13} /> Stay {a.seat_hours === 999 ? "unlimited" : `${a.seat_hours} hr`}
             </span>
           )}
           <span className="inline-flex items-center gap-1">
@@ -115,7 +115,7 @@ export default function VenueCard({
           </span>
           {a.parking && (
             <span className="inline-flex items-center gap-1">
-              <Car size={13} /> ที่จอด
+              <Car size={13} /> Parking
             </span>
           )}
         </div>
@@ -123,8 +123,8 @@ export default function VenueCard({
         <div className="flex items-center justify-between">
           <span className="text-sm text-mut">
             ~<b className="gn-num text-[20px] font-semibold text-ink">{priceMid}฿</b>{" "}
-            <span className="o-mono text-[10px] text-mut">/คน</span> · เดิน {venue.walk_min_from_hub} นาทีจาก BTS
-            สยาม
+            <span className="o-mono text-[10px] text-mut">/person</span> · {venue.walk_min_from_hub} min walk from BTS
+            Siam
           </span>
         </div>
 
@@ -135,11 +135,11 @@ export default function VenueCard({
             onClick={onAdd}
             className="gn-press gn-cta o-btn-label o-pill-primary flex-1 whitespace-nowrap px-3 py-2 text-sm"
           >
-            + เพิ่มเข้าแผน
+            + Add to plan
           </button>
           {venue.video_url && (
             <button className="gn-press o-pill-dark o-btn-label inline-flex items-center gap-1 px-3 py-2 text-sm">
-              <Play size={14} /> ดูคลิป
+              <Play size={14} /> Watch clip
             </button>
           )}
         </div>

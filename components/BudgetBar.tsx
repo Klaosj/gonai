@@ -11,13 +11,13 @@ export default function BudgetBar({ est, budget, onEdit }: { est: number; budget
     <div className="gn-card-e p-4">
       <div className="mb-2 flex items-center justify-between text-sm text-ink">
         <span>
-          งบประเมิน{" "}
-          <b className={`gn-num ${over ? "text-bad" : "text-ok"}`}>~{estAnim}฿</b> / งบตั้งไว้{" "}
+          Estimated{" "}
+          <b className={`gn-num ${over ? "text-bad" : "text-ok"}`}>~{estAnim}฿</b> / budget{" "}
           <b className="gn-num">{budget}฿</b>
         </span>
         {onEdit && (
           <button onClick={onEdit} className="gn-press text-accent underline underline-offset-2">
-            ✎ แก้งบ
+            ✎ Edit budget
           </button>
         )}
       </div>

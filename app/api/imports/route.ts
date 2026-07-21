@@ -8,7 +8,7 @@ import { store } from "@/lib/store";
 export async function POST(req: NextRequest) {
   const auth = resolveUser(req);
   if (!rateLimit(`imports:${auth.id}`, 5, 60 * 60_000)) {
-    return attachAuth(new NextResponse("ส่งลิงก์ได้สูงสุด 5 ลิงก์ต่อชั่วโมง", { status: 429 }), auth);
+    return attachAuth(new NextResponse("Max 5 links per hour", { status: 429 }), auth);
   }
 
   const { url } = (await req.json()) as { url?: string };
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   try {
     host = new URL(url).hostname;
   } catch {
-    return attachAuth(new NextResponse("url ไม่ถูกต้อง", { status: 400 }), auth);
+    return attachAuth(new NextResponse("Invalid URL", { status: 400 }), auth);
   }
   const platform = host.includes("tiktok")
     ? "tiktok"
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         ? "youtube"
         : null;
   if (!platform) {
-    return attachAuth(new NextResponse("รองรับเฉพาะลิงก์ TikTok / Instagram / YouTube", { status: 400 }), auth);
+    return attachAuth(new NextResponse("Only TikTok / Instagram / YouTube links are supported", { status: 400 }), auth);
   }
 
   await store.ensureUser(auth.id);

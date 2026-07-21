@@ -8,7 +8,7 @@ export default function TrustBadge({ lastValidatedAt, count }: { lastValidatedAt
     <span className={`inline-flex items-center gap-1 text-xs ${stale ? "text-mut" : "text-ok"}`}>
       {!stale && <span>✓</span>}
       <span>
-        อัปเดต {days} วันก่อน · validate โดยคนจริง {count} ครั้ง
+        Updated {days}d ago · validated by {count} real visits
       </span>
     </span>
   );

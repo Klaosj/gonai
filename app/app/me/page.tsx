@@ -20,10 +20,10 @@ interface MeResponse {
 }
 
 const IMPORT_STATUS_TH: Record<string, string> = {
-  queued: "⏳ รอทีมงานดึงข้อมูล",
-  processing: "🔎 กำลังดึงข้อมูล",
-  done: "✅ เพิ่มเข้าระบบแล้ว",
-  failed: "⚠️ ดึงไม่สำเร็จ",
+  queued: "⏳ Waiting for the team",
+  processing: "🔎 Being pulled",
+  done: "✅ Added to the app",
+  failed: "⚠️ Couldn't pull it",
 };
 
 const CATEGORY_EMOJI: Record<Venue["category"], string> = {
@@ -81,32 +81,32 @@ function computeBadges(donePlans: ExpandedPlan[], priceConfirms: number): Badge[
     {
       key: "confirm",
       emoji: "🧾",
-      label: "นักยืนยันราคา",
+      label: "Price confirmer",
       earned: confirmEarned,
-      detail: confirmEarned ? `confirm แล้ว ${priceConfirms} ราคา ✓` : `ยืนยันราคาให้ครบ 3 (ตอนนี้ ${priceConfirms})`,
+      detail: confirmEarned ? `${priceConfirms} prices confirmed ✓` : `Confirm 3 prices (now ${priceConfirms})`,
     },
     {
       key: "checkin",
       emoji: "🧭",
-      label: "ครบทุกเช็คอิน",
+      label: "Full check-in",
       earned: checkinEarned,
-      detail: checkinEarned ? `ทริปเช็คอินครบ ${checkinTrips} ทริป ✓` : `ทริปเช็คอินครบทุกจุดให้ได้ 3 ทริป (ตอนนี้ ${checkinTrips})`,
+      detail: checkinEarned ? `${checkinTrips} fully checked-in trips ✓` : `Check in at every stop on 3 trips (now ${checkinTrips})`,
     },
     {
       key: "unseen",
       emoji: "✨",
-      label: "นักล่า Unseen",
+      label: "Unseen hunter",
       earned: unseenEarned,
-      detail: unseenEarned ? `ไปที่ลับแล้ว ${unseenVisits} ครั้ง ✓` : `ไปที่ลับให้ครบ 3 (ตอนนี้ ${unseenVisits})`,
+      detail: unseenEarned ? `${unseenVisits} hidden gems visited ✓` : `Visit 3 hidden gems (now ${unseenVisits})`,
     },
     {
       key: "budget",
       emoji: "🎯",
-      label: "งบเป๊ะ",
+      label: "On budget",
       earned: onBudgetEarned,
       detail: onBudgetEarned
-        ? `ไม่เกินงบติดกัน ${onBudgetStreak} ทริป ✓`
-        : `ไม่เกินงบติดกันให้ครบ 5 ทริป (ตอนนี้ ${onBudgetStreak})`,
+        ? `${onBudgetStreak} trips under budget in a row ✓`
+        : `Stay under budget 5 trips in a row (now ${onBudgetStreak})`,
     },
   ];
 }
@@ -132,9 +132,9 @@ export default function TripsPage() {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
         <p className="text-4xl">🎒</p>
-        <p className="mt-3 font-bold text-ink">โหลดข้อมูลไม่สำเร็จ</p>
+        <p className="mt-3 font-bold text-ink">Couldn't load data</p>
         <button onClick={load} className="gn-press o-pill-primary o-btn-label mt-4 px-6 py-2.5">
-          ลองอีกครั้ง ↻
+          Try again ↻
         </button>
       </div>
     );
@@ -177,7 +177,7 @@ export default function TripsPage() {
   const wipe = async () => {
     await gn("/api/me", { method: "DELETE" });
     setConfirmingWipe(false);
-    showToast("ลบข้อมูลทั้งหมดเรียบร้อย — กลับสู่หน้าวางแผน");
+    showToast("All your data is deleted — back to the planner");
     setTimeout(() => router.push("/app"), 800);
   };
 
@@ -188,38 +188,38 @@ export default function TripsPage() {
 
   return (
     <div className="mx-auto max-w-[1500px] px-4 py-4">
-      <span className="gn-step">🎒 ทริปของฉัน</span>
-      <h1 className="o-serif mt-2 text-[22px] font-medium text-ink">ประวัติ + สิ่งที่แอปเรียนรู้จากคุณ</h1>
+      <span className="gn-step">🎒 My trips</span>
+      <h1 className="o-serif mt-2 text-[22px] font-medium text-ink">History + what the app learned about you</h1>
       <p className="mb-4 text-mut">
-        ยิ่งเที่ยว ยิ่งแม่น — ทุกทริปที่จบ ทำให้คำแนะนำและงบประมาณของคุณแม่นขึ้น
+        The more you go, the sharper it gets — every finished trip tunes your picks and budget
       </p>
 
       {/* ===== แถวสถิติรวม ===== */}
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="gn-card-e p-4">
-          <span className="o-mono text-[10px] text-mut">ทริปทั้งหมด</span>
+          <span className="o-mono text-[10px] text-mut">Total trips</span>
           <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{donePlans.length}</b>
         </div>
         <div className="gn-card-e p-4">
-          <span className="o-mono text-[10px] text-mut">ใช้ไปทั้งหมด</span>
+          <span className="o-mono text-[10px] text-mut">Total spent</span>
           <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{totalSpent}฿</b>
         </div>
         <div className="gn-card-e p-4">
-          <span className="o-mono text-[10px] text-mut">แม่นเฉลี่ย</span>
+          <span className="o-mono text-[10px] text-mut">Avg accuracy</span>
           <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{avgErrorPct === null ? "—" : `±${avgErrorPct}%`}</b>
-          {avgErrorPct !== null && <small className="text-ok">ประเมิน vs จ่ายจริง</small>}
+          {avgErrorPct !== null && <small className="text-ok">estimate vs actual</small>}
         </div>
         <div className="gn-card-e p-4">
-          <span className="o-mono text-[10px] text-mut">ราคาที่ยืนยัน</span>
+          <span className="o-mono text-[10px] text-mut">Prices confirmed</span>
           <b className="gn-num mt-1.5 block text-[26px] font-bold text-ink">{me.priceConfirms}</b>
-          {me.priceConfirms > 0 && <small className="text-ok">ช่วยเพื่อนนักเที่ยวแล้ว</small>}
+          {me.priceConfirms > 0 && <small className="text-ok">helping fellow travelers</small>}
         </div>
       </div>
 
       {/* ===== Badge + ที่ชอบไปซ้ำ ===== */}
       <div className="mb-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <div className="gn-card-e p-4">
-          <p className="o-mono mb-3 text-[10px] text-accent">Badge จากการช่วย validate</p>
+          <p className="o-mono mb-3 text-[10px] text-accent">Badges from helping validate</p>
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             {badges.map((b) => (
               <div
@@ -244,12 +244,12 @@ export default function TripsPage() {
 
         {favorites.length > 0 && (
           <div className="gn-card-e p-4">
-            <p className="o-mono mb-2 text-[10px] text-mut">ที่ชอบไปซ้ำ</p>
+            <p className="o-mono mb-2 text-[10px] text-mut">Repeat favorites</p>
             {favorites.map((f) => (
               <div key={f.venue.id} className="flex items-center gap-2.5 border-b border-line py-2.5 text-[13.5px] last:border-b-0">
                 <span>{CATEGORY_EMOJI[f.venue.category]}</span>
                 <span className="min-w-0 flex-1 truncate text-ink">{f.venue.name_th}</span>
-                <span className="shrink-0 text-xs text-mut">ไป {f.count} ครั้ง</span>
+                <span className="shrink-0 text-xs text-mut">went {f.count}×</span>
               </div>
             ))}
           </div>
@@ -260,7 +260,7 @@ export default function TripsPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* profile */}
         <div className="gn-card-e p-4">
-          <h4 className="font-semibold text-ink">🧬 Taste Profile ของคุณ</h4>
+          <h4 className="font-semibold text-ink">🧬 Your Taste Profile</h4>
           <div className="mt-2.5 flex gap-1.5">
             {[0, 1, 2, 3].map((i) => (
               <span
@@ -270,8 +270,8 @@ export default function TripsPage() {
             ))}
           </div>
           <div className="mt-2 text-sm text-mut">
-            ระดับ personalization: <b className="text-ink">{tasteLevel}/4</b> — อีก {Math.max(0, (4 - tasteLevel) * 2)} ทริปจะปลดล็อกคำแนะนำล่วงหน้า
-            &quot;เสาร์นี้น่าจะชอบ...&quot;
+            Personalization level: <b className="text-ink">{tasteLevel}/4</b> — {Math.max(0, (4 - tasteLevel) * 2)} more trips unlock proactive picks
+            &quot;This Saturday you might like...&quot;
           </div>
 
           {tasteEntries.length > 0 ? (
@@ -286,7 +286,7 @@ export default function TripsPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-3 text-sm text-mut">ยังไม่มี taste data — เริ่มวางแผนแรกเลย</div>
+            <div className="mt-3 text-sm text-mut">No taste data yet — plan your first trip</div>
           )}
 
           {/* auth */}
@@ -294,10 +294,10 @@ export default function TripsPage() {
             {me.auth.provider === "line" ? (
               <div className="flex items-center justify-between gap-2">
                 <span className="text-ink">
-                  💚 ล็อกอินด้วย LINE{me.auth.displayName ? `: ${me.auth.displayName}` : ""}
+                  💚 Signed in with LINE{me.auth.displayName ? `: ${me.auth.displayName}` : ""}
                 </span>
                 <button onClick={logout} className="shrink-0 text-xs font-semibold text-mut underline">
-                  ออกจากระบบ
+                  Sign out
                 </button>
               </div>
             ) : (
@@ -306,42 +306,42 @@ export default function TripsPage() {
                   href="/api/auth/line/login?return=/app/me"
                   className="o-btn-label inline-block rounded-full bg-[#06c755] px-3.5 py-1.5 text-xs text-white"
                 >
-                  ล็อกอินด้วย LINE
+                  Sign in with LINE
                 </a>
                 <p className="mt-1.5 text-xs text-mut">
-                  เก็บแผน/ประวัติข้ามเครื่อง — ไม่ล็อกอินก็ใช้ได้ แต่ข้อมูลอยู่แค่เครื่องนี้
+                  Keep plans across devices — works without sign-in, but data stays on this device
                 </p>
               </div>
             )}
           </div>
 
           <div className="mt-3 text-xs text-mut">
-            🔒 ข้อมูลนี้อยู่กับเราเท่านั้น ไม่ขายให้ใคร ·{" "}
+            🔒 Your data stays with us, never sold ·{" "}
             <button onClick={() => setConfirmingWipe(true)} className="font-bold text-accent underline">
-              ดู/ลบข้อมูลของฉัน (PDPA)
+              View/delete my data (PDPA)
             </button>
           </div>
 
           {confirmingWipe && (
             <div className="mt-3 rounded-xl border border-bad/40 bg-bad/5 p-3">
               <p className="text-sm font-semibold text-bad">
-                ลบข้อมูลทั้งหมดของคุณจริงไหม?
+                Really delete all your data?
               </p>
               <p className="mt-1 text-xs text-mut">
-                แผน / ประวัติ / ที่บันทึกไว้ จะหายทั้งหมด — กู้คืนไม่ได้
+                Plans, history and saves will all be gone — no recovery
               </p>
               <div className="mt-2.5 flex gap-2">
                 <button
                   onClick={wipe}
                   className="gn-press o-btn-label rounded-full border border-bad bg-bad/10 px-3.5 py-1.5 text-xs text-bad"
                 >
-                  ยืนยันลบทั้งหมด
+                  Yes, delete everything
                 </button>
                 <button
                   onClick={() => setConfirmingWipe(false)}
                   className="gn-press o-pill-dark o-btn-label px-3.5 py-1.5 text-xs"
                 >
-                  ยกเลิก
+                  Cancel
                 </button>
               </div>
             </div>
@@ -350,10 +350,10 @@ export default function TripsPage() {
 
         {/* history — อัพเกรดสไตล์แบบ mockup: thumbnail ambience + ยอด + ต่ำกว่า/เกินงบ (plan §6.4) */}
         <div>
-          <h4 className="mb-2.5 font-semibold text-ink">📜 ทริปที่ผ่านมา</h4>
+          <h4 className="mb-2.5 font-semibold text-ink">📜 Past trips</h4>
           {me.plans.length === 0 && (
             <p className="gn-card-e p-6 text-center text-sm text-mut">
-              ยังไม่มีทริป — เริ่มวางแผนแรกเลย
+              No trips yet — plan your first one
             </p>
           )}
           {me.plans.map((p) => {
@@ -369,19 +369,19 @@ export default function TripsPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <b className="block truncate text-[13.5px] text-ink">
-                    {INTENT_LABELS[p.intent]} · {p.origin_name} → สยาม
+                    {INTENT_LABELS[p.intent]} · {p.origin_name} → Siam
                   </b>
                   <small className="text-mut">
                     {new Date(p.created_at).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })} ·{" "}
-                    {p.stops.length} ที่ ·{" "}
-                    {p.status === "done" ? "จบทริปแล้ว" : p.status === "active" ? "กำลังเที่ยวอยู่" : "แผนร่าง"}
+                    {p.stops.length} stops ·{" "}
+                    {p.status === "done" ? "done" : p.status === "active" ? "on the trip" : "draft"}
                   </small>
                 </div>
                 {p.status === "done" && (
                   <div className="shrink-0 text-right">
                     <b className="gn-num block text-[15px] text-ink">{p.budget_actual}฿</b>
                     <div className={`text-[11px] font-semibold ${diff > 0 ? "text-bad" : "text-ok"}`}>
-                      {diff > 0 ? `เกินงบ ${diff}฿` : diff === 0 ? "ตรงงบเป๊ะ" : `ต่ำกว่างบ ${-diff}฿ ✓`}
+                      {diff > 0 ? `${diff}฿ over` : diff === 0 ? "exactly on budget" : `${-diff}฿ under ✓`}
                     </div>
                   </div>
                 )}
@@ -392,10 +392,10 @@ export default function TripsPage() {
 
         {/* saved */}
         <div>
-          <h4 className="mb-2.5 font-semibold text-ink">🔖 ที่บันทึกไว้ (จากคลิป + การ์ด)</h4>
+          <h4 className="mb-2.5 font-semibold text-ink">🔖 Saved (from clips + cards)</h4>
           {me.saves.length === 0 && (
             <p className="gn-card-e p-6 text-center text-sm text-mut">
-              ยังไม่มีที่บันทึกไว้ — กด ♥ บนการ์ด หรือส่งลิงก์ TikTok/IG มาให้เราหาที่ให้
+              Nothing saved yet — tap ♥ on a card, or send a TikTok/IG link and we'll find it
             </p>
           )}
           {me.saves.map((v) => (
@@ -406,7 +406,7 @@ export default function TripsPage() {
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-medium text-ink">{v.name_th}</div>
                 <small className="text-mut">
-                  ~{mid(v.price_per_head_min, v.price_per_head_max)}฿/คน ·{" "}
+                  ~{mid(v.price_per_head_min, v.price_per_head_max)}฿/person ·{" "}
                   {v.badge === "hit" ? "🔥 Hit" : "✨ Unseen"}
                 </small>
               </div>
@@ -414,7 +414,7 @@ export default function TripsPage() {
                 onClick={() => router.push(`/app?add=${v.id}`)}
                 className="gn-press o-pill-dark o-btn-label shrink-0 px-2.5 py-1 text-xs"
               >
-                วางแผนไป →
+                Plan a visit →
               </button>
             </div>
           ))}
@@ -422,7 +422,7 @@ export default function TripsPage() {
           {/* ลิงก์คลิปที่ส่งมา — ปิด dead end เดิม (ส่งแล้วหายเงียบ) */}
           {me.imports.length > 0 && (
             <>
-              <h4 className="mb-2.5 mt-5 font-semibold text-ink">🎬 คลิปที่ส่งให้ทีมงาน</h4>
+              <h4 className="mb-2.5 mt-5 font-semibold text-ink">🎬 Clips sent to the team</h4>
               {me.imports.map((im) => (
                 <div key={im.created_at + im.url} className="gn-card-e mb-2 p-2.5">
                   <div className="truncate text-[12.5px] text-ink">{im.url}</div>

@@ -3,13 +3,13 @@
 import type { Route, Venue, Zone, Intent } from "./types";
 
 export const ZONES: Zone[] = [
-  { id: "bangkapi", name_th: "บางกะปิ", is_origin: true, km_to_siam: 13 },
-  { id: "ladprao", name_th: "ลาดพร้าว", is_origin: true, km_to_siam: 10 },
-  { id: "onnut", name_th: "อ่อนนุช", is_origin: true, km_to_siam: 11 },
-  { id: "pinklao", name_th: "ปิ่นเกล้า", is_origin: true, km_to_siam: 12 },
-  { id: "chatuchak", name_th: "จตุจักร", is_origin: true, km_to_siam: 9 },
-  { id: "bangna", name_th: "บางนา", is_origin: true, km_to_siam: 18 },
-  { id: "siam", name_th: "สยาม", is_origin: false, km_to_siam: 0 },
+  { id: "bangkapi", name_th: "Bang Kapi", is_origin: true, km_to_siam: 13 },
+  { id: "ladprao", name_th: "Lat Phrao", is_origin: true, km_to_siam: 10 },
+  { id: "onnut", name_th: "On Nut", is_origin: true, km_to_siam: 11 },
+  { id: "pinklao", name_th: "Pinklao", is_origin: true, km_to_siam: 12 },
+  { id: "chatuchak", name_th: "Chatuchak", is_origin: true, km_to_siam: 9 },
+  { id: "bangna", name_th: "Bang Na", is_origin: true, km_to_siam: 18 },
+  { id: "siam", name_th: "Siam", is_origin: false, km_to_siam: 0 },
 ];
 
 const LAST_VALIDATED = "2026-07-12"; // fixture: อยู่ในช่วง fresh (<45 วัน)
@@ -17,7 +17,7 @@ const LAST_VALIDATED = "2026-07-12"; // fixture: อยู่ในช่วง 
 export const VENUES: Venue[] = [
   {
     id: "V001",
-    name_th: "เวิร์คคาเฟ่ สยามสแควร์ (ตัวอย่าง)",
+    name_th: "Work Cafe Siam Square (sample)",
     zone_id: "siam",
     category: "cafe",
     intents: ["work"],
@@ -38,7 +38,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "V002",
-    name_th: "บีนส์บาร์ ชั้นลอย (ตัวอย่าง)",
+    name_th: "Beans Bar Mezzanine (sample)",
     zone_id: "siam",
     category: "cafe",
     intents: ["work"],
@@ -59,7 +59,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "V003",
-    name_th: "สแน็คแล็บ (ตัวอย่าง)",
+    name_th: "Snack Lab (sample)",
     zone_id: "siam",
     category: "cafe",
     intents: ["work"],
@@ -80,7 +80,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "U001",
-    name_th: "โฮมคาเฟ่ ซอยเกษม (ตัวอย่าง)",
+    name_th: "Home Cafe Soi Kasem (sample)",
     zone_id: "siam",
     category: "cafe",
     intents: ["work"],
@@ -101,7 +101,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "U002",
-    name_th: "สวนหลังตึก (ตัวอย่าง)",
+    name_th: "Backyard Garden (sample)",
     zone_id: "siam",
     category: "cafe",
     intents: ["work"],
@@ -122,7 +122,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "V010",
-    name_th: "ริมน้ำบิสโทร (ตัวอย่าง)",
+    name_th: "Riverside Bistro (sample)",
     zone_id: "siam",
     category: "restaurant",
     intents: ["date"],
@@ -143,7 +143,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "V012",
-    name_th: "ตลาดนัดหลังมอ (ตัวอย่าง)",
+    name_th: "Campus Night Market (sample)",
     zone_id: "siam",
     category: "market",
     intents: ["family"],
@@ -164,7 +164,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "V013",
-    name_th: "ครัวคุณยาย (ตัวอย่าง)",
+    name_th: "Grandma's Kitchen (sample)",
     zone_id: "siam",
     category: "restaurant",
     intents: ["work", "date"],
@@ -185,7 +185,7 @@ export const VENUES: Venue[] = [
   },
   {
     id: "U003",
-    name_th: "ดาดฟ้าแกลเลอรี (ตัวอย่าง)",
+    name_th: "Rooftop Gallery (sample)",
     zone_id: "siam",
     category: "activity",
     intents: ["photo"],
@@ -213,9 +213,9 @@ export const ROUTES: Route[] = [
     dest_zone: "siam",
     kind: "cheapest",
     legs: [
-      { route_id: "R001", seq: 1, mode: "win", detail_th: "วินปากซอย → ท่าเรือบางกะปิ", price_min: 20, price_max: 20, minutes: 10, warning_th: null },
-      { route_id: "R001", seq: 2, mode: "boat", detail_th: "เรือแสนแสบ → ท่าประตูน้ำ", price_min: 27, price_max: 27, minutes: 33, warning_th: "เรือเที่ยวสุดท้าย 19:40" },
-      { route_id: "R001", seq: 3, mode: "walk", detail_th: "เดินเข้าสยาม", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
+      { route_id: "R001", seq: 1, mode: "win", detail_th: "Win bike to Bang Kapi pier", price_min: 20, price_max: 20, minutes: 10, warning_th: null },
+      { route_id: "R001", seq: 2, mode: "boat", detail_th: "Saen Saep boat to Pratunam pier", price_min: 27, price_max: 27, minutes: 33, warning_th: "Last boat 19:40" },
+      { route_id: "R001", seq: 3, mode: "walk", detail_th: "Walk into Siam", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
     ],
   },
   {
@@ -224,7 +224,7 @@ export const ROUTES: Route[] = [
     dest_zone: "siam",
     kind: "fastest",
     legs: [
-      { route_id: "R002", seq: 1, mode: "grab", detail_th: "Grab จากบ้าน → สยาม", price_min: 180, price_max: 210, minutes: 35, warning_th: null },
+      { route_id: "R002", seq: 1, mode: "grab", detail_th: "Grab from home to Siam", price_min: 180, price_max: 210, minutes: 35, warning_th: null },
     ],
   },
   {
@@ -233,8 +233,8 @@ export const ROUTES: Route[] = [
     dest_zone: "siam",
     kind: "cheapest",
     legs: [
-      { route_id: "R003", seq: 1, mode: "walk", detail_th: "เดินไป BTS ห้าแยกลาดพร้าว", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
-      { route_id: "R003", seq: 2, mode: "bts", detail_th: "BTS → สยาม", price_min: 44, price_max: 44, minutes: 28, warning_th: null },
+      { route_id: "R003", seq: 1, mode: "walk", detail_th: "Walk to BTS Ha Yaek Lat Phrao", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
+      { route_id: "R003", seq: 2, mode: "bts", detail_th: "BTS to Siam", price_min: 44, price_max: 44, minutes: 28, warning_th: null },
     ],
   },
   {
@@ -243,7 +243,7 @@ export const ROUTES: Route[] = [
     dest_zone: "siam",
     kind: "fastest",
     legs: [
-      { route_id: "R004", seq: 1, mode: "grab", detail_th: "Grab จากบ้าน → สยาม", price_min: 150, price_max: 180, minutes: 30, warning_th: null },
+      { route_id: "R004", seq: 1, mode: "grab", detail_th: "Grab from home to Siam", price_min: 150, price_max: 180, minutes: 30, warning_th: null },
     ],
   },
   {
@@ -252,8 +252,8 @@ export const ROUTES: Route[] = [
     dest_zone: "siam",
     kind: "cheapest",
     legs: [
-      { route_id: "R005", seq: 1, mode: "walk", detail_th: "เดินไป BTS อ่อนนุช", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
-      { route_id: "R005", seq: 2, mode: "bts", detail_th: "BTS → สยาม", price_min: 37, price_max: 37, minutes: 24, warning_th: null },
+      { route_id: "R005", seq: 1, mode: "walk", detail_th: "Walk to BTS On Nut", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
+      { route_id: "R005", seq: 2, mode: "bts", detail_th: "BTS to Siam", price_min: 37, price_max: 37, minutes: 24, warning_th: null },
     ],
   },
   {
@@ -262,7 +262,7 @@ export const ROUTES: Route[] = [
     dest_zone: "siam",
     kind: "fastest",
     legs: [
-      { route_id: "R006", seq: 1, mode: "grab", detail_th: "Grab จากบ้าน → สยาม", price_min: 140, price_max: 170, minutes: 28, warning_th: null },
+      { route_id: "R006", seq: 1, mode: "grab", detail_th: "Grab from home to Siam", price_min: 140, price_max: 170, minutes: 28, warning_th: null },
     ],
   },
 ];

@@ -111,19 +111,19 @@ export interface GnEvent {
 }
 
 export const INTENT_LABELS: Record<Intent, string> = {
-  work: "นั่งทำงาน",
-  date: "เดท",
-  family: "ครอบครัว",
-  photo: "ถ่ายรูป",
+  work: "Work",
+  date: "Date",
+  family: "Family",
+  photo: "Photo",
 };
 
 export const MODE_LABELS: Record<LegMode, string> = {
-  walk: "เดิน",
-  win: "วิน",
-  boat: "เรือ",
+  walk: "Walk",
+  win: "Win bike",
+  boat: "Boat",
   bts: "BTS",
   mrt: "MRT",
-  songthaew: "สองแถว",
-  van: "รถตู้",
+  songthaew: "Songthaew",
+  van: "Van",
   grab: "Grab",
 };

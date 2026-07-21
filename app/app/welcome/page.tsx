@@ -9,17 +9,17 @@ import { ZONES } from "@/lib/fixtures";
 type Vibe = "quiet" | "loud" | "food" | "photo";
 
 const VIBE_OPTIONS: { key: Vibe; emoji: string; label: string; desc: string }[] = [
-  { key: "quiet", emoji: "🤫", label: "สายเงียบ", desc: "คาเฟ่เงียบ มุมส่วนตัว" },
-  { key: "loud", emoji: "🎉", label: "สายคึกคัก", desc: "ตลาด อีเวนต์ คนเยอะได้" },
-  { key: "food", emoji: "🍜", label: "สายกิน", desc: "ของอร่อยนำทาง" },
-  { key: "photo", emoji: "📷", label: "สายรูป", desc: "แสงสวย มุมถ่ายรูป" },
+  { key: "quiet", emoji: "🤫", label: "Quiet type", desc: "Calm cafes, private corners" },
+  { key: "loud", emoji: "🎉", label: "Lively type", desc: "Markets, events, crowds are fine" },
+  { key: "food", emoji: "🍜", label: "Foodie", desc: "Good food leads the way" },
+  { key: "photo", emoji: "📷", label: "Photo hunter", desc: "Good light, good angles" },
 ];
 
 const BUDGET_OPTIONS: { key: string; mul: number | undefined; emoji: string; label: string; desc: string }[] = [
-  { key: "save", mul: 0.8, emoji: "🪙", label: "งบเซฟ", desc: "~300-500฿ / วัน" },
-  { key: "mid", mul: 1, emoji: "⚖️", label: "กลางๆ", desc: "~500-900฿ / วัน" },
-  { key: "full", mul: 1.3, emoji: "✨", label: "จัดเต็มบ้าง", desc: "~900-1,500฿ / วัน" },
-  { key: "depends", mul: undefined, emoji: "🎲", label: "แล้วแต่วัน", desc: "ถามทุกครั้ง" },
+  { key: "save", mul: 0.8, emoji: "🪙", label: "Saver", desc: "~300-500฿ / day" },
+  { key: "mid", mul: 1, emoji: "⚖️", label: "Balanced", desc: "~500-900฿ / day" },
+  { key: "full", mul: 1.3, emoji: "✨", label: "Treat myself", desc: "~900-1,500฿ / day" },
+  { key: "depends", mul: undefined, emoji: "🎲", label: "Depends on the day", desc: "Ask me each time" },
 ];
 
 export default function WelcomePage() {
@@ -67,7 +67,7 @@ export default function WelcomePage() {
       style={{ background: "linear-gradient(160deg, var(--bg) 40%, #1a2733 160%)" }}
     >
       <div className="w-full max-w-[560px]">
-        <p className="o-mono mb-2.5 text-[11px] text-accent">GONAI — ตั้งค่า 3 แตะ (ข้ามได้ทุกขั้น)</p>
+        <p className="o-mono mb-2.5 text-[11px] text-accent">GONAI — 3-tap setup (skippable)</p>
         <div className="mb-6 flex gap-1.5">
           {[1, 2, 3].map((n) => (
             <span key={n} className={`h-[3px] flex-1 rounded-full ${step >= n ? "bg-pill" : "bg-line"}`} />
@@ -79,9 +79,9 @@ export default function WelcomePage() {
             <>
               <p className="o-mono text-[11px] text-mut">01 / 03</p>
               <h1 className="o-serif mt-2 text-[26px] font-semibold leading-tight text-ink">
-                ปกติคุณเที่ยวแนว <em className="text-accent">ไหน?</em>
+                What's your usual <em className="text-accent">vibe?</em>
               </h1>
-              <p className="mb-5 mt-1 text-sm text-mut">ใช้จัดลำดับ Top 3 ให้ตรงตั้งแต่ครั้งแรก — เปลี่ยนทีหลังได้</p>
+              <p className="mb-5 mt-1 text-sm text-mut">Helps rank your Top 3 right from day one — change it anytime</p>
               <div className="grid grid-cols-2 gap-3">
                 {VIBE_OPTIONS.map((o) => (
                   <button
@@ -99,10 +99,10 @@ export default function WelcomePage() {
               </div>
               <div className="mt-6 flex items-center justify-between">
                 <button onClick={skipAll} className="o-mono gn-press text-[11px] text-mut hover:text-ink">
-                  ข้ามทั้งหมด — ใช้เลย →
+                  Skip all — just use it →
                 </button>
                 <button onClick={() => setStep(2)} className="gn-press o-pill-primary o-btn-label px-7 py-3">
-                  ต่อไป →
+                  Next →
                 </button>
               </div>
             </>
@@ -112,9 +112,9 @@ export default function WelcomePage() {
             <>
               <p className="o-mono text-[11px] text-mut">02 / 03</p>
               <h1 className="o-serif mt-2 text-[26px] font-semibold leading-tight text-ink">
-                สไตล์งบของ <em className="text-accent">คุณ?</em>
+                Your budget <em className="text-accent">style?</em>
               </h1>
-              <p className="mb-5 mt-1 text-sm text-mut">ตั้งงบตั้งต้นอัตโนมัติ — แก้ได้ทุกทริป</p>
+              <p className="mb-5 mt-1 text-sm text-mut">Sets your default budget — editable every trip</p>
               <div className="grid grid-cols-2 gap-3">
                 {BUDGET_OPTIONS.map((o) => (
                   <button
@@ -132,10 +132,10 @@ export default function WelcomePage() {
               </div>
               <div className="mt-6 flex items-center justify-between">
                 <button onClick={skipAll} className="o-mono gn-press text-[11px] text-mut hover:text-ink">
-                  ข้ามทั้งหมด — ใช้เลย →
+                  Skip all — just use it →
                 </button>
                 <button onClick={() => setStep(3)} className="gn-press o-pill-primary o-btn-label px-7 py-3">
-                  ต่อไป →
+                  Next →
                 </button>
               </div>
             </>
@@ -145,9 +145,9 @@ export default function WelcomePage() {
             <>
               <p className="o-mono text-[11px] text-mut">03 / 03</p>
               <h1 className="o-serif mt-2 text-[26px] font-semibold leading-tight text-ink">
-                ออกจากย่าน <em className="text-accent">ไหนบ่อยสุด?</em>
+                Which zone do you <em className="text-accent">start from?</em>
               </h1>
-              <p className="mb-5 mt-1 text-sm text-mut">คิดค่าเดินทางให้ถูกตั้งแต่เปิดแอป</p>
+              <p className="mb-5 mt-1 text-sm text-mut">So transport costs are right from the first screen</p>
               <div className="grid grid-cols-2 gap-3">
                 {ZONES.filter((z) => z.is_origin).map((z) => (
                   <button
@@ -168,15 +168,15 @@ export default function WelcomePage() {
                   }`}
                 >
                   <span className="mb-2 block text-2xl">📍</span>
-                  <b className="block text-[15px]">อื่นๆ</b>
+                  <b className="block text-[15px]">Other</b>
                 </button>
               </div>
               <div className="mt-6 flex items-center justify-between">
                 <button onClick={skipAll} className="o-mono gn-press text-[11px] text-mut hover:text-ink">
-                  ข้ามทั้งหมด — ใช้เลย →
+                  Skip all — just use it →
                 </button>
                 <button onClick={finish} className="gn-press o-pill-primary o-btn-label px-7 py-3">
-                  เริ่มใช้ GoNai →
+                  Start using GoNai →
                 </button>
               </div>
             </>
@@ -184,7 +184,7 @@ export default function WelcomePage() {
         </div>
 
         <p className="mt-4 text-center text-[11.5px] text-mut">
-          🔒 เก็บไว้กับเราเท่านั้นตาม PDPA — ลบได้ทุกเมื่อในแท็บ ทริปของฉัน
+          🔒 Stays with us only, PDPA compliant — delete anytime in My trips
         </p>
       </div>
     </div>

@@ -26,7 +26,7 @@ export async function getCatalog(): Promise<Catalog> {
     }
     if (!warnedEmpty) {
       warnedEmpty = true;
-      console.warn("[gonai] Supabase เปิดอยู่แต่ตาราง venues ว่าง — ใช้ fixtures ชั่วคราว (seed: npx tsx supabase/seed.ts)");
+      console.warn("[gonai] Supabase enabled but venues table is empty — using fixtures for now (seed: npx tsx supabase/seed.ts)");
     }
   }
   const data: Catalog = { zones: ZONES, venues: VENUES, routes: ROUTES };

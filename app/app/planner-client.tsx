@@ -18,10 +18,10 @@ import type { RainForecast } from "@/lib/weather";
 
 // 4 intents จริงเท่านั้น — "กินของอร่อย/ธรรมชาติ" เดิมเป็นปุ่มหลอก (ผลลัพธ์เป็น work) เลยตัดออก
 const INTENTS: { key: Intent; label: string }[] = [
-  { key: "work", label: "💻 นั่งทำงาน" },
-  { key: "date", label: "💛 เดท" },
-  { key: "photo", label: "📷 ถ่ายรูป" },
-  { key: "family", label: "👨‍👩‍👧 ครอบครัว" },
+  { key: "work", label: "💻 Work" },
+  { key: "date", label: "💛 Date" },
+  { key: "photo", label: "📷 Photo" },
+  { key: "family", label: "👨‍👩‍👧 Family" },
 ];
 
 // ambience ต่อ intent — ใช้กับ hero กลาง (plan §2/§3.3)
@@ -35,18 +35,18 @@ const INTENT_AMBIENCE: Record<Intent, string> = {
 // Mood tiles (plan §1) — แตะเดียว = ตั้ง intent+filters+budget จริง แล้ว refetch
 // subtitle เขียนจาก filters ที่ tile ตั้งจริงเท่านั้น (ห้ามเขียนเกินสิ่งที่ tile ทำ)
 const MOODS: { key: Intent; emoji: string; label: string; timeframe: string; filters: VenueFilters; ambience: string }[] = [
-  { key: "work", emoji: "💻", label: "งานนอกบ้าน", timeframe: "Mood · วันนี้", filters: { quiet: true, plugs: true }, ambience: "o-ambience-work" },
-  { key: "date", emoji: "💛", label: "เดทอาทิตย์นี้", timeframe: "Mood · เสาร์นี้", filters: {}, ambience: "o-ambience-date" },
-  { key: "family", emoji: "👨‍👩‍👧", label: "พาครอบครัว", timeframe: "Mood · ครอบครัว", filters: { indoor: true }, ambience: "o-ambience-family" },
-  { key: "photo", emoji: "📷", label: "ถ่ายรูปสวย", timeframe: "Mood · สายรูป", filters: {}, ambience: "o-ambience-photo" },
+  { key: "work", emoji: "💻", label: "Work out of home", timeframe: "Mood · today", filters: { quiet: true, plugs: true }, ambience: "o-ambience-work" },
+  { key: "date", emoji: "💛", label: "Date this week", timeframe: "Mood · Saturday", filters: {}, ambience: "o-ambience-date" },
+  { key: "family", emoji: "👨‍👩‍👧", label: "Family day", timeframe: "Mood · family", filters: { indoor: true }, ambience: "o-ambience-family" },
+  { key: "photo", emoji: "📷", label: "Photo walk", timeframe: "Mood · golden hour", filters: {}, ambience: "o-ambience-photo" },
 ];
 
 const MOOD_FILTER_LABELS: Partial<Record<keyof VenueFilters, string>> = {
-  near: "เดินใกล้",
-  food: "อาหารจริงจัง",
-  quiet: "เงียบ",
-  plugs: "ปลั๊ก",
-  indoor: "ในร่ม",
+  near: "short walk",
+  food: "real meals",
+  quiet: "quiet",
+  plugs: "plugs",
+  indoor: "indoor",
 };
 
 function moodSubtitle(m: (typeof MOODS)[number]): string {
@@ -54,7 +54,7 @@ function moodSubtitle(m: (typeof MOODS)[number]): string {
     .filter((k) => m.filters[k])
     .map((k) => MOOD_FILTER_LABELS[k])
     .filter((x): x is string => !!x);
-  return [...labels, `งบ ~${BUDGET_DEFAULTS[m.key]}฿`].join(" · ");
+  return [...labels, `~${BUDGET_DEFAULTS[m.key]}฿ budget`].join(" · ");
 }
 
 const round50 = (x: number) => Math.round(x / 50) * 50;
@@ -70,11 +70,11 @@ function readGnPref(): { vibe?: "quiet" | "loud" | "food" | "photo"; budgetMul?:
 
 // ตัวกรองจริง — ผูกกับ attribute ใน data (lib/filters.ts ฝั่ง server)
 const FILTER_CHIPS: { key: keyof VenueFilters; label: string }[] = [
-  { key: "near", label: "⏱ เดิน ≤10 นาที" },
-  { key: "food", label: "🍚 มีอาหารจริงจัง" },
-  { key: "quiet", label: "🎧 เงียบ/ประชุมได้" },
-  { key: "plugs", label: "🔌 มีปลั๊ก" },
-  { key: "indoor", label: "☂️ ในร่ม" },
+  { key: "near", label: "⏱ ≤10 min walk" },
+  { key: "food", label: "🍚 Real meals" },
+  { key: "quiet", label: "🎧 Quiet / call-friendly" },
+  { key: "plugs", label: "🔌 Plugs" },
+  { key: "indoor", label: "☂️ Indoor" },
 ];
 
 interface VenuesResponse {
@@ -184,7 +184,7 @@ export default function PlannerClient() {
       if (plan) {
         await act("add_stop", { venue_id: venueId });
         track("add_stop", { venue_id: venueId, via: "card" });
-        showToast(`เพิ่ม ${venueName} เข้าแผนแล้ว`);
+        showToast(`Added ${venueName} to your plan`);
         return;
       }
       try {
@@ -195,9 +195,9 @@ export default function PlannerClient() {
         });
         const p = await gn<ExpandedPlan>(`/api/plans/${id}`);
         setPlan(p);
-        showToast(`สร้างแผน + เพิ่ม ${venueName} แล้ว`);
+        showToast(`Plan created with ${venueName}`);
       } catch {
-        showToast("สร้างแผนไม่สำเร็จ — ลองใหม่อีกครั้ง");
+        showToast("Couldn't create the plan — try again");
       }
     },
     [plan, act, intent, origin, budget],
@@ -209,7 +209,7 @@ export default function PlannerClient() {
     if (!addId || autoAdded.current || plan) return;
     autoAdded.current = true;
     (async () => {
-      await addToPlan(addId, "ที่ที่บันทึกไว้");
+      await addToPlan(addId, "your saved spot");
       router.replace("/app");
     })();
   }, [sp, plan, addToPlan, router]);
@@ -228,7 +228,7 @@ export default function PlannerClient() {
       });
       if (res.saved) track("save_venue", { venue_id: venue.id });
     } catch {
-      showToast("บันทึกไม่สำเร็จ");
+      showToast("Couldn't save");
     }
   };
 
@@ -237,9 +237,9 @@ export default function PlannerClient() {
     try {
       await gn("/api/imports", { method: "POST", body: JSON.stringify({ url: importUrl.trim() }) });
       setImportUrl("");
-      showToast("รับลิงก์แล้ว 🎬 ทีมงานดึงข้อมูลใน 24 ชม. — ดูสถานะในแท็บ ทริปของฉัน");
+      showToast("Link received 🎬 Our team pulls the data within 24h — track it in My trips");
     } catch (e) {
-      showToast(e instanceof Error ? e.message.replace(/^\d+: /, "") : "ส่งลิงก์ไม่สำเร็จ");
+      showToast(e instanceof Error ? e.message.replace(/^\d+: /, "") : "Couldn't send the link");
     }
   };
 
@@ -285,10 +285,10 @@ export default function PlannerClient() {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
         <p className="text-4xl">📡</p>
-        <p className="mt-3 font-bold text-ink">โหลดข้อมูลไม่สำเร็จ</p>
-        <p className="mt-1 text-sm text-mut">เช็คอินเทอร์เน็ตแล้วลองใหม่</p>
+        <p className="mt-3 font-bold text-ink">Couldn't load data</p>
+        <p className="mt-1 text-sm text-mut">Check your connection and retry</p>
         <button onClick={load} className="gn-press gn-cta o-pill-primary o-btn-label mt-4 px-6 py-2.5">
-          ลองอีกครั้ง ↻
+          Try again ↻
         </button>
       </div>
     );
@@ -296,10 +296,8 @@ export default function PlannerClient() {
   if (!data) return <LoadingSkeleton />;
 
   const list = showMore ? [...data.cards, ...data.more] : data.cards;
-  // key เปลี่ยนตามชุดผลลัพธ์ → การ์ดเล่น entrance ใหม่ทุกครั้งที่กรอง/เปลี่ยน intent
-  const listKey = list.map((v) => v.id).join(",");
   const pct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
-  const originName = data.zones.find((z) => z.id === origin)?.name_th ?? "อื่นๆ";
+  const originName = data.zones.find((z) => z.id === origin)?.name_th ?? "Other";
   const intentLabel = INTENTS.find((i) => i.key === intent)!.label;
   const rain = data.weather;
   const showRain = rain?.rainExpected && !rainDismissed;
@@ -334,33 +332,33 @@ export default function PlannerClient() {
       <div className="grid gap-4 lg:grid-cols-[330px_1fr_360px]">
         {/* ====== col 1: เงื่อนไข + ตัวกรอง + import ====== */}
         <aside className="gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
-          <span className="gn-step">01 — เงื่อนไขของคุณ</span>
+          <span className="gn-step">01 — Your conditions</span>
 
           <div className="flex flex-col gap-2.5">
             <div className="self-end rounded-2xl bg-card-solid px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
               {intent === "work"
-                ? `อยากนั่งทำงาน ออกจาก${originName}`
+                ? `Work session, leaving from ${originName}`
                 : intent === "date"
-                  ? `เดท ออกจาก${originName} งบ ${budget}฿`
+                  ? `Date from ${originName}, ${budget}฿ budget`
                   : intent === "photo"
-                    ? `หาที่ถ่ายรูปสวยๆ งบ ${budget}฿`
-                    : `ไปกับครอบครัว งบ ${budget}฿`}
+                    ? `Photo spots, ${budget}฿ budget`
+                    : `Family day, ${budget}฿ budget`}
             </div>
             <div className="rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
-              คัดมา <b>Top {data.cards.length} จาก {data.total} ที่</b>
+              Picked <b>top {data.cards.length} of {data.total} spots</b>
               {activeFilters.length > 0 && (
-                <span className="text-mut"> · กรอง: {activeFilters.map((c) => c.label).join(" · ")}</span>
+                <span className="text-mut"> · filters: {activeFilters.map((c) => c.label).join(" · ")}</span>
               )}
               <div className="mt-2 divide-y divide-line rounded-lg border border-line bg-card-solid/40 p-2.5 text-[12.5px]">
                 {data.routes.cheapest.legs.map((l) => (
                   <div key={l.seq} className="flex justify-between py-1 text-mut first:pt-0 last:pb-0">
                     <span>{l.detail_th}</span>
-                    <span className="text-ink">{l.price_max > 0 ? `${l.price_min}-${l.price_max}฿` : "0฿"}</span>
+                    <span className="text-ink">{l.price_max > 0 ? (l.price_min === l.price_max ? `${l.price_min}฿` : `${l.price_min}-${l.price_max}฿`) : "0฿"}</span>
                   </div>
                 ))}
                 <div className="mt-1 flex items-baseline justify-between pt-2">
                   <span className="o-mono text-[10px] text-mut">
-                    รวมขาไป · {data.routes.cheapest.legs.reduce((s, l) => s + l.minutes, 0)} นาที
+                    Trip there · {data.routes.cheapest.legs.reduce((s, l) => s + l.minutes, 0)} min
                   </span>
                   <span className="gn-num text-[22px] font-semibold text-ink">
                     {data.routes.cheapest.legs.reduce((s, l) => s + l.price_min, 0)}฿
@@ -371,18 +369,18 @@ export default function PlannerClient() {
             {/* คำเตือนฝนจริงจาก Open-Meteo — ไม่มีข้อมูล = ไม่โชว์ */}
             {showRain && (
               <div className="rounded-2xl border border-warn/40 bg-card-solid px-3.5 py-2.5 text-[12.5px] text-warn">
-                ☔ <b>พยากรณ์วันนี้:</b> โอกาสฝน {rain.maxProb}%
-                {rain.peakHour !== null && ` ช่วง ~${rain.peakHour}:00`}
+                ☔ <b>Today's forecast:</b> {rain.maxProb}% rain chance
+                {rain.peakHour !== null && ` around ${rain.peakHour}:00`}
                 {!filters.indoor && (
                   <button
                     onClick={() => toggleFilter("indoor")}
                     className="gn-press ml-1.5 rounded-lg border border-warn/50 bg-bg px-2 py-0.5 text-[11.5px] font-bold text-warn"
                   >
-                    กรองเฉพาะในร่ม
+                    Indoor only
                   </button>
                 )}
                 <button onClick={() => setRainDismissed(true)} className="ml-1.5 text-[11.5px] text-warn underline">
-                  ซ่อน
+                  Hide
                 </button>
               </div>
             )}
@@ -409,47 +407,47 @@ export default function PlannerClient() {
           </div>
 
           <div className="rounded-xl border border-dashed border-line bg-card-solid/40 p-3">
-            <h4 className="o-mono mb-1.5 text-[11px] text-accent">📎 เห็นที่น่าไปจาก TikTok / IG?</h4>
+            <h4 className="o-mono mb-1.5 text-[11px] text-accent">📎 Found a spot on TikTok / IG?</h4>
             <div className="flex gap-1.5">
               <input
                 value={importUrl}
                 onChange={(e) => setImportUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitImport()}
-                placeholder="วางลิงก์คลิปที่นี่..."
+                placeholder="Paste the clip link here..."
                 className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-[12.5px] text-ink placeholder:text-mut"
               />
               <button
                 onClick={submitImport}
                 className="gn-press o-btn-label rounded-lg bg-accent px-3 py-1.5 text-[12.5px] text-bg"
               >
-                ส่ง
+                Send
               </button>
             </div>
-            <p className="mt-1.5 text-[11px] text-mut">ทีมงานดึงข้อมูลจริงให้ใน 24 ชม. — ไม่ใช่บอทอัตโนมัติ</p>
+            <p className="mt-1.5 text-[11px] text-mut">Real humans pull the data within 24h — not a bot</p>
           </div>
         </aside>
 
         {/* ====== col 2: Top 3 + hero + intent chips ====== */}
         <section className="gn-card-e gn-rise gn-d1 p-4">
-          <span className="gn-step">02 — เลือกสถานที่ — คัดมา {data.cards.length} จาก {data.total} ที่</span>
+          <span className="gn-step">02 — Pick a spot · top {data.cards.length} of {data.total}</span>
 
           <div
             className={`o-grain gn-shine relative mb-3 mt-2 h-[150px] overflow-hidden rounded-xl ${INTENT_AMBIENCE[intent]}`}
           >
             <div className="absolute bottom-3 left-4 z-[2] text-ink drop-shadow-md">
               <b className="o-serif text-[20px] font-medium">
-                <em>{originName} → สยาม</em>
+                <em>{originName} → Siam</em>
               </b>
               <br />
               <span className="o-mono text-[10px] text-ink/85">
-                {intentLabel} · งบ {budget}฿
+                {intentLabel} · {budget}฿ budget
               </span>
             </div>
           </div>
 
           {/* origin picker — หัวใจของ "รู้งบก่อนออกจากบ้าน" */}
           <div className="mb-3">
-            <p className="o-mono mb-1.5 text-[10px] text-mut">📍 ออกจากย่านไหน?</p>
+            <p className="o-mono mb-1.5 text-[10px] text-mut">📍 Starting from which zone?</p>
             <div className="flex flex-wrap gap-1.5">
               {data.zones.map((z) => (
                 <button
@@ -472,12 +470,12 @@ export default function PlannerClient() {
                     : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
                 }`}
               >
-                อื่นๆ
+                Other
               </button>
             </div>
             {data.routes.fallback && (
               <p className="mt-1.5 text-[11.5px] text-warn">
-                ⚠️ เส้นทางจากย่านนี้ยังไม่ validate — ประมาณด้วยสูตร Grab ไปก่อน
+                ⚠️ Routes from this zone aren't validated yet — using the Grab formula for now
               </p>
             )}
           </div>
@@ -508,10 +506,10 @@ export default function PlannerClient() {
 
           {list.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-line py-10 text-center text-sm text-mut">
-              ไม่มีที่ตรงทุกเงื่อนไขเลย 😅 — ลองปิดตัวกรองบางตัวดู
+              Nothing matches every filter 😅 — try turning some off
             </div>
           ) : (
-            <div key={listKey} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {list.map((v, i) => (
                 <div key={v.id} className={`gn-rise ${i < 6 ? `gn-d${i + 1}` : ""}`}>
                 <VenueCard
@@ -537,7 +535,7 @@ export default function PlannerClient() {
                 }}
                 className="gn-press o-pill-dark o-btn-label px-5 py-2 text-sm"
               >
-                ดูตัวเลือกเพิ่มอีก {data.more.length} ที่ ▾
+                See {data.more.length} more options ▾
               </button>
             </div>
           )}
@@ -545,11 +543,11 @@ export default function PlannerClient() {
 
         {/* ====== col 3: plan + budget ====== */}
         <aside className="gn-card-e gn-rise gn-d2 p-4">
-          <span className="gn-step">03 — แผน + งบของคุณ</span>
+          <span className="gn-step">03 — Your plan + budget</span>
 
           <div className="mt-2 mb-3 rounded-xl border border-line bg-card-solid/60 p-3">
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="o-mono text-[10px] text-mut">งบวันนี้</span>
+              <span className="o-mono text-[10px] text-mut">Today's budget</span>
               {editingBudget ? (
                 <input
                   type="number"
@@ -572,11 +570,11 @@ export default function PlannerClient() {
             </div>
             <div className="gn-num flex flex-wrap items-baseline justify-between gap-x-2">
               <span className="text-[32px] font-semibold leading-none text-ink">
-                ใช้ไป {spentAnim}฿ / {budget}฿
+                Spent {spentAnim}฿ / {budget}฿
               </span>
             </div>
             <div className={`mt-1 text-xs font-semibold ${left < 0 ? "text-bad" : "text-ok"}`}>
-              {left >= 0 ? `เหลือ ${leftAnim}฿` : `เกินงบ ${leftAnim}฿ ⚠️`}
+              {left >= 0 ? `${leftAnim}฿ left` : `${leftAnim}฿ over ⚠️`}
             </div>
             <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-line">
               <div
@@ -599,7 +597,7 @@ export default function PlannerClient() {
                     <div className="min-w-0 flex-1">
                       <b className="text-[13.5px] text-ink">{s.venue.name_th}</b>
                       <small className="block leading-relaxed text-mut">
-                        ~{s.est_cost}฿/คน · เดิน {s.venue.walk_min_from_hub} นาที
+                        ~{s.est_cost}฿/person · {s.venue.walk_min_from_hub} min walk
                       </small>
                     </div>
                     <div className="gn-num whitespace-nowrap font-semibold text-ink">~{s.est_cost}฿</div>
@@ -617,7 +615,7 @@ export default function PlannerClient() {
 
               {plan.remaining > 0 && (
                 <div className="mt-3">
-                  <h5 className="mb-1.5 text-[13px] font-bold text-ink">เหลืองบ {plan.remaining}฿ — ไปไหนต่อได้อีก</h5>
+                  <h5 className="mb-1.5 text-[13px] font-bold text-ink">{plan.remaining}฿ left — keep the day going</h5>
                   <button
                     onClick={async () => {
                       try {
@@ -625,12 +623,12 @@ export default function PlannerClient() {
                         setChainList(list);
                         track("chain_open", { plan_id: plan.id, count: list.length });
                       } catch {
-                        showToast("โหลดคำแนะนำไม่สำเร็จ");
+                        showToast("Couldn't load suggestions");
                       }
                     }}
                     className="gn-press o-pill-dark o-btn-label w-full py-2 text-[12.5px]"
                   >
-                    + ไปไหนต่อดี
+                    + Where next?
                   </button>
                 </div>
               )}
@@ -643,17 +641,17 @@ export default function PlannerClient() {
                 }}
                 className="gn-press gn-cta o-pill-primary o-btn-label mt-3 w-full py-3"
               >
-                เริ่มเที่ยว ▶
+                Start the trip ▶
               </button>
             </>
           ) : (
             <div className="py-6 text-center text-sm text-mut">
-              ยังไม่มีแผน — กด <b className="text-ink">+ เพิ่มเข้าแผน</b> บนการ์ดด้านกลาง
+              No plan yet — hit <b className="text-ink">+ Add to plan</b> on a card
             </div>
           )}
 
           <div className="mt-3 text-center text-[11.5px] text-mut">
-            ประเมินจากช่วงราคาแต่ละที่ + ค่าเดินทาง เผื่อไว้ 10%
+            Estimated from each spot's price range + transport, with 10% headroom
           </div>
         </aside>
       </div>
@@ -662,30 +660,30 @@ export default function PlannerClient() {
       {chainList && plan && (
         <div className="gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-bold text-ink">ไปต่อในงบที่เหลือ ({plan.remaining}฿)</h2>
+            <h2 className="font-bold text-ink">Next stop within budget ({plan.remaining}฿)</h2>
             <button onClick={() => setChainList(null)} className="text-sm text-mut">
-              ปิด
+              Close
             </button>
           </div>
           {chainList.length === 0 && (
-            <p className="text-sm text-mut">ตอนนี้ไม่มีที่เปิดอยู่ในงบที่เหลือ — กลับบ้านก็ไม่ผิดนะ</p>
+            <p className="text-sm text-mut">Nothing open within what's left — heading home is fine too</p>
           )}
           <ul className="space-y-2">
             {chainList.map((v) => (
               <li key={v.id} className="flex items-center gap-3 rounded-xl border border-line bg-bg-elev p-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink">{v.name_th}</p>
-                  <p className="text-xs text-mut">~{mid(v.price_per_head_min, v.price_per_head_max)}฿/คน</p>
+                  <p className="text-xs text-mut">~{mid(v.price_per_head_min, v.price_per_head_max)}฿/person</p>
                 </div>
                 <button
                   onClick={async () => {
                     await act("add_stop", { venue_id: v.id });
                     setChainList(null);
-                    showToast(`เพิ่ม ${v.name_th} เข้าแผนแล้ว`);
+                    showToast(`Added ${v.name_th} to your plan`);
                   }}
                   className="gn-press o-pill-primary o-btn-label shrink-0 px-3 py-1.5 text-sm"
                 >
-                  + เพิ่ม
+                  + Add
                 </button>
               </li>
             ))}

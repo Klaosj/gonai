@@ -25,9 +25,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GoNai — plan · go · ไม่เกินงบ",
+  title: "GoNai — plan · go · never over budget",
   description:
-    "วางแผนเที่ยว 1 วัน พร้อมค่าเดินทาง+งบทุกบาท ก่อนออกจากบ้าน — คัด Top 3 จากเงื่อนไขของคุณด้วยข้อมูลที่คนจริง validate",
+    "Plan a full Bangkok day out with every baht counted before you leave — Top 3 picks validated by real visitors",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

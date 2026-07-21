@@ -65,10 +65,10 @@ test("bahtChipText: single paid leg → 'Grab 180–210฿'", () => {
   eq(txt, "Grab 180–210฿");
 });
 
-test("bahtChipText: multi paid legs → 'วิน 20฿ + เรือ 27฿ = 47฿'", () => {
+test("bahtChipText: multi paid legs → 'Win bike 20฿ + Boat 27฿ = 47฿'", () => {
   const r001 = ROUTES.find((r) => r.id === "R001")!;
   const txt = bahtChipText(r001.legs);
-  eq(txt, "วิน 20฿ + เรือ 27฿ = 47฿");
+  eq(txt, "Win bike 20฿ + Boat 27฿ = 47฿");
 });
 
 test("dayBudgetEst: (200+47)*1.10 ceil10 = 280", () => {

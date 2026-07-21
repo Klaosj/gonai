@@ -25,12 +25,12 @@ export default function SplitPay({ base }: { base: number }) {
 
   return (
     <div className="mt-3 border-t border-line pt-3">
-      <p className="o-mono mb-2 text-[10px] text-accent">แบ่งจ่ายกับเพื่อน</p>
+      <p className="o-mono mb-2 text-[10px] text-accent">Split with friends</p>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setCount(n - 1)}
-            aria-label="ลดจำนวนคน"
+            aria-label="Fewer people"
             className="gn-press flex h-7 w-7 items-center justify-center rounded-full border border-line text-ink hover:border-ink"
           >
             −
@@ -38,17 +38,17 @@ export default function SplitPay({ base }: { base: number }) {
           <b className="gn-num w-4 text-center text-[16px] text-ink">{n}</b>
           <button
             onClick={() => setCount(n + 1)}
-            aria-label="เพิ่มจำนวนคน"
+            aria-label="More people"
             className="gn-press flex h-7 w-7 items-center justify-center rounded-full border border-line text-ink hover:border-ink"
           >
             +
           </button>
-          <span className="text-xs text-mut">คน</span>
+          <span className="text-xs text-mut">people</span>
         </div>
         {n >= 2 && (
           <div className="text-right">
-            <div className="gn-num text-[18px] font-bold text-accent">~{Math.ceil(base / n)}฿ / คน</div>
-            <div className="text-[11px] text-mut">จากยอด {base}฿</div>
+            <div className="gn-num text-[18px] font-bold text-accent">~{Math.ceil(base / n)}฿ / person</div>
+            <div className="text-[11px] text-mut">from {base}฿ total</div>
           </div>
         )}
       </div>

@@ -35,7 +35,7 @@ export async function routesForOrigin(
         route_id: `SYN-${origin}-${kind}`,
         seq: 1,
         mode: "grab",
-        detail_th: "Grab (ประมาณจากสูตร — ยังไม่ validate)",
+        detail_th: "Grab (formula estimate — not validated yet)",
         price_min: est.min,
         price_max: est.max,
         minutes,

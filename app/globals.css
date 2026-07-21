@@ -10,7 +10,7 @@
   --color-card-solid: #ffffff;
   --color-line: #e3e3dd;
   --color-ink: #121411;
-  --color-mut: #70746e;
+  --color-mut: #63675f;
   --color-accent: #1e7f4f;
   --color-accent-bright: #34a869;
   --color-tint: #dcefe3;
@@ -31,7 +31,7 @@
 
   --color-gn-bg: #ffffff;
   --color-gn-ink: #121411;
-  --color-gn-mut: #70746e;
+  --color-gn-mut: #63675f;
   --color-gn-line: #e3e3dd;
   --color-gn-card: #ffffff;
   --color-gn-cream: #f2f2ee;
@@ -564,6 +564,12 @@ input:focus-visible {
   100% { transform: translate3d(var(--dx), 105vh, 0) rotate(var(--rot)); opacity: 0.9; }
 }
 .gn-confetti-bit { position: fixed; top: 0; z-index: 200; pointer-events: none; animation: gn-confetti var(--dur) cubic-bezier(0.3, 0.4, 0.6, 1) var(--delay) both; }
+
+/* in-flight state — ทุกปุ่ม async ต้องบอกว่ากำลังทำงาน + กันกดซ้ำ */
+.gn-busy { pointer-events: none; opacity: 0.55; }
+@keyframes gn-spin { to { transform: rotate(360deg); } }
+.gn-spinner { display: inline-block; width: 0.85em; height: 0.85em; margin-right: 0.45em; vertical-align: -0.1em;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 99px; animation: gn-spin 0.7s linear infinite; }
 
 /* (15) odometer — หลักตัวเลขหมุนแนวตั้ง */
 .gn-odo { display: inline-flex; overflow: hidden; }

@@ -139,7 +139,7 @@ export default function ExplorePage() {
           <button
             key={t.key}
             onClick={() => setFilter(t.key)}
-            className={`gn-press rounded-full border px-3.5 py-1.5 text-[13px] ${
+            className={`gn-press rounded-full border px-4 py-2.5 text-[13px] ${
               filter === t.key
                 ? "border-pill bg-pill font-semibold text-bg"
                 : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
@@ -325,7 +325,7 @@ export default function ExplorePage() {
       )}
 
       {toast && (
-        <div className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
+        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
           {toast}
         </div>
       )}

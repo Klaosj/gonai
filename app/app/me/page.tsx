@@ -438,7 +438,7 @@ export default function TripsPage() {
       </div>
 
       {toast && (
-        <div className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
+        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
           {toast}
         </div>
       )}

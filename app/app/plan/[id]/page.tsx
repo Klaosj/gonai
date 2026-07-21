@@ -55,11 +55,11 @@ function fmtTimeBKK(iso: string): string {
 }
 
 // ปุ่มคู่ "ตามประเมิน / พิมพ์เอง" — ใช้ร่วมกันระหว่างการ์ดจุดปัจจุบัน + แถว timeline
-function SpendPrompt({ estCost, onQuick, onCustom }: { estCost: number; onQuick: () => void; onCustom: () => void }) {
+function SpendPrompt({ estCost, busy = false, onQuick, onCustom }: { estCost: number; busy?: boolean; onQuick: () => void; onCustom: () => void }) {
   return (
     <div className="flex gap-2">
       <button onClick={onQuick} className="gn-press o-pill-primary o-btn-label flex-1 py-2 text-sm">
-        As estimated {estCost}฿
+        {busy ? <><span className="gn-spinner" />Saving…</> : `As estimated ${estCost}฿`}
       </button>
       <button onClick={onCustom} className="gn-press o-pill-dark o-btn-label flex-1 py-2 text-sm">
         Type amount…
@@ -106,7 +106,8 @@ export default function PlanPage() {
   const [editingBudget, setEditingBudget] = useState(false);
   const [spendingSeq, setSpendingSeq] = useState<number | null>(null);
   const [celebrate, setCelebrate] = useState(false); // (1) confetti เฉพาะจังหวะกดจบทริปเอง
-  const [lastCheckin, setLastCheckin] = useState<number | null>(null); // (3) ripple จุดที่เพิ่งเช็คอิน // stop ที่กำลังพิมพ์จำนวนเงินเอง
+  const [lastCheckin, setLastCheckin] = useState<number | null>(null);
+  const [acting, setActing] = useState<string | null>(null); // in-flight lock ต่อ action // (3) ripple จุดที่เพิ่งเช็คอิน // stop ที่กำลังพิมพ์จำนวนเงินเอง
 
   const showToast = (m: string) => {
     setToast(m);
@@ -124,14 +125,20 @@ export default function PlanPage() {
 
   const act = useCallback(
     async (action: string, extra: Record<string, unknown> = {}) => {
-      const p = await gn<ExpandedPlan>(`/api/plans/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ action, ...extra }),
-      });
-      setPlan(p);
-      return p;
+      if (acting) return null; // กันกดซ้ำทุก action
+      setActing(action);
+      try {
+        const p = await gn<ExpandedPlan>(`/api/plans/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ action, ...extra }),
+        });
+        setPlan(p);
+        return p;
+      } finally {
+        setActing(null);
+      }
     },
-    [id],
+    [id, acting],
   );
 
   const openChain = async (opts: { indoor?: boolean } = {}) => {
@@ -325,7 +332,7 @@ export default function PlanPage() {
               }}
               className="gn-press gn-cta o-pill-primary o-btn-label w-full py-3.5 text-base"
             >
-              Start the trip ▶
+              {acting === "start" ? <><span className="gn-spinner" />Starting…</> : "Start the trip ▶"}
             </button>
           )}
         </div>
@@ -403,8 +410,8 @@ export default function PlanPage() {
                         track("checkin", { seq: currentStop.seq, venue_id: currentStop.venue.id });
                       }}
                       className="gn-press o-pill-primary o-btn-label flex-1 py-2.5 text-sm"
-                    >
-                      Check in
+                     aria-busy={acting === "checkin"}>
+                      {acting === "checkin" ? <><span className="gn-spinner" />…</> : "Check in"}
                     </button>
                   )}
                 </div>
@@ -422,6 +429,7 @@ export default function PlanPage() {
                       />
                     ) : (
                       <SpendPrompt
+                        busy={acting === "spend"}
                         estCost={currentStop.est_cost}
                         onQuick={async () => {
                           await act("spend", { seq: currentStop.seq, amount: currentStop.est_cost });
@@ -522,6 +530,7 @@ export default function PlanPage() {
                             />
                           ) : (
                             <SpendPrompt
+                              busy={acting === "spend"}
                               estCost={s.est_cost}
                               onQuick={async () => {
                                 await act("spend", { seq: s.seq, amount: s.est_cost });
@@ -556,14 +565,14 @@ export default function PlanPage() {
 
           <button
             onClick={async () => {
-              await act("done");
-              setCelebrate(true);
+              const done = await act("done");
+              if (done) setCelebrate(true);
               track("plan_done", { plan_id: plan.id });
               showToast("Trip done 🎉 Help confirm prices for the next traveler");
             }}
             className="gn-press o-pill-primary o-btn-label w-full py-3.5 text-base"
           >
-            End trip ✓
+            {acting === "done" ? <><span className="gn-spinner" />Ending…</> : "End trip ✓"}
           </button>
         </div>
       )}
@@ -577,7 +586,14 @@ export default function PlanPage() {
 
       {/* ===== chain / replan bottom sheet ===== */}
       {suggestions && (
-        <div className="gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
+        <div
+          className="gn-backdrop fixed inset-0 z-[29] bg-ink/20"
+          onClick={() => setSuggestions(null)}
+          aria-hidden
+        />
+      )}
+      {suggestions && (
+        <div role="dialog" aria-modal="true" aria-label="Replan suggestions" tabIndex={-1} ref={(el) => el?.focus()} onKeyDown={(e) => e.key === "Escape" && setSuggestions(null)} className="outline-none gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-bold text-ink">
               {suggestions.indoor ? `Indoor spots within budget (${plan.remaining}฿)` : `Next stop within budget`}
@@ -625,7 +641,7 @@ export default function PlanPage() {
       )}
 
       {toast && (
-        <div className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
+        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
           {toast}
         </div>
       )}

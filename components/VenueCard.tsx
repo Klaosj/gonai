@@ -31,6 +31,7 @@ export default function VenueCard({
   fastest,
   saved,
   onAdd,
+  adding = false,
   onSave,
   onToggleRoute,
 }: {
@@ -39,6 +40,7 @@ export default function VenueCard({
   fastest: Route;
   saved: boolean;
   onAdd: (cardEl?: HTMLElement | null) => void;
+  adding?: boolean;
   onSave: () => void;
   onToggleRoute?: (kind: "cheapest" | "fastest") => void;
 }) {
@@ -140,9 +142,10 @@ export default function VenueCard({
         <div className="flex gap-2 pt-1">
           <button
             onClick={(e) => onAdd(e.currentTarget.closest("[data-vcard]") as HTMLElement | null)}
-            className="gn-press gn-cta o-btn-label o-pill-primary flex-1 whitespace-nowrap px-3 py-2 text-sm"
+            aria-busy={adding}
+            className={`gn-press gn-cta o-btn-label o-pill-primary flex-1 whitespace-nowrap px-3 py-2 text-sm ${adding ? "gn-busy" : ""}`}
           >
-            + Add to plan
+            {adding ? <><span className="gn-spinner" />Adding…</> : "+ Add to plan"}
           </button>
           {venue.video_url && (
             <button className="gn-press o-pill-dark o-btn-label inline-flex items-center gap-1 px-3 py-2 text-sm">

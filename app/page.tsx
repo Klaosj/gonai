@@ -10,7 +10,7 @@ export default function LandingPage() {
       <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-6 py-3.5">
         <span className="flex items-baseline gap-2">
           <b className="o-serif text-[19px] font-semibold text-ink">
-            <em>Go</em>Nai
+            <em className="o-marker">Go</em>Nai
           </b>
           <span className="hidden text-[11px] text-ink/70 sm:inline">plan · go · never over budget</span>
         </span>
@@ -21,16 +21,16 @@ export default function LandingPage() {
           Open app →
         </Link>
       </header>
-      {/* Hero — เต็มจอ ambience dusk + grain (Origin signature) */}
-      <section className="o-grain o-ambience-date relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-28 text-ink">
+      {/* Hero — เต็มจอ ขาวล้วน + grain (Mindtrip signature, plan §4.2) */}
+      <section className="o-grain bg-bg relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-28 text-ink">
         <div className="relative z-[2] mx-auto max-w-4xl text-center">
-          <span className="gn-rise o-mono inline-block rounded-full bg-accent px-4 py-1.5 text-[11px] text-bg">
+          <span className="gn-rise o-mono inline-block rounded-full bg-tint px-4 py-1.5 text-[11px] text-ink">
             🎉 Beta · free while we test
           </span>
           <h1 className="o-serif gn-rise gn-d1 mt-6 text-4xl font-light leading-[1.15] sm:text-6xl">
             Plan a full day out
             <br />
-            <em>know every baht</em> before you leave
+            <em className="o-marker">know every baht</em> before you leave
           </h1>
           <p className="gn-rise gn-d1 mx-auto mt-6 max-w-xl text-lg text-ink/80">
             Top 3 picks for your vibe, validated by real visitors — win bikes, boats and BTS all in one budget
@@ -45,13 +45,13 @@ export default function LandingPage() {
             <p className="mt-3 text-xs text-ink/60">No sign-up · works right away</p>
           </div>
 
-          {/* ask-style bar — ลิงก์ไป /app เฉยๆ ไม่ใช่ AI chat จริง (Origin signature element) */}
+          {/* ask-style bar — ลิงก์ไป /app เฉยๆ ไม่ใช่ AI chat จริง (Mindtrip signature element) */}
           <Link
             href="/app"
-            className="gn-press gn-rise gn-d1 o-grain group mx-auto mt-10 flex max-w-lg items-center gap-3 rounded-full border border-line bg-bg/50 px-5 py-3.5 text-left backdrop-blur-md"
+            className="gn-press gn-rise gn-d1 o-grain group mx-auto mt-10 flex max-w-lg items-center gap-3 rounded-full border border-line bg-bg px-5 py-3.5 text-left shadow-[0_2px_6px_rgba(18,20,17,.05),0_18px_44px_rgba(18,20,17,.1)] transition-shadow hover:shadow-[0_4px_10px_rgba(18,20,17,.07),0_26px_56px_rgba(18,20,17,.14)]"
           >
-            <span className="min-w-0 flex-1 truncate text-[15px] text-ink/60">Where to this Saturday, 450฿ budget…</span>
-            <span className="o-pill-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base">
+            <span className="min-w-0 flex-1 truncate text-[15px] text-mut">Where to this Saturday, 450฿ budget…</span>
+            <span className="gn-pulse-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white">
               ↑
             </span>
           </Link>
@@ -126,11 +126,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="o-grain o-ambience-family relative px-6 py-16 text-center text-ink">
+      {/* CTA — พื้น gradient เขียวสดตามต้นแบบ (plan §3), ไม่ใช้ o-ambience-* เดิม (นั่นคือ pastel ของ mood tiles) */}
+      <section
+        className="o-grain relative px-6 py-16 text-center text-ink"
+        style={{ background: "linear-gradient(160deg, #34a869, #7fce9f)" }}
+      >
         <div className="relative z-[2]">
           <h2 className="o-serif text-3xl font-medium">
-            <em>Try planning this Saturday</em>
+            <em className="o-marker">Try planning this Saturday</em>
           </h2>
           <p className="mt-2 text-ink/80">Free · no sign-up · works right away</p>
           <Link href="/app" className="gn-press gn-cta o-pill-primary o-btn-label mt-6 inline-block px-8 py-3.5 text-base">

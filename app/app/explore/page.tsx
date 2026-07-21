@@ -150,7 +150,7 @@ export default function ExplorePage() {
         {/* ผังระยะเดิน — ไม่ใช่แผนที่จริง ไม่มีพิกัดจนกว่า W2 */}
         <div
           className="relative aspect-[4/3] min-h-[360px] overflow-hidden rounded-[20px] border border-line sm:min-h-[480px]"
-          style={{ background: "radial-gradient(circle at 60% 40%, #16232e 0%, #0e1418 70%)" }}
+          style={{ background: "#f7f7f4" }}
         >
           <span className="o-mono absolute right-3 top-3 z-[3] rounded-full border border-line bg-bg/75 px-3 py-1.5 text-[10px] text-mut backdrop-blur">
             Walk-distance chart from BTS Siam — real positions land with W2 coordinates
@@ -161,7 +161,7 @@ export default function ExplorePage() {
             return (
               <span
                 key={mins}
-                className="absolute left-1/2 top-1/2 rounded-full border border-white/10"
+                className="absolute left-1/2 top-1/2 rounded-full border border-line"
                 style={{ width: `${d}%`, height: `${d}%`, transform: "translate(-50%,-50%)" }}
               >
                 <span className="o-mono absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-bg px-1.5 text-[9px] text-mut">
@@ -230,7 +230,7 @@ export default function ExplorePage() {
               </div>
               <span
                 className={`o-mono shrink-0 rounded-full px-2.5 py-1 text-[10px] ${
-                  v.badge === "hit" ? "bg-pill text-bg" : "bg-accent text-bg"
+                  v.badge === "hit" ? "bg-pill text-bg" : "border border-accent bg-tint text-accent"
                 }`}
               >
                 {v.badge === "hit" ? `${INTENT_EMOJI[v.intents[0]] ?? ""} HIT Nº${v.hit_rank}` : "UNSEEN"}

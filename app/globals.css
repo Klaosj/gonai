@@ -1,86 +1,90 @@
 @import "tailwindcss";
 
-/* ===== GoNai design v0.5 "Origin" — cinematic dark + serif editorial + mono labels =====
-   อ้างอิง https://useorigin.com/ — visual refactor เท่านั้น, motion system เดิมคงอยู่ทั้งหมด */
+/* ===== GoNai design v0.6 "Forest on White" — white + ink + forest green =====
+   อ้างอิง Mindtrip Design System (root .dc.html, ไม่ใช่ Cream Theme) — theme swap เท่านั้น, layout/motion system เดิมคงอยู่ทั้งหมด */
 @theme {
-  /* ===== new palette (plan §2) ===== */
-  --color-bg: #0b0b0c;
-  --color-bg-elev: #131315;
-  --color-card: rgba(255, 255, 255, 0.04);
-  --color-card-solid: #17181a;
-  --color-line: rgba(255, 255, 255, 0.1);
-  --color-ink: #f4f3ef;
-  --color-mut: #9b9a94;
-  --color-accent: #cfe6f5;
-  --color-pill: #f4f3ef;
-  --color-ok: #7ad0a6;
-  --color-warn: #e8b36a;
-  --color-bad: #e07a5f;
+  /* ===== new palette (plan §1) ===== */
+  --color-bg: #ffffff;
+  --color-bg-elev: #f2f2ee;
+  --color-card: #ffffff;
+  --color-card-solid: #ffffff;
+  --color-line: #e3e3dd;
+  --color-ink: #121411;
+  --color-mut: #70746e;
+  --color-accent: #1e7f4f;
+  --color-accent-bright: #34a869;
+  --color-tint: #dcefe3;
+  --color-pill: #121411;
+  --color-ok: #1e7f4f;
+  --color-warn: #a8641d;
+  --color-bad: #c6362c;
 
-  /* ===== legacy gn-* tokens — remapped into the dark palette so any class we
+  /* ===== legacy gn-* tokens — remapped into the light palette so any class we
      didn't touch (bg-gn-*, text-gn-*, border-gn-*) still renders correctly ===== */
-  --color-gn-green: #7ad0a6;
-  --color-gn-green-dark: #5fb98d;
-  --color-gn-orange: #f4f3ef;
-  --color-gn-orange-dark: #d8d6cf;
-  --color-gn-purple: #cfe6f5;
-  --color-gn-purple-dark: #a9c9dd;
-  --color-gn-navy: #17181a;
+  --color-gn-green: #1e7f4f;
+  --color-gn-green-dark: #16663f;
+  --color-gn-orange: #121411;
+  --color-gn-orange-dark: #3a3d3a;
+  --color-gn-purple: #1e7f4f;
+  --color-gn-purple-dark: #16663f;
+  --color-gn-navy: #f2f2ee;
 
-  --color-gn-bg: #0b0b0c;
-  --color-gn-ink: #f4f3ef;
-  --color-gn-mut: #9b9a94;
-  --color-gn-line: rgba(255, 255, 255, 0.1);
-  --color-gn-card: #17181a;
-  --color-gn-cream: #131315;
+  --color-gn-bg: #ffffff;
+  --color-gn-ink: #121411;
+  --color-gn-mut: #70746e;
+  --color-gn-line: #e3e3dd;
+  --color-gn-card: #ffffff;
+  --color-gn-cream: #f2f2ee;
 
-  --color-gn-red: #e07a5f;
-  --color-gn-gray: #9b9a94;
+  --color-gn-red: #c6362c;
+  --color-gn-gray: #70746e;
 
-  --color-gn-amber-bg: rgba(232, 179, 106, 0.08);
-  --color-gn-amber-bd: rgba(232, 179, 106, 0.35);
-  --color-gn-amber-fg: #e8b36a;
-  --color-gn-amber-cta: #e8b36a;
-  --color-gn-amber-cta-bd: rgba(232, 179, 106, 0.4);
-  --color-gn-amber-cta-bg: rgba(232, 179, 106, 0.08);
+  --color-gn-amber-bg: rgba(168, 100, 29, 0.08);
+  --color-gn-amber-bd: rgba(168, 100, 29, 0.35);
+  --color-gn-amber-fg: #a8641d;
+  --color-gn-amber-cta: #a8641d;
+  --color-gn-amber-cta-bd: rgba(168, 100, 29, 0.4);
+  --color-gn-amber-cta-bg: rgba(168, 100, 29, 0.08);
 
-  --color-gn-mint-bg: rgba(122, 208, 166, 0.08);
-  --color-gn-mint-bd: rgba(122, 208, 166, 0.25);
-  --color-gn-mint-bar: rgba(255, 255, 255, 0.08);
+  --color-gn-mint-bg: rgba(30, 127, 79, 0.08);
+  --color-gn-mint-bd: rgba(30, 127, 79, 0.25);
+  --color-gn-mint-bar: rgba(18, 20, 17, 0.08);
 
-  --color-gn-chat-user: #17181a;
-  --color-gn-chat-ai-bg: rgba(255, 255, 255, 0.03);
-  --color-gn-chat-ai-bd: rgba(255, 255, 255, 0.1);
-  --color-gn-chat-cost-bg: rgba(255, 255, 255, 0.02);
-  --color-gn-chat-cost-bd: rgba(255, 255, 255, 0.15);
+  --color-gn-chat-user: #121411;
+  --color-gn-chat-ai-bg: rgba(18, 20, 17, 0.03);
+  --color-gn-chat-ai-bd: rgba(18, 20, 17, 0.1);
+  --color-gn-chat-cost-bg: rgba(18, 20, 17, 0.02);
+  --color-gn-chat-cost-bd: rgba(18, 20, 17, 0.15);
 
-  --color-gn-import-bg: rgba(207, 230, 245, 0.05);
-  --color-gn-import-bd: rgba(207, 230, 245, 0.25);
+  --color-gn-import-bg: rgba(30, 127, 79, 0.05);
+  --color-gn-import-bd: rgba(30, 127, 79, 0.25);
 
-  --color-gn-danger-bg: rgba(224, 122, 95, 0.08);
-  --color-gn-danger-bd: rgba(224, 122, 95, 0.3);
-  --color-gn-danger-fg: #e07a5f;
+  --color-gn-danger-bg: rgba(198, 54, 44, 0.08);
+  --color-gn-danger-bd: rgba(198, 54, 44, 0.3);
+  --color-gn-danger-fg: #c6362c;
 
-  --color-gn-pts-bg: rgba(207, 230, 245, 0.06);
-  --color-gn-pts-bd: rgba(207, 230, 245, 0.25);
-  --color-gn-pts-fg: #cfe6f5;
+  --color-gn-pts-bg: rgba(30, 127, 79, 0.06);
+  --color-gn-pts-bd: rgba(30, 127, 79, 0.25);
+  --color-gn-pts-fg: #1e7f4f;
 }
 
 /* ===== Motion + material vocabulary ===== */
 :root {
-  /* plain CSS custom properties (plan §2) — used inside utility classes below */
-  --bg: #0b0b0c;
-  --bg-elev: #131315;
-  --card: rgba(255, 255, 255, 0.04);
-  --card-solid: #17181a;
-  --line: rgba(255, 255, 255, 0.1);
-  --ink: #f4f3ef;
-  --mut: #9b9a94;
-  --accent: #cfe6f5;
-  --pill: #f4f3ef;
-  --ok: #7ad0a6;
-  --warn: #e8b36a;
-  --bad: #e07a5f;
+  /* plain CSS custom properties (plan §1) — used inside utility classes below */
+  --bg: #ffffff;
+  --bg-elev: #f2f2ee;
+  --card: #ffffff;
+  --card-solid: #ffffff;
+  --line: #e3e3dd;
+  --ink: #121411;
+  --mut: #70746e;
+  --accent: #1e7f4f;
+  --accent-bright: #34a869;
+  --tint: #dcefe3;
+  --pill: #121411;
+  --ok: #1e7f4f;
+  --warn: #a8641d;
+  --bad: #c6362c;
 
   /* easing — spring มี overshoot เล็กน้อย ใช้กับของที่ "เด้งรับมือ"
      ease-out ใช้กับของที่ "เข้าที่อย่างนุ่มนวล" */
@@ -90,11 +94,11 @@
   --gn-med: 340ms;
   --gn-slow: 600ms;
 
-  /* เงาหลายชั้นแบบนุ่ม — แทบไม่ใช้เงาสี ให้ความรู้สึกพรีเมียมสงบ */
-  --gn-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 6px rgba(0, 0, 0, 0.2);
-  --gn-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --gn-shadow-3: 0 24px 60px rgba(0, 0, 0, 0.5);
-  --gn-hairline: rgba(255, 255, 255, 0.1);
+  /* เงาหลายชั้นแบบนุ่ม บนพื้นขาว — ชุดจากต้นแบบ Mindtrip (plan §1) */
+  --gn-shadow-1: 0 2px 6px rgba(18, 20, 17, 0.05), 0 18px 44px rgba(18, 20, 17, 0.1);
+  --gn-shadow-2: 0 4px 10px rgba(18, 20, 17, 0.07), 0 26px 56px rgba(18, 20, 17, 0.14);
+  --gn-shadow-3: 0 8px 20px rgba(18, 20, 17, 0.1), 0 30px 64px rgba(18, 20, 17, 0.16);
+  --gn-hairline: var(--line);
 }
 
 body {
@@ -103,20 +107,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+::selection {
+  background: rgba(52, 168, 105, 0.28);
+}
+
 /* ตัวเลขเงินทุกตัวเรียงหลักตรงกัน ไม่กระโดดตอนเปลี่ยนค่า */
 .gn-num {
   font-variant-numeric: tabular-nums;
 }
 
-/* logo + hero titles — เดิมใช้ Playfair, ตอนนี้คือ Fraunces (italic display serif) */
+/* logo + hero titles — เดิมใช้ Fraunces (serif), ตอนนี้คือ Bricolage Grotesque (display sans, plan §2) */
 .gn-serif,
 .o-serif {
-  font-family: var(--font-fraunces), "Fraunces", serif;
-  letter-spacing: -0.01em;
+  font-family: var(--font-fraunces), "Bricolage Grotesque", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 .o-serif em,
 .gn-serif em {
-  font-style: italic;
+  font-style: normal;
+}
+
+/* marker highlight — แทน italic เดิม: ใต้เส้นมาร์กเกอร์เขียวสด (plan §2) */
+.o-marker {
+  font-style: normal;
+  box-shadow: inset 0 -0.34em 0 var(--accent-bright);
 }
 
 /* mono uppercase micro-labels — ลายเซ็นสำคัญที่สุดของดีไซน์นี้ (ปุ่ม/badge/หัวคอลัมน์/ชิป)
@@ -143,21 +158,21 @@ body {
   scrollbar-width: none;
 }
 
-/* ===== Ambience gradients — บรรยากาศต่อ intent (แทนภาพถ่ายที่ยังไม่มี) ===== */
+/* ===== Ambience gradients — บรรยากาศต่อ intent (แทนภาพถ่ายที่ยังไม่มี) — pastel จากต้นแบบ (plan §1) ===== */
 .o-ambience-work {
-  background-image: linear-gradient(135deg, #1a2733 0%, #35506b 55%, #6f93b0 100%);
+  background-image: linear-gradient(150deg, #dcefe3 0%, #a8c9ee 100%);
 }
 .o-ambience-date {
-  background-image: linear-gradient(135deg, #2b1a26 0%, #6b3550 55%, #c98a6f 100%);
+  background-image: linear-gradient(150deg, #f6e7dc 0%, #eecfc0 100%);
 }
 .o-ambience-photo {
-  background-image: linear-gradient(135deg, #2b2114 0%, #6b5535 55%, #d9a662 100%);
+  background-image: linear-gradient(150deg, #f2ecd9 0%, #e4d3a8 100%);
 }
 .o-ambience-family {
-  background-image: linear-gradient(135deg, #14282b 0%, #356b62 55%, #7fb0a0 100%);
+  background-image: linear-gradient(150deg, #d3ecda 0%, #a9dcbb 100%);
 }
 
-/* grain — ผิว "ฟิล์ม" ทับ ambience */
+/* grain — ผิว "ฟิล์ม" ทับ ambience — ลด opacity ให้เข้ากับพื้นขาว (plan §1) */
 .o-grain {
   position: relative;
   isolation: isolate;
@@ -167,7 +182,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: 1;
-  opacity: 0.35;
+  opacity: 0.18;
   mix-blend-mode: overlay;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -175,33 +190,31 @@ body {
 
 /* ===== Materials ===== */
 
-/* การ์ดมาตรฐาน: กระจกมืด + hairline + ยกตัวรับ hover (คงชื่อคลาสเดิมไว้ให้ markup เก่าใช้ได้) */
+/* การ์ดมาตรฐาน: ขาว + hairline + เงานุ่ม + ยกตัวรับ hover (คงชื่อคลาสเดิมไว้ให้ markup เก่าใช้ได้) */
 .gn-card-e {
   background: var(--card);
   border: 1px solid var(--line);
   box-shadow: var(--gn-shadow-1);
   border-radius: 20px;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
   transition: box-shadow var(--gn-med) var(--gn-ease), transform var(--gn-med) var(--gn-ease), border-color var(--gn-med) var(--gn-ease);
 }
 .gn-lift:hover {
   transform: translateY(-3px);
   box-shadow: var(--gn-shadow-2);
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: rgba(18, 20, 17, 0.18);
 }
 
-/* กระจกฝ้าสำหรับ header — มืดบนฉากมืด */
+/* กระจกฝ้าสำหรับ header — ขาวโปร่งบนฉากขาว (plan §1) */
 .gn-glass {
-  background: rgba(11, 11, 12, 0.72);
+  background: rgba(255, 255, 255, 0.82);
   -webkit-backdrop-filter: saturate(1.4) blur(18px);
   backdrop-filter: saturate(1.4) blur(18px);
   border-bottom: 1px solid var(--line);
 }
 
-/* ===== Pills / buttons (Origin signature) ===== */
+/* ===== Pills / buttons (Mindtrip signature) ===== */
 
-/* CTA หลัก: pill ขาว ตัวดำ — hover ไม่มีเงาเรืองสี ใช้ brightness แทน */
+/* CTA หลัก: pill ดำ ตัวขาว — hover ไม่มีเงาเรืองสี ใช้ brightness แทน */
 .o-pill-primary {
   display: inline-flex;
   align-items: center;
@@ -214,36 +227,37 @@ body {
   transition: filter var(--gn-fast) var(--gn-ease), transform var(--gn-fast) var(--gn-ease), opacity var(--gn-fast) var(--gn-ease);
 }
 .o-pill-primary:hover {
-  filter: brightness(0.92);
+  filter: brightness(1.3);
 }
 
-/* ปุ่มรอง: dark pill โปร่ง ขอบ hairline */
+/* ปุ่มรอง: pill โปร่ง ขอบ hairline บนพื้นขาว */
 .o-pill-dark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4em;
-  background: rgba(255, 255, 255, 0.06);
+  background: transparent;
   color: var(--ink);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
   border-radius: 999px;
   transition: border-color var(--gn-fast) var(--gn-ease), background-color var(--gn-fast) var(--gn-ease);
 }
 .o-pill-dark:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--ink);
+  background: var(--bg-elev);
 }
 
-/* ปุ่มเดิม gn-cta — คงชื่อคลาสไว้ แต่ตัดเงาส้มเรืองออก ใช้ brightness แบบ Origin แทน */
+/* ปุ่มเดิม gn-cta — คงชื่อคลาสไว้ แต่เปลี่ยนเงาส้มเรืองเดิมเป็นเงา ink อ่อน (plan §3) */
 .gn-cta {
-  transition: filter var(--gn-fast) var(--gn-ease);
+  box-shadow: 0 4px 14px rgba(18, 20, 17, 0.18);
+  transition: filter var(--gn-fast) var(--gn-ease), box-shadow var(--gn-fast) var(--gn-ease);
 }
 .gn-cta:hover {
-  filter: brightness(0.92);
+  filter: brightness(1.3);
 }
 
-/* ตัวอักษรบนปุ่ม/CTA — ใช้ฟอนต์ mono ตามดีไซน์ Origin แต่ไม่ uppercase/ไม่ tracking กว้างจัด
-   (ปุ่มไทยยาวๆ อ่านยากถ้า tracking กว้างแบบ .o-mono เพราะวรรณยุกต์ลอยห่างจากพยัญชนะ) */
+/* ตัวอักษรบนปุ่ม/CTA — ใช้ฟอนต์ mono ตามดีไซน์แต่ไม่ uppercase/ไม่ tracking กว้างจัด
+   (ปุ่มยาวๆ อ่านยากถ้า tracking กว้างแบบ .o-mono) */
 .o-btn-label {
   font-family: var(--font-mono), "IBM Plex Mono", monospace;
   font-weight: 600;
@@ -358,7 +372,7 @@ body {
   border: 1px solid var(--line);
 }
 
-/* ===== live pulse (unchanged) ===== */
+/* ===== live pulse — เพิ่มวงกระเพื่อมแดงแบบ pulseDot ต้นแบบ (plan §3) ===== */
 @keyframes gn-pulse {
   0%,
   100% {
@@ -370,11 +384,22 @@ body {
     transform: scale(0.8);
   }
 }
+@keyframes gn-live-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(198, 54, 44, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 9px rgba(198, 54, 44, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(198, 54, 44, 0);
+  }
+}
 .gn-live-dot {
-  animation: gn-pulse 1.2s var(--gn-ease) infinite;
+  animation: gn-pulse 1.2s var(--gn-ease) infinite, gn-live-ring 1.8s cubic-bezier(0.32, 0.72, 0, 1) infinite;
 }
 
-/* ===== hero shine — แสงกวาดช้าๆ บน gradient (unchanged mechanism, สีขาวจางลงให้เข้ากับฉากมืด) ===== */
+/* ===== hero shine — แสงกวาดช้าๆ บน gradient/ambience (unchanged mechanism) ===== */
 @keyframes gn-shine {
   from {
     transform: translateX(-120%) skewX(-18deg);
@@ -388,7 +413,7 @@ body {
   position: absolute;
   inset: 0 auto 0 0;
   width: 45%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
   animation: gn-shine 5.5s var(--gn-ease) infinite;
 }
 
@@ -397,7 +422,7 @@ body {
   transition: width 700ms var(--gn-ease), background-color var(--gn-med) var(--gn-ease);
 }
 
-/* ===== skeleton shimmer — โทนมืด ===== */
+/* ===== skeleton shimmer — โทนสว่าง ===== */
 @keyframes gn-shimmer {
   0% {
     background-position: -400px 0;
@@ -407,12 +432,12 @@ body {
   }
 }
 .gn-skeleton {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.05) 100%);
+  background: linear-gradient(90deg, rgba(18, 20, 17, 0.04) 0%, rgba(18, 20, 17, 0.09) 50%, rgba(18, 20, 17, 0.04) 100%);
   background-size: 800px 100%;
   animation: gn-shimmer 1.4s infinite linear;
 }
 
-/* ===== focus ring (a11y) — ขาวบนฉากมืด ===== */
+/* ===== focus ring (a11y) — ดำบนฉากขาว ===== */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
@@ -421,7 +446,7 @@ input:focus-visible {
   border-radius: 8px;
 }
 
-/* ===== step labels — เดิมเป็นชิปสี ตอนนี้เป็น mono uppercase เรียบๆ ===== */
+/* ===== step labels — mono uppercase เรียบๆ ===== */
 .gn-step {
   display: inline-flex;
   align-items: center;
@@ -443,6 +468,35 @@ input:focus-visible {
   color: var(--mut);
 }
 
+/* ===== motion ท่าใหม่จากต้นแบบ Mindtrip (plan §3) ===== */
+@keyframes gn-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+  }
+}
+.gn-bob {
+  animation: gn-bob 8s ease-in-out infinite;
+}
+
+@keyframes gn-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(30, 127, 79, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(30, 127, 79, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(30, 127, 79, 0);
+  }
+}
+.gn-pulse-ring {
+  animation: gn-pulse-ring 2.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
 /* ===== เคารพผู้ใช้ที่ปิด motion (a11y) — unchanged ===== */
 @media (prefers-reduced-motion: reduce) {
   .gn-rise,
@@ -451,7 +505,9 @@ input:focus-visible {
   .gn-pop,
   .gn-toast,
   .gn-live-dot,
-  .gn-skeleton {
+  .gn-skeleton,
+  .gn-bob,
+  .gn-pulse-ring {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }

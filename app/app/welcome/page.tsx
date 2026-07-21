@@ -64,7 +64,7 @@ export default function WelcomePage() {
   return (
     <div
       className="flex min-h-[calc(100vh-113px)] items-center justify-center px-4 py-10"
-      style={{ background: "linear-gradient(160deg, var(--bg) 40%, #1a2733 160%)" }}
+      style={{ background: "linear-gradient(160deg, var(--bg) 40%, var(--tint) 160%)" }}
     >
       <div className="w-full max-w-[560px]">
         <p className="o-mono mb-2.5 text-[11px] text-accent">GONAI — 3-tap setup (skippable)</p>

@@ -118,7 +118,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 py-2.5">
         <Link href="/app" className="flex items-baseline gap-2">
           <b className="o-serif text-[19px] font-semibold text-ink">
-            <em>Go</em>Nai
+            <em className="o-marker">Go</em>Nai
           </b>
           <span className="hidden text-[11px] text-mut sm:inline">plan · go · never over budget</span>
         </Link>

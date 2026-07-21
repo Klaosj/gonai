@@ -228,7 +228,7 @@ export default function TripsPage() {
               >
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-lg ${
-                    b.earned ? "border-accent bg-accent text-bg" : "border-line bg-card-solid text-ink"
+                    b.earned ? "border-accent bg-tint text-accent" : "border-line bg-card-solid text-ink"
                   }`}
                 >
                   {b.emoji}

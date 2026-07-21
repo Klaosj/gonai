@@ -368,7 +368,7 @@ export default function PlannerClient() {
             </div>
             {/* คำเตือนฝนจริงจาก Open-Meteo — ไม่มีข้อมูล = ไม่โชว์ */}
             {showRain && (
-              <div className="rounded-2xl border border-warn/40 bg-card-solid px-3.5 py-2.5 text-[12.5px] text-warn">
+              <div className="rounded-2xl border border-warn/40 bg-[#fdf6ec] px-3.5 py-2.5 text-[12.5px] text-warn">
                 ☔ <b>Today's forecast:</b> {rain.maxProb}% rain chance
                 {rain.peakHour !== null && ` around ${rain.peakHour}:00`}
                 {!filters.indoor && (
@@ -436,7 +436,7 @@ export default function PlannerClient() {
           >
             <div className="absolute bottom-3 left-4 z-[2] text-ink drop-shadow-md">
               <b className="o-serif text-[20px] font-medium">
-                <em>{originName} → Siam</em>
+                <em className="o-marker">{originName} → Siam</em>
               </b>
               <br />
               <span className="o-mono text-[10px] text-ink/85">
@@ -639,7 +639,7 @@ export default function PlannerClient() {
                   track("plan_start_trip", { plan_id: plan.id });
                   router.push(`/app/plan/${plan.id}`);
                 }}
-                className="gn-press gn-cta o-pill-primary o-btn-label mt-3 w-full py-3"
+                className="gn-press gn-cta gn-pulse-ring o-pill-primary o-btn-label mt-3 w-full py-3"
               >
                 Start the trip ▶
               </button>

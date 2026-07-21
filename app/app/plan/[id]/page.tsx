@@ -284,7 +284,7 @@ export default function PlanPage() {
 
           {/* callout สลับเส้นทาง — ตัวเลขจาก data จริงของ origin นี้ */}
           {plan.route.kind === "cheapest" ? (
-            <div className="rounded-[10px] border border-warn/40 bg-card-solid px-3 py-2 text-[12.5px] text-warn">
+            <div className="rounded-[10px] border border-warn/40 bg-[#fdf6ec] px-3 py-2 text-[12.5px] text-warn">
               🚗 Tired of transfers? {fast.modes} {fast.price} · {fast.mins} min
               <button
                 onClick={() => {
@@ -297,7 +297,7 @@ export default function PlanPage() {
               </button>
             </div>
           ) : (
-            <div className="rounded-[10px] border border-warn/40 bg-card-solid px-3 py-2 text-[12.5px] text-warn">
+            <div className="rounded-[10px] border border-warn/40 bg-[#fdf6ec] px-3 py-2 text-[12.5px] text-warn">
               🛵 Cheaper: {cheap.modes} {cheap.price} · {cheap.mins} min
               <button
                 onClick={() => {
@@ -356,7 +356,7 @@ export default function PlanPage() {
           </div>
 
           {plan.warnings.map((w) => (
-            <div key={w} className="rounded-xl border border-warn/40 bg-card-solid px-4 py-2.5 text-sm text-warn">
+            <div key={w} className="rounded-xl border border-warn/40 bg-[#fdf6ec] px-4 py-2.5 text-sm text-warn">
               ⛴️ {w}
             </div>
           ))}
@@ -467,7 +467,7 @@ export default function PlanPage() {
                         doneStop
                           ? "border-ok bg-ok text-bg"
                           : isCurrent
-                            ? "border-accent bg-card-solid text-ink shadow-[0_0_0_4px_rgba(207,230,245,0.12)]"
+                            ? "border-accent bg-card-solid text-ink shadow-[0_0_0_4px_rgba(30,127,79,0.18)]"
                             : "border-line bg-card-solid text-ink"
                       }`}
                     >

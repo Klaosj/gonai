@@ -631,7 +631,7 @@ export default function PlannerClient() {
                     <div className="min-w-0 flex-1">
                       <b className="text-[13.5px] text-ink">{s.venue.name_th}</b>
                       <small className="block leading-relaxed text-mut">
-                        ~{s.est_cost}฿/person · {s.venue.walk_min_from_hub} min walk
+                        {s.venue.walk_min_from_hub} min walk from BTS Siam
                       </small>
                     </div>
                     <div className="gn-num whitespace-nowrap font-semibold text-ink">~{s.est_cost}฿</div>

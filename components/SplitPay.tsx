@@ -43,7 +43,7 @@ export default function SplitPay({ base }: { base: number }) {
           >
             +
           </button>
-          <span className="text-xs text-mut">people</span>
+          <span className="text-xs text-mut">{n === 1 ? "person" : "people"}</span>
         </div>
         {n >= 2 && (
           <div className="text-right">

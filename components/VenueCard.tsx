@@ -130,8 +130,8 @@ export default function VenueCard({
         <div className="flex items-center justify-between">
           <span className="text-sm text-mut">
             ~<b className="gn-num text-[20px] font-semibold text-ink">{priceMid}฿</b>{" "}
-            <span className="o-mono text-[10px] text-mut">/person</span> · {venue.walk_min_from_hub} min walk from BTS
-            Siam
+            <span className="o-mono text-[10px] text-mut">/person</span>
+            <span className="block text-[12.5px]">{venue.walk_min_from_hub} min walk from BTS Siam</span>
           </span>
         </div>
 

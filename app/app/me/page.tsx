@@ -372,8 +372,8 @@ export default function TripsPage() {
                     {INTENT_LABELS[p.intent]} · {p.origin_name} → Siam
                   </b>
                   <small className="text-mut">
-                    {new Date(p.created_at).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })} ·{" "}
-                    {p.stops.length} stops ·{" "}
+                    {new Date(p.created_at).toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })} ·{" "}
+                    {p.stops.length} {p.stops.length === 1 ? "stop" : "stops"} ·{" "}
                     {p.status === "done" ? "done" : p.status === "active" ? "on the trip" : "draft"}
                   </small>
                 </div>
@@ -428,7 +428,7 @@ export default function TripsPage() {
                   <div className="truncate text-[12.5px] text-ink">{im.url}</div>
                   <small className="text-mut">
                     {IMPORT_STATUS_TH[im.status] ?? im.status} ·{" "}
-                    {new Date(im.created_at).toLocaleDateString("th-TH", { month: "short", day: "numeric" })}
+                    {new Date(im.created_at).toLocaleDateString("en-GB", { month: "short", day: "numeric" })}
                   </small>
                 </div>
               ))}

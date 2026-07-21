@@ -77,8 +77,12 @@ function radiusPctForWalk(walkMin: number): number {
   return 12 + (w / 15) * 34; // 12%..46% จากจุดกลาง
 }
 
-function pinPosition(v: Venue): { left: string; top: string } {
-  const angle = (hashAngleDeg(v.id) * Math.PI) / 180;
+// มุม: แจกช่องเท่าๆ กันตาม index (การันตีระยะห่าง label) + jitter เล็กจาก hash — มุมเป็นแค่การจัดวาง
+// ระยะจากศูนย์กลางเท่านั้นที่เป็นข้อมูลจริง (walk_min_from_hub)
+function pinPosition(v: Venue, index: number, count: number): { left: string; top: string } {
+  const slot = (index * 360) / Math.max(1, count);
+  const jitter = (hashAngleDeg(v.id) % 24) - 12;
+  const angle = ((slot + jitter - 55) * Math.PI) / 180; // เริ่มเยื้อง 12 นาฬิกา — ไม่ทับป้ายวงแหวน
   const r = radiusPctForWalk(v.walk_min_from_hub);
   const left = 50 + r * Math.cos(angle);
   const top = 50 + r * Math.sin(angle) * 0.82; // แบนลงนิดให้เข้ากับกรอบ 4:3
@@ -177,8 +181,8 @@ export default function ExplorePage() {
             </span>
           </span>
 
-          {filtered.map((v) => {
-            const pos = pinPosition(v);
+          {filtered.map((v, i) => {
+            const pos = pinPosition(v, i, filtered.length);
             const shortName = v.name_th.length > 13 ? `${v.name_th.slice(0, 12)}…` : v.name_th;
             return (
               <Link
@@ -203,8 +207,8 @@ export default function ExplorePage() {
           })}
 
           <div className="o-mono absolute bottom-3 left-3 z-[3] flex flex-wrap gap-3 rounded-xl border border-line bg-bg/75 px-3.5 py-2 text-[10.5px] text-mut backdrop-blur">
-            <span>⚪ Hit</span>
-            <span className="text-accent">🔵 Unseen (3+ confirmed)</span>
+            <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full border-[1.5px] border-ink bg-card-solid" /> Hit</span>
+            <span className="inline-flex items-center gap-1.5 text-accent"><span className="inline-block h-2.5 w-2.5 rounded-full bg-accent" /> Unseen (3+ confirmed)</span>
           </div>
         </div>
 

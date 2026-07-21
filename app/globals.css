@@ -531,7 +531,7 @@ input:focus-visible {
 .o-marker {
   font-style: normal;
   box-shadow: none;
-  background: linear-gradient(var(--color-accent-bright), var(--color-accent-bright)) no-repeat 0 86%;
+  background: linear-gradient(var(--color-accent-bright), var(--color-accent-bright)) no-repeat 0 74%;
   background-size: 0% 0.34em;
   animation: gn-marker-draw 0.7s var(--gn-ease) 0.45s forwards;
 }

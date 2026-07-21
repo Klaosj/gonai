@@ -46,10 +46,10 @@ export default function LandingPage() {
           <span className="gn-rise o-mono inline-block rounded-full bg-tint px-4 py-1.5 text-[11px] text-ink">
             🎉 Beta · free while we test
           </span>
-          <h1 className="o-serif gn-rise gn-d1 mt-6 text-4xl font-light leading-[1.15] sm:text-6xl">
+          <h1 className="o-serif gn-rise gn-d1 mt-6 text-4xl font-light leading-[1.12] sm:text-[54px]" style={{ textWrap: "balance" }}>
             Plan a full day out
             <br />
-            <em className="o-marker">know every baht</em> before you leave
+            <span className="whitespace-nowrap"><em className="o-marker">know every baht</em> before you leave</span>
           </h1>
           <p className="gn-rise gn-d1 mx-auto mt-6 max-w-xl text-lg text-ink/80">
             Top 3 picks for your vibe, validated by real visitors — win bikes, boats and BTS all in one budget

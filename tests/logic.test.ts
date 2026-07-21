@@ -4,6 +4,7 @@
 
 import { assert } from "node:console";
 import { chainSuggestions } from "../lib/chaining";
+import { parseQuick } from "../lib/chat";
 import { bahtChipText, ceil10, dayBudgetEst, fmtRange, grabEstimate, mid, round5, routeCost } from "../lib/costing";
 import { budgetDefault } from "../lib/budget";
 import { BUDGET_DEFAULTS, ROUTES, VENUES } from "../lib/fixtures";
@@ -250,6 +251,38 @@ test("fixtures: ทุก unseen venue ที่ count≥3 ผ่าน filter",
       truthy(r.cards.some((c) => c.id === v.id), `${v.id} should appear in its intent pool`);
     }
   }
+});
+
+// ─── chat.ts — quick parser (fallback ของ /api/chat) ───────
+
+test("chat: ไทยครบชุด เดท+ลาดพร้าว+งบ+เงียบ", () => {
+  const r = parseQuick("เสาร์นี้ไปเดทจากลาดพร้าว งบ 500 บาท ขอที่เงียบๆ");
+  eq(r.actions.intent, "date");
+  eq(r.actions.origin, "ladprao");
+  eq(r.actions.budget, 500);
+  eq(r.actions.filters?.quiet, true);
+});
+test("chat: อังกฤษ work + plugs + zone", () => {
+  const r = parseQuick("work session from On Nut, need plugs");
+  eq(r.actions.intent, "work");
+  eq(r.actions.origin, "onnut");
+  eq(r.actions.filters?.plugs, true);
+});
+test("chat: ฝนตก → indoor", () => {
+  const r = parseQuick("ฝนตก หาที่ในร่มให้หน่อย");
+  eq(r.actions.filters?.indoor, true);
+});
+test("chat: งบเลขโดด 450 ถูกจับ / เลขนอกช่วงไม่จับ", () => {
+  eq(parseQuick("มีเงิน 450 พอไหม").actions.budget, 450);
+  eq(parseQuick("ปี 2026 ไปไหนดี").actions.budget, undefined);
+});
+test("chat: ข้อความไม่เข้าเค้า → actions ว่าง", () => {
+  deepEq(parseQuick("สวัสดีครับ").actions, {});
+});
+test("chat: 500฿ แบบมีสัญลักษณ์", () => {
+  eq(parseQuick("budget 500฿ family day at Chatuchak").actions.budget, 500);
+  eq(parseQuick("budget 500฿ family day at Chatuchak").actions.intent, "family");
+  eq(parseQuick("budget 500฿ family day at Chatuchak").actions.origin, "chatuchak");
 });
 
 // ─── print results ─────────────────────────────────────────

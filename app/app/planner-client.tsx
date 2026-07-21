@@ -10,6 +10,7 @@ import SplitPay from "@/components/SplitPay";
 import Odo from "@/components/Odo";
 import VenueCard from "@/components/VenueCard";
 import { gn, track } from "@/lib/api";
+import type { ChatResponse } from "@/lib/chat";
 import { mid } from "@/lib/costing";
 import { filtersToParams, type VenueFilters } from "@/lib/filters";
 import { useCountUp } from "@/lib/use-count-up";
@@ -33,6 +34,30 @@ const INTENT_AMBIENCE: Record<Intent, string> = {
   photo: "o-ambience-photo",
   family: "o-ambience-family",
 };
+
+interface ChatMeta {
+  note: string | null;
+  quick: boolean;
+  applied: string[];
+  fresh: boolean; // มี refetch — ควรพูดถึงผลลัพธ์ใหม่
+}
+
+// คำตอบใน chat ประกอบจากข้อมูลจริงเท่านั้น — AI มีสิทธิ์แค่ตั้งค่า ไม่มีสิทธิ์เขียนตัวเลขเอง (หลัก audit เดิม)
+function buildChatReply(p: ChatMeta, d: { cards: unknown[]; total: number; routes: { cheapest: Route } } | null): string {
+  const parts: string[] = [];
+  if (p.applied.length > 0) parts.push(`Set: ${p.applied.join(" · ")}.`);
+  if (p.fresh && d) {
+    const fare = d.routes.cheapest.legs.reduce((s, l) => s + l.price_min, 0);
+    parts.push(`Top ${d.cards.length} of ${d.total} spots refreshed — cheapest route there ${fare}฿. Pick a card →`);
+  }
+  if (p.note) parts.push(p.note);
+  if (parts.length === 0) {
+    parts.push(
+      'I can set your vibe (work / date / family / photo), start zone, budget and the 5 filters — try "date from Lat Phrao, 500฿, somewhere quiet".',
+    );
+  }
+  return parts.join(" ");
+}
 
 // Mood tiles (plan §1) — แตะเดียว = ตั้ง intent+filters+budget จริง แล้ว refetch
 // subtitle เขียนจาก filters ที่ tile ตั้งจริงเท่านั้น (ห้ามเขียนเกินสิ่งที่ tile ทำ)
@@ -141,6 +166,13 @@ export default function PlannerClient() {
   const [addingId, setAddingId] = useState<string | null>(null); // in-flight lock ของ + Add to plan
   const [sendingImport, setSendingImport] = useState(false); // gn-rise เฉพาะโหลดแรก — กันการ์ดวูบตอนเปลี่ยน filter/intent
 
+  // Chat-to-plan (คอลัมน์ซ้าย) — คุยแล้วตั้ง intent/origin/budget/filters จริง
+  const [chatMsgs, setChatMsgs] = useState<{ role: "user" | "ai"; text: string; quick?: boolean }[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatSending, setChatSending] = useState(false);
+  const pendingChat = useRef<ChatMeta | null>(null); // ตอบหลัง refetch เสร็จ — ตัวเลข = data ล่าสุดจริง
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+
   // return-visit memory moment — "ทริปล่าสุดของคุณ" การ์ดเงียบๆ เหนือ mood tiles
   const [lastDonePlan, setLastDonePlan] = useState<ExpandedPlan | null>(null);
   const [memoryDismissedId, setMemoryDismissedId] = useState<string | null>(null);
@@ -157,11 +189,89 @@ export default function PlannerClient() {
         setData(d);
         setSaved(new Set(d.savedIds));
         track("results_view", { intent, origin, total: d.total });
+        // chat รอตอบอยู่ — ตอบด้วยตัวเลขจากผลลัพธ์ชุดใหม่นี้
+        if (pendingChat.current) {
+          const p = pendingChat.current;
+          pendingChat.current = null;
+          setChatMsgs((m) => [...m, { role: "ai", text: buildChatReply(p, d), quick: p.quick }]);
+          setChatSending(false);
+        }
       })
-      .catch(() => setLoadError(true));
+      .catch(() => {
+        setLoadError(true);
+        if (pendingChat.current) {
+          pendingChat.current = null;
+          setChatMsgs((m) => [...m, { role: "ai", text: "Set your conditions, but refreshing results failed — check connection." }]);
+          setChatSending(false);
+        }
+      });
   }, [intent, origin, filters]);
 
   useEffect(load, [load]);
+
+  // chat เลื่อนตามข้อความล่าสุดเสมอ
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [chatMsgs, chatSending]);
+
+  // Chat → action จริง: apply เข้า state เดิมของ planner แล้วรอ refetch ก่อนตอบ
+  const sendChat = async () => {
+    const msg = chatInput.trim();
+    if (!msg || chatSending) return;
+    setChatInput("");
+    setChatSending(true);
+    setChatMsgs((m) => [...m, { role: "user", text: msg }]);
+    try {
+      const r = await gn<ChatResponse>("/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ message: msg, current: { intent, origin, budget, filters } }),
+      });
+      const a = r.actions;
+      const applied: string[] = [];
+      let refetch = false;
+      if (a.intent && a.intent !== intent) {
+        setIntent(a.intent);
+        applied.push(INTENTS.find((i) => i.key === a.intent)?.label ?? a.intent);
+        refetch = true;
+      }
+      if (a.origin && a.origin !== origin) {
+        setOrigin(a.origin);
+        applied.push(`from ${data?.zones.find((z) => z.id === a.origin)?.name_th ?? a.origin}`);
+        refetch = true;
+      }
+      if (typeof a.budget === "number" && a.budget !== budget) {
+        setBudget(a.budget);
+        applied.push(`${a.budget}฿ budget`);
+      }
+      if (a.filters) {
+        const next = { ...filters };
+        for (const c of FILTER_CHIPS) {
+          const v = a.filters[c.key];
+          if (v === true) next[c.key] = true;
+          else if (v === false && next[c.key]) {
+            delete next[c.key];
+            applied.push(`${c.label} off`);
+          }
+          if (v === true && !filters[c.key]) applied.push(c.label);
+        }
+        if (JSON.stringify(next) !== JSON.stringify(filters)) {
+          setFilters(next);
+          refetch = true;
+        }
+      }
+      track("chat_apply", { source: r.source, applied: applied.length });
+      const meta: ChatMeta = { note: r.note, quick: r.source === "quick", applied, fresh: refetch };
+      if (refetch) {
+        pendingChat.current = meta; // load() ตอบให้เมื่อ data ใหม่มาถึง
+      } else {
+        setChatMsgs((m) => [...m, { role: "ai", text: buildChatReply(meta, data), quick: meta.quick }]);
+        setChatSending(false);
+      }
+    } catch {
+      setChatMsgs((m) => [...m, { role: "ai", text: "Something went wrong sending that — try again." }]);
+      setChatSending(false);
+    }
+  };
 
   useEffect(() => {
     if (data && firstCards.current) {
@@ -495,7 +605,49 @@ export default function PlannerClient() {
                 </button>
               </div>
             )}
+
+            {/* chat จริง — พิมพ์อิสระไทย/อังกฤษ AI ตั้งเงื่อนไขให้ ตัวเลขทุกตัวมาจาก data */}
+            {chatMsgs.map((m, i) =>
+              m.role === "user" ? (
+                <div key={i} className="max-w-[85%] self-end rounded-2xl bg-pill px-3.5 py-2.5 text-[13.5px] leading-relaxed text-bg">
+                  {m.text}
+                </div>
+              ) : (
+                <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
+                  {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
+                  {m.text}
+                </div>
+              ),
+            )}
+            {chatSending && (
+              <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
+                <span className="gn-spinner" />
+                thinking…
+              </div>
+            )}
+            <div ref={chatEndRef} />
           </div>
+
+          <div className="flex items-center gap-1.5">
+            <input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendChat()}
+              placeholder='Try "date from Lat Phrao, 500฿, quiet"'
+              aria-label="Chat to set your plan"
+              className="min-w-0 flex-1 rounded-full border border-line bg-bg px-3.5 py-2 text-[13px] text-ink placeholder:text-mut"
+            />
+            <button
+              onClick={sendChat}
+              disabled={chatSending}
+              aria-busy={chatSending}
+              aria-label="Send"
+              className="gn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white disabled:opacity-60"
+            >
+              {chatSending ? <span className="gn-spinner" style={{ margin: 0 }} /> : "↑"}
+            </button>
+          </div>
+          <p className="o-mono-text -mt-1 text-[10.5px] text-mut">AI sets the conditions — every number comes from real data</p>
 
           {/* ตัวกรองจริง — กดแล้ว refetch ผลลัพธ์ */}
           <div className="flex flex-wrap gap-1.5">

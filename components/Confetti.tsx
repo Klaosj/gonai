@@ -13,8 +13,12 @@ export default function Confetti() {
   const bits = useMemo(
     () =>
       Array.from({ length: 28 }, (_, i) => ({
-        left: `${(i * 37) % 100}%`,
-        dx: `${((i * 53) % 120) - 60}px`,
+        // left+dx kept inset from the true edges (8-90% · ±24px) so bits never render past the
+        // viewport on narrow screens — fixed-position elements poking past 100vw were pushing
+        // document.documentElement.scrollWidth past clientWidth, causing a real (if transient,
+        // ~2.8s) horizontal-scroll bug at mobile widths during the End-trip celebration
+        left: `${8 + ((i * 37) % 83)}%`,
+        dx: `${((i * 53) % 48) - 24}px`,
         rot: `${((i * 97) % 720) - 360}deg`,
         dur: `${1.6 + ((i * 13) % 10) / 10}s`,
         delay: `${((i * 7) % 40) / 100}s`,

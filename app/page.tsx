@@ -29,11 +29,11 @@ export default function LandingPage() {
           <span className="gn-cloud absolute right-[10%] top-[22%] text-[36px] drop-shadow-md" style={{ animationDelay: "-7s" }}>☁️</span>
           <span className="gn-bob absolute bottom-[24%] left-[8%] text-[64px] drop-shadow-xl">🛺</span>
           <span className="gn-bob absolute bottom-[18%] right-[9%] text-[56px] drop-shadow-xl" style={{ animationDelay: "-3s" }}>⛴️</span>
-          <div className="gn-floaty absolute left-[6%] top-[30%] flex items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)]">
+          <div className="gn-floaty absolute left-[1%] top-[30%] hidden items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)] xl:flex">
             <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-accent text-[13px] text-white">✓</span>
             <span>Fare confirmed<small className="block font-medium text-mut">by 9 real travelers</small></span>
           </div>
-          <div className="gn-floaty absolute right-[5%] top-[38%] flex items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)]" style={{ animationDelay: "-4s" }}>
+          <div className="gn-floaty absolute right-[1%] top-[38%] hidden items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)] xl:flex" style={{ animationDelay: "-4s" }}>
             <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-accent-bright text-[13px]">🚝</span>
             <span>Lat Phrao → Siam<small className="block font-medium text-mut">BTS 44฿ · one way</small></span>
           </div>

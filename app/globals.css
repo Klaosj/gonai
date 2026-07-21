@@ -498,6 +498,78 @@ input:focus-visible {
 }
 
 /* ===== เคารพผู้ใช้ที่ปิด motion (a11y) — unchanged ===== */
+/* ============================================================
+   Motion pack v0.7 — 15 ท่าใหม่ (CSS/WAAPI ล้วน ไม่มี dependency)
+   ============================================================ */
+
+/* (2) budget bump — ตัวเลข/แถบเด้งรับตอนค่าเปลี่ยน (ใช้ key remount เพื่อ replay) */
+@keyframes gn-bump { 0% { transform: scale(1); } 35% { transform: scale(1.16); } 100% { transform: scale(1); } }
+.gn-bump { display: inline-block; animation: gn-bump 0.45s var(--gn-spring); }
+
+/* (3) check-in ripple — วงเขียวกระเพื่อมครั้งเดียว */
+@keyframes gn-ripple { 0% { box-shadow: 0 0 0 0 rgba(30, 127, 79, 0.45); } 100% { box-shadow: 0 0 0 18px rgba(30, 127, 79, 0); } }
+.gn-ripple-once { animation: gn-ripple 0.9s var(--gn-ease) 1; }
+
+/* (4) chip bounce — เด้ง overshoot ตอนสลับ active (replay ด้วย key) */
+@keyframes gn-boing { 0% { transform: scale(0.92); } 55% { transform: scale(1.06); } 100% { transform: scale(1); } }
+.gn-boing { animation: gn-boing 0.35s var(--gn-spring); }
+
+/* (6) heart burst — ประกาย 6 เส้นรอบหัวใจตอน save */
+@keyframes gn-burst { 0% { transform: rotate(var(--a)) translateY(-2px) scale(1); opacity: 1; } 100% { transform: rotate(var(--a)) translateY(-14px) scale(0.3); opacity: 0; } }
+.gn-burst i { position: absolute; left: 50%; top: 50%; width: 3px; height: 7px; margin: -3px 0 0 -1.5px; border-radius: 99px; background: var(--color-bad); animation: gn-burst 0.5s var(--gn-ease) both; }
+
+/* (7) landing stickers — bob + drift จากต้นแบบ .dc.html */
+@keyframes gn-bob2 { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-14px) rotate(2deg); } }
+.gn-bob { animation: gn-bob2 8s ease-in-out infinite; }
+@keyframes gn-cloud { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-26px, 14px); } 50% { transform: translate(18px, -18px); } 75% { transform: translate(-14px, -10px); } }
+.gn-cloud { animation: gn-cloud 16s ease-in-out infinite; }
+@keyframes gn-floaty { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-1.5%, 3%); } 50% { transform: translate(1.5%, -3%); } 75% { transform: translate(-1%, -1.5%); } }
+.gn-floaty { animation: gn-floaty 8s ease-in-out infinite; }
+
+/* (8) marker draw-in — ไฮไลท์เขียววาดตัวเองซ้าย→ขวา (แทน box-shadow เดิม) */
+@keyframes gn-marker-draw { to { background-size: 100% 0.34em; } }
+.o-marker {
+  font-style: normal;
+  box-shadow: none;
+  background: linear-gradient(var(--color-accent-bright), var(--color-accent-bright)) no-repeat 0 86%;
+  background-size: 0% 0.34em;
+  animation: gn-marker-draw 0.7s var(--gn-ease) 0.45s forwards;
+}
+
+/* (9) marquee ticker */
+@keyframes gn-marquee { to { transform: translateX(-50%); } }
+.gn-marquee { display: flex; width: max-content; animation: gn-marquee 28s linear infinite; }
+
+/* (10) gradient drift บน mood tiles */
+@keyframes gn-grad-drift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+.gn-drift { background-size: 180% 180% !important; animation: gn-grad-drift 16s ease-in-out infinite; }
+
+/* (11) page transition — ใช้ใน app/app/template.tsx */
+@keyframes gn-page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.gn-page { animation: gn-page-in 0.4s var(--gn-ease) both; }
+
+/* (12) timeline draw — เส้นวาดตัวเอง + จุดไล่ pop */
+@keyframes gn-line-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.gn-line-grow { transform-origin: top; animation: gn-line-grow 0.8s var(--gn-ease) 0.15s both; }
+
+/* (13) view slide — trip เข้าจากขวา / plan เข้าจากซ้าย */
+@keyframes gn-slide-r { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@keyframes gn-slide-l { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+.gn-slide-r { animation: gn-slide-r 0.4s var(--gn-ease) both; }
+.gn-slide-l { animation: gn-slide-l 0.4s var(--gn-ease) both; }
+
+/* (1) confetti — เศษเขียว/฿ ร่วงครั้งเดียวตอนจบทริป */
+@keyframes gn-confetti {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--dx), 105vh, 0) rotate(var(--rot)); opacity: 0.9; }
+}
+.gn-confetti-bit { position: fixed; top: 0; z-index: 200; pointer-events: none; animation: gn-confetti var(--dur) cubic-bezier(0.3, 0.4, 0.6, 1) var(--delay) both; }
+
+/* (15) odometer — หลักตัวเลขหมุนแนวตั้ง */
+.gn-odo { display: inline-flex; overflow: hidden; }
+.gn-odo-col { display: inline-block; }
+.gn-odo-strip { display: flex; flex-direction: column; transition: transform 0.55s var(--gn-spring); }
+
 @media (prefers-reduced-motion: reduce) {
   .gn-rise,
   .gn-sheet,
@@ -514,6 +586,13 @@ input:focus-visible {
   .gn-shine::after {
     animation: none;
   }
+  .gn-bump, .gn-ripple-once, .gn-boing, .gn-bob, .gn-cloud, .gn-floaty,
+  .gn-marquee, .gn-drift, .gn-page, .gn-line-grow, .gn-slide-r, .gn-slide-l,
+  .gn-confetti-bit, .o-marker {
+    animation: none !important;
+  }
+  .o-marker { background-size: 100% 0.34em; }
+  .gn-odo-strip { transition: none !important; }
   .gn-press,
   .gn-card-e,
   .gn-bar,

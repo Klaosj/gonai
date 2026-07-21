@@ -1,0 +1,54 @@
+"use client";
+// Confetti เขียว/฿ ยิงครั้งเดียวตอนจบทริป — CSS animation ล้วน unmount เองใน 2.8 วิ
+// เคารพ prefers-reduced-motion (คลาสถูก kill ใน globals — เศษจะไม่ขยับ เลยไม่ render เลยดีกว่า)
+import { useEffect, useMemo, useState } from "react";
+
+const COLORS = ["#1e7f4f", "#34a869", "#dcefe3", "#121411", "#7fce9f"];
+
+export default function Confetti() {
+  const [gone, setGone] = useState(false);
+  const reduced =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const bits = useMemo(
+    () =>
+      Array.from({ length: 28 }, (_, i) => ({
+        left: `${(i * 37) % 100}%`,
+        dx: `${((i * 53) % 120) - 60}px`,
+        rot: `${((i * 97) % 720) - 360}deg`,
+        dur: `${1.6 + ((i * 13) % 10) / 10}s`,
+        delay: `${((i * 7) % 40) / 100}s`,
+        color: COLORS[i % COLORS.length],
+        baht: i % 7 === 0,
+      })),
+    [],
+  );
+
+  useEffect(() => {
+    const t = setTimeout(() => setGone(true), 2800);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (gone || reduced) return null;
+  return (
+    <div aria-hidden>
+      {bits.map((b, i) =>
+        b.baht ? (
+          <span
+            key={i}
+            className="gn-confetti-bit text-[14px] font-bold"
+            style={{ left: b.left, color: b.color, "--dx": b.dx, "--rot": b.rot, "--dur": b.dur, "--delay": b.delay } as React.CSSProperties}
+          >
+            ฿
+          </span>
+        ) : (
+          <span
+            key={i}
+            className="gn-confetti-bit h-[10px] w-[6px] rounded-[2px]"
+            style={{ left: b.left, background: b.color, "--dx": b.dx, "--rot": b.rot, "--dur": b.dur, "--delay": b.delay } as React.CSSProperties}
+          />
+        ),
+      )}
+    </div>
+  );
+}

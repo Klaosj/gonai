@@ -38,7 +38,7 @@ export default function VenueCard({
   cheapest: Route;
   fastest: Route;
   saved: boolean;
-  onAdd: () => void;
+  onAdd: (cardEl?: HTMLElement | null) => void;
   onSave: () => void;
   onToggleRoute?: (kind: "cheapest" | "fastest") => void;
 }) {
@@ -54,7 +54,7 @@ export default function VenueCard({
   };
 
   return (
-    <div className="gn-card-e gn-lift overflow-hidden">
+    <div data-vcard className="gn-card-e gn-lift overflow-hidden">
       <div
         className={`o-grain gn-shine relative flex h-32 items-end justify-start overflow-hidden ${CATEGORY_AMBIENCE[venue.category]}`}
       >
@@ -67,8 +67,15 @@ export default function VenueCard({
           aria-label="Save"
           className={`gn-press absolute left-2 top-2 z-[2] rounded-full bg-bg/70 p-1.5 backdrop-blur ${saved ? "text-bad" : "text-ink"}`}
         >
-          <span className={saved ? "gn-pop inline-block" : "inline-block"}>
+          <span className={`relative ${saved ? "gn-pop" : ""} inline-block`}>
             <Heart size={16} fill={saved ? "currentColor" : "none"} />
+            {saved && (
+              <span className="gn-burst pointer-events-none absolute inset-0" aria-hidden>
+                {[0, 60, 120, 180, 240, 300].map((a) => (
+                  <i key={a} style={{ "--a": `${a}deg` } as React.CSSProperties} />
+                ))}
+              </span>
+            )}
           </span>
         </button>
         <button
@@ -132,7 +139,7 @@ export default function VenueCard({
 
         <div className="flex gap-2 pt-1">
           <button
-            onClick={onAdd}
+            onClick={(e) => onAdd(e.currentTarget.closest("[data-vcard]") as HTMLElement | null)}
             className="gn-press gn-cta o-btn-label o-pill-primary flex-1 whitespace-nowrap px-3 py-2 text-sm"
           >
             + Add to plan

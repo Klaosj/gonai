@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import SplitPay from "@/components/SplitPay";
+import Odo from "@/components/Odo";
 import VenueCard from "@/components/VenueCard";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
@@ -187,8 +188,33 @@ export default function PlannerClient() {
     [plan],
   );
 
+  // (5) fly-to-plan — เงาการ์ดลอยเข้าคอลัมน์งบ (WAAPI, ไม่มี dependency)
+  const flyToBudget = (fromEl?: HTMLElement | null) => {
+    if (!fromEl || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const target = document.getElementById("gn-budget-target");
+    if (!target) return;
+    const a = fromEl.getBoundingClientRect();
+    const b = target.getBoundingClientRect();
+    const ghost = document.createElement("div");
+    ghost.style.cssText = `position:fixed;left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${Math.min(a.height, 128)}px;border-radius:16px;z-index:150;pointer-events:none;opacity:.9;background:linear-gradient(150deg,#dcefe3,#a8c9ee);box-shadow:0 18px 44px rgba(18,20,17,.18)`;
+    document.body.appendChild(ghost);
+    ghost
+      .animate(
+        [
+          { transform: "translate(0,0) scale(1)", opacity: 0.9 },
+          {
+            transform: `translate(${b.left + b.width / 2 - a.left - a.width / 2}px, ${b.top + b.height / 2 - a.top - Math.min(a.height, 128) / 2}px) scale(0.05)`,
+            opacity: 0.35,
+          },
+        ],
+        { duration: 650, easing: "cubic-bezier(.32,.72,0,1)" },
+      )
+      .onfinish = () => ghost.remove();
+  };
+
   const addToPlan = useCallback(
-    async (venueId: string, venueName: string) => {
+    async (venueId: string, venueName: string, cardEl?: HTMLElement | null) => {
+      flyToBudget(cardEl);
       if (plan) {
         await act("add_stop", { venue_id: venueId });
         track("add_stop", { venue_id: venueId, via: "card" });
@@ -323,7 +349,7 @@ export default function PlannerClient() {
             <button
               key={m.key}
               onClick={() => pickMood(m)}
-              className={`o-grain gn-rise gn-d${i + 1} gn-press relative flex min-h-[118px] flex-col justify-end gap-1 overflow-hidden rounded-[20px] border p-4 text-left transition-transform hover:-translate-y-1 ${m.ambience} ${
+              className={`o-grain gn-drift gn-rise gn-d${i + 1} gn-press relative flex min-h-[118px] flex-col justify-end gap-1 overflow-hidden rounded-[20px] border p-4 text-left transition-transform hover:-translate-y-1 ${m.ambience} ${
                 active ? "border-ink" : "border-line"
               }`}
             >
@@ -404,7 +430,7 @@ export default function PlannerClient() {
                   onClick={() => toggleFilter(c.key)}
                   className={`gn-press rounded-full border px-3 py-1.5 text-[12.5px] ${
                     on
-                      ? "border-pill bg-pill font-semibold text-bg"
+                      ? "gn-boing border-pill bg-pill font-semibold text-bg"
                       : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
                   }`}
                 >
@@ -463,7 +489,7 @@ export default function PlannerClient() {
                   onClick={() => pickOrigin(z.id)}
                   className={`gn-press rounded-full border px-3 py-1 text-xs ${
                     origin === z.id
-                      ? "border-pill bg-pill font-semibold text-bg"
+                      ? "gn-boing border-pill bg-pill font-semibold text-bg"
                       : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
                   }`}
                 >
@@ -474,7 +500,7 @@ export default function PlannerClient() {
                 onClick={() => pickOrigin("other")}
                 className={`gn-press rounded-full border px-3 py-1 text-xs ${
                   origin === "other"
-                    ? "border-pill bg-pill font-semibold text-bg"
+                    ? "gn-boing border-pill bg-pill font-semibold text-bg"
                     : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
                 }`}
               >
@@ -502,7 +528,7 @@ export default function PlannerClient() {
                   }}
                   className={`gn-press rounded-full border-[1.5px] px-3.5 py-1.5 text-[13px] font-semibold ${
                     on
-                      ? "border-pill bg-pill text-bg"
+                      ? "gn-boing border-pill bg-pill text-bg"
                       : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
                   }`}
                 >
@@ -525,7 +551,7 @@ export default function PlannerClient() {
                   cheapest={data.routes.cheapest}
                   fastest={data.routes.fastest}
                   saved={saved.has(v.id)}
-                  onAdd={() => addToPlan(v.id, v.name_th)}
+                  onAdd={(el) => addToPlan(v.id, v.name_th, el)}
                   onSave={() => toggleSave(v)}
                   onToggleRoute={(kind) => track("route_alt_toggle", { venue_id: v.id, kind, screen: "planner" })}
                 />
@@ -553,7 +579,7 @@ export default function PlannerClient() {
         <aside className="gn-card-e gn-rise gn-d2 p-4">
           <span className="gn-step">03 — Your plan + budget</span>
 
-          <div className="mt-2 mb-3 rounded-xl border border-line bg-card-solid/60 p-3">
+          <div id="gn-budget-target" className="mt-2 mb-3 rounded-xl border border-line bg-card-solid/60 p-3">
             <div className="mb-1.5 flex items-center justify-between">
               <span className="o-mono text-[10px] text-mut">Today's budget</span>
               {editingBudget ? (
@@ -578,10 +604,10 @@ export default function PlannerClient() {
             </div>
             <div className="gn-num flex flex-wrap items-baseline justify-between gap-x-2">
               <span className="text-[32px] font-semibold leading-none text-ink">
-                Spent {spentAnim}฿ / {budget}฿
+                Spent <Odo value={spent} />฿ / {budget}฿
               </span>
             </div>
-            <div className={`mt-1 text-xs font-semibold ${left < 0 ? "text-bad" : "text-ok"}`}>
+            <div key={spent} className={`gn-bump mt-1 text-xs font-semibold ${left < 0 ? "text-bad" : "text-ok"}`}>
               {left >= 0 ? `${leftAnim}฿ left` : `${leftAnim}฿ over ⚠️`}
             </div>
             <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-line">

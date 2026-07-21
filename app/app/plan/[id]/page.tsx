@@ -8,6 +8,8 @@ import BudgetBar from "@/components/BudgetBar";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import RouteLegs from "@/components/RouteLegs";
 import TripRecap from "@/components/TripRecap";
+import Confetti from "@/components/Confetti";
+import Odo from "@/components/Odo";
 import SplitPay from "@/components/SplitPay";
 import { gn, track } from "@/lib/api";
 import { fmtRange, mid } from "@/lib/costing";
@@ -102,7 +104,9 @@ export default function PlanPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
   const [editingBudget, setEditingBudget] = useState(false);
-  const [spendingSeq, setSpendingSeq] = useState<number | null>(null); // stop ที่กำลังพิมพ์จำนวนเงินเอง
+  const [spendingSeq, setSpendingSeq] = useState<number | null>(null);
+  const [celebrate, setCelebrate] = useState(false); // (1) confetti เฉพาะจังหวะกดจบทริปเอง
+  const [lastCheckin, setLastCheckin] = useState<number | null>(null); // (3) ripple จุดที่เพิ่งเช็คอิน // stop ที่กำลังพิมพ์จำนวนเงินเอง
 
   const showToast = (m: string) => {
     setToast(m);
@@ -226,7 +230,7 @@ export default function PlanPage() {
 
       {/* ===== PLAN VIEW ===== */}
       {showPlan && (
-        <>
+        <div className="gn-slide-l space-y-4">
           <RouteLegs
             route={plan.route}
             alt={plan.route_alt}
@@ -324,12 +328,12 @@ export default function PlanPage() {
               Start the trip ▶
             </button>
           )}
-        </>
+        </div>
       )}
 
       {/* ===== TRIP VIEW (live mode — ต้นแบบ Gonai live.html) — มือถือเป็นหลัก คอลัมน์เดียว ===== */}
       {showTrip && (
-        <div className="mx-auto max-w-xl space-y-4">
+        <div className="gn-slide-r mx-auto max-w-xl space-y-4">
           {/* sticky budget tracker — ตัวเลข/บาร์เดิมทุกตัว ย้ายขึ้นบนสุดให้เห็นตลอด */}
           <div className="sticky top-[57px] z-20 -mx-4 border-b border-line bg-bg/85 px-4 py-3 backdrop-blur-xl sm:-mx-0 sm:rounded-2xl sm:border sm:bg-card-solid/70">
             <div className="flex items-center justify-between">
@@ -341,9 +345,12 @@ export default function PlanPage() {
             </div>
             <div className="gn-num mt-1.5 flex items-baseline gap-2 text-[22px] font-bold text-ink">
               <span>
-                Spent {spentAnim}฿ / {plan.budget_planned}฿
+                Spent <Odo value={plan.spent} />฿ / {plan.budget_planned}฿
               </span>
-              <small className={`text-[13px] font-medium ${plan.spent > plan.budget_planned ? "text-bad" : "text-ok"}`}>
+              <small
+                key={plan.spent}
+                className={`gn-bump text-[13px] font-medium ${plan.spent > plan.budget_planned ? "text-bad" : "text-ok"}`}
+              >
                 · {plan.spent > plan.budget_planned ? `${remainingAnim}฿ over ⚠️` : `${remainingAnim}฿ left`}
               </small>
             </div>
@@ -392,6 +399,7 @@ export default function PlanPage() {
                     <button
                       onClick={async () => {
                         await act("checkin", { seq: currentStop.seq });
+                        setLastCheckin(currentStop.seq);
                         track("checkin", { seq: currentStop.seq, venue_id: currentStop.venue.id });
                       }}
                       className="gn-press o-pill-primary o-btn-label flex-1 py-2.5 text-sm"
@@ -439,9 +447,12 @@ export default function PlanPage() {
               {plan.route.legs.map((l, i) => (
                 <div key={l.seq} className="relative flex gap-3.5 pb-4 last:pb-0">
                   {(i < plan.route.legs.length - 1 || plan.stops.length > 0) && (
-                    <span className="absolute left-[15px] top-[32px] bottom-0 w-px bg-line" />
+                    <span className="gn-line-grow absolute left-[15px] top-[32px] bottom-0 w-px bg-line" />
                   )}
-                  <span className="z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ok bg-ok text-[13px] text-bg">
+                  <span
+                    className="gn-pop z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ok bg-ok text-[13px] text-bg"
+                    style={{ animationDelay: `${i * 90}ms` }}
+                  >
                     ✓
                   </span>
                   <div className="min-w-0 flex-1">
@@ -460,14 +471,14 @@ export default function PlanPage() {
                 return (
                   <div key={s.seq} className="relative flex gap-3.5 pb-4 last:pb-0">
                     {i < plan.stops.length - 1 && (
-                      <span className="absolute left-[15px] top-[32px] bottom-0 w-px bg-line" />
+                      <span className="gn-line-grow absolute left-[15px] top-[32px] bottom-0 w-px bg-line" />
                     )}
                     <span
                       className={`z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[13px] ${
                         doneStop
                           ? "border-ok bg-ok text-bg"
                           : isCurrent
-                            ? "border-accent bg-card-solid text-ink shadow-[0_0_0_4px_rgba(30,127,79,0.18)]"
+                            ? `border-accent bg-card-solid text-ink shadow-[0_0_0_4px_rgba(30,127,79,0.18)]${lastCheckin === s.seq ? " gn-ripple-once" : ""}`
                             : "border-line bg-card-solid text-ink"
                       }`}
                     >
@@ -494,6 +505,7 @@ export default function PlanPage() {
                             <button
                               onClick={async () => {
                                 await act("checkin", { seq: s.seq });
+                                setLastCheckin(s.seq);
                                 track("checkin", { seq: s.seq, venue_id: s.venue.id });
                               }}
                               className="gn-press o-mono rounded-full bg-pill px-3 py-1 text-[10px] text-bg"
@@ -545,6 +557,7 @@ export default function PlanPage() {
           <button
             onClick={async () => {
               await act("done");
+              setCelebrate(true);
               track("plan_done", { plan_id: plan.id });
               showToast("Trip done 🎉 Help confirm prices for the next traveler");
             }}
@@ -556,6 +569,8 @@ export default function PlanPage() {
       )}
 
       {/* ===== DONE ===== */}
+      {celebrate && <Confetti />}
+
       {isDone && (
         <DoneSummary plan={plan} confirmed={confirmed} setConfirmed={setConfirmed} showToast={showToast} />
       )}
@@ -641,7 +656,7 @@ function DoneSummary({
       <div className="gn-card-e gn-rise p-5">
         <p className="o-mono text-[10px] text-mut">Actually spent today</p>
         <p className={`o-serif gn-num text-[64px] font-medium leading-tight ${over ? "text-bad" : "text-ink"}`}>
-          {actualAnim}฿
+          <Odo value={plan.budget_actual ?? 0} />฿
         </p>
         <p className="text-sm text-mut">
           Budget {plan.budget_planned}฿ · estimated ~{plan.est_total}฿ ·{" "}

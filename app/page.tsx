@@ -23,6 +23,25 @@ export default function LandingPage() {
       </header>
       {/* Hero — เต็มจอ ขาวล้วน + grain (Mindtrip signature, plan §4.2) */}
       <section className="o-grain bg-bg relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-28 text-ink">
+        {/* (7) sticker collage จากต้นแบบ — ซ่อน < lg กันชนเนื้อหา */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-[1] hidden lg:block">
+          <span className="gn-cloud absolute left-[12%] top-[16%] text-[46px] drop-shadow-lg">☁️</span>
+          <span className="gn-cloud absolute right-[10%] top-[22%] text-[36px] drop-shadow-md" style={{ animationDelay: "-7s" }}>☁️</span>
+          <span className="gn-bob absolute bottom-[24%] left-[8%] text-[64px] drop-shadow-xl">🛺</span>
+          <span className="gn-bob absolute bottom-[18%] right-[9%] text-[56px] drop-shadow-xl" style={{ animationDelay: "-3s" }}>⛴️</span>
+          <div className="gn-floaty absolute left-[6%] top-[30%] flex items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)]">
+            <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-accent text-[13px] text-white">✓</span>
+            <span>Fare confirmed<small className="block font-medium text-mut">by 9 real travelers</small></span>
+          </div>
+          <div className="gn-floaty absolute right-[5%] top-[38%] flex items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)]" style={{ animationDelay: "-4s" }}>
+            <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-accent-bright text-[13px]">🚝</span>
+            <span>Lat Phrao → Siam<small className="block font-medium text-mut">BTS 44฿ · one way</small></span>
+          </div>
+          <div className="gn-floaty absolute bottom-[34%] right-[13%] flex items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)]" style={{ animationDelay: "-2s" }}>
+            <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-pill text-[13px] text-bg">✨</span>
+            <span>One unseen gem<small className="block font-medium text-mut">in every Top 3</small></span>
+          </div>
+        </div>
         <div className="relative z-[2] mx-auto max-w-4xl text-center">
           <span className="gn-rise o-mono inline-block rounded-full bg-tint px-4 py-1.5 text-[11px] text-ink">
             🎉 Beta · free while we test
@@ -57,6 +76,21 @@ export default function LandingPage() {
           </Link>
         </div>
       </section>
+
+      {/* (9) marquee ticker — ทุกตัวเลขตรง fixtures จริง (R003/R001/R005 + กติกา unseen) */}
+      <div className="overflow-hidden border-y-[1.5px] border-ink bg-bg py-2.5">
+        <div className="gn-marquee">
+          {[0, 1].map((k) => (
+            <div key={k} className="o-mono flex gap-12 whitespace-nowrap pr-12 text-[11px] text-ink">
+              <span>LAT PHRAO → SIAM · BTS <b className="text-accent">44฿</b></span>
+              <span>BANG KAPI → SIAM · WIN+BOAT <b className="text-accent">47฿</b></span>
+              <span>ON NUT → SIAM · BTS <b className="text-accent">37฿</b></span>
+              <span><b>✦ UNSEEN</b> NEEDS 3+ REAL CONFIRMATIONS</span>
+              <span>RAIN? REPLAN INDOOR-ONLY · SAME BUDGET</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Problem */}
       <section className="mx-auto max-w-3xl px-6 py-16">

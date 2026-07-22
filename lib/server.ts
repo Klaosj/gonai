@@ -3,6 +3,7 @@
 import { getCatalog } from "./catalog";
 import { LAUNCH_ZONE } from "./fixtures";
 import { dayBudgetEst, grabEstimate, mid, routeCost } from "./costing";
+import { sharePath } from "./share";
 import type { Plan, Route, Venue } from "./types";
 
 export async function venueById(id: string): Promise<Venue | undefined> {
@@ -72,6 +73,7 @@ export interface ExpandedPlan {
   warnings: string[];
   stops: ExpandedStop[];
   created_at: string;
+  share_path: string; // ลิงก์ view-only (token = HMAC ของ id — ดู lib/share.ts)
 }
 
 export async function expandPlan(plan: Plan): Promise<ExpandedPlan> {
@@ -114,6 +116,7 @@ export async function expandPlan(plan: Plan): Promise<ExpandedPlan> {
     warnings: route.legs.map((l) => l.warning_th).filter((w): w is string => !!w),
     stops,
     created_at: plan.created_at,
+    share_path: sharePath(plan.id),
   };
 }
 

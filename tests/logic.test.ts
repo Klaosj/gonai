@@ -285,6 +285,43 @@ test("chat: 500฿ แบบมีสัญลักษณ์", () => {
   eq(parseQuick("budget 500฿ family day at Chatuchak").actions.origin, "chatuchak");
 });
 
+// ─── timeline.ts + share.ts (chat-to-plan v2) ──────────────
+
+import { buildTimeline, tripTitle } from "../lib/timeline";
+import { sharePath, shareToken, verifyShareToken } from "../lib/share";
+import type { Route } from "../lib/types";
+
+const legs25 = { legs: [{ minutes: 10 }, { minutes: 15 }] } as unknown as Pick<Route, "legs">;
+const cafe = { venue: { category: "cafe" as const, open_time: "09:00", walk_min_from_hub: 5 } };
+const market = { venue: { category: "market" as const, open_time: "10:00", walk_min_from_hub: 7 } };
+
+test("timeline: transit = legs จริง + เดินถึงร้านแรก, เวลาต่อเนื่องถูก", () => {
+  const tl = buildTimeline([cafe, market], legs25)!;
+  eq(tl.transitMin, 30); // 25 legs + 5 walk
+  eq(tl.leaveOrigin, "09:30");
+  eq(tl.stops[0].start, "10:00");
+  eq(tl.stops[0].end, "11:30"); // cafe stay 90
+  eq(tl.stops[1].walkFromPrev, 12); // 5+7 ผ่าน hub
+  eq(tl.stops[1].start, "11:42");
+});
+test("timeline: ร้านเปิดสาย = รอถึงเวลาเปิด", () => {
+  const late = { venue: { category: "cafe" as const, open_time: "11:00", walk_min_from_hub: 3 } };
+  const tl = buildTimeline([late], legs25)!;
+  eq(tl.stops[0].start, "11:00");
+  eq(tl.leaveOrigin, "10:32"); // 11:00 - (25+3)
+});
+test("timeline: ไม่มี stop = null", () => eq(buildTimeline([], legs25), null));
+test("tripTitle: ประกอบจากข้อมูลจริง", () =>
+  eq(tripTitle("date", "Lat Phrao", 500), "💛 Date day from Lat Phrao · 500฿"));
+
+test("share: token ตรง verify ผ่าน / ปลอมไม่ผ่าน / path ถูกรูป", () => {
+  const t = shareToken("plan-x");
+  truthy(verifyShareToken("plan-x", t));
+  falsy(verifyShareToken("plan-x", "forged-token-000000"));
+  falsy(verifyShareToken("plan-y", t));
+  truthy(sharePath("plan-x").startsWith("/p/plan-x?k="));
+});
+
 // ─── print results ─────────────────────────────────────────
 
 console.log("\n" + "═".repeat(60));

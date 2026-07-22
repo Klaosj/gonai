@@ -215,6 +215,21 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* การ์ดที่ถูกชี้จาก chat — วงแหวน accent วูบแล้วจางหาย */
+.gn-chat-hl {
+  border-radius: 20px;
+  animation: gn-chat-hl 2.4s var(--gn-ease);
+}
+@keyframes gn-chat-hl {
+  0%,
+  55% {
+    box-shadow: 0 0 0 3px var(--accent-bright);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(65, 185, 130, 0);
+  }
+}
+
 /* hide scrollbar */
 .gn-noscroll::-webkit-scrollbar {
   display: none;

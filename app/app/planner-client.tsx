@@ -10,8 +10,9 @@ import SplitPay from "@/components/SplitPay";
 import Odo from "@/components/Odo";
 import VenueCard from "@/components/VenueCard";
 import { gn, track } from "@/lib/api";
-import type { ChatResponse } from "@/lib/chat";
+import type { ChatActions, ChatResponse } from "@/lib/chat";
 import { mid } from "@/lib/costing";
+import { buildTimeline, tripTitle } from "@/lib/timeline";
 import { filtersToParams, type VenueFilters } from "@/lib/filters";
 import { useCountUp } from "@/lib/use-count-up";
 import { BUDGET_DEFAULTS } from "@/lib/fixtures";
@@ -167,11 +168,14 @@ export default function PlannerClient() {
   const [sendingImport, setSendingImport] = useState(false); // gn-rise เฉพาะโหลดแรก — กันการ์ดวูบตอนเปลี่ยน filter/intent
 
   // Chat-to-plan (คอลัมน์ซ้าย) — คุยแล้วตั้ง intent/origin/budget/filters จริง
-  const [chatMsgs, setChatMsgs] = useState<{ role: "user" | "ai"; text: string; quick?: boolean }[]>([]);
+  const [chatMsgs, setChatMsgs] = useState<
+    { role: "user" | "ai"; text: string; quick?: boolean; venues?: { id: string; name: string }[] }[]
+  >([]);
   const [chatInput, setChatInput] = useState("");
   const [chatSending, setChatSending] = useState(false);
   const pendingChat = useRef<ChatMeta | null>(null); // ตอบหลัง refetch เสร็จ — ตัวเลข = data ล่าสุดจริง
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const [hlVenueId, setHlVenueId] = useState<string | null>(null); // การ์ดที่ถูกชี้จาก chat
 
   // return-visit memory moment — "ทริปล่าสุดของคุณ" การ์ดเงียบๆ เหนือ mood tiles
   const [lastDonePlan, setLastDonePlan] = useState<ExpandedPlan | null>(null);
@@ -189,11 +193,19 @@ export default function PlannerClient() {
         setData(d);
         setSaved(new Set(d.savedIds));
         track("results_view", { intent, origin, total: d.total });
-        // chat รอตอบอยู่ — ตอบด้วยตัวเลขจากผลลัพธ์ชุดใหม่นี้
+        // chat รอตอบอยู่ — ตอบด้วยตัวเลขจากผลลัพธ์ชุดใหม่นี้ + แนบการ์ด Top 3 ให้กดได้
         if (pendingChat.current) {
           const p = pendingChat.current;
           pendingChat.current = null;
-          setChatMsgs((m) => [...m, { role: "ai", text: buildChatReply(p, d), quick: p.quick }]);
+          setChatMsgs((m) => [
+            ...m,
+            {
+              role: "ai",
+              text: buildChatReply(p, d),
+              quick: p.quick,
+              venues: d.cards.slice(0, 3).map((v) => ({ id: v.id, name: v.name_th })),
+            },
+          ]);
           setChatSending(false);
         }
       })
@@ -214,6 +226,43 @@ export default function PlannerClient() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [chatMsgs, chatSending]);
 
+  // apply ChatActions เข้า state จริงของ planner — ใช้ร่วมกันทั้งข้อความจาก AI และ follow-up chips
+  const applyChatActions = (a: ChatActions): { applied: string[]; refetch: boolean } => {
+    const applied: string[] = [];
+    let refetch = false;
+    if (a.intent && a.intent !== intent) {
+      setIntent(a.intent);
+      applied.push(INTENTS.find((i) => i.key === a.intent)?.label ?? a.intent);
+      refetch = true;
+    }
+    if (a.origin && a.origin !== origin) {
+      setOrigin(a.origin);
+      applied.push(`from ${data?.zones.find((z) => z.id === a.origin)?.name_th ?? a.origin}`);
+      refetch = true;
+    }
+    if (typeof a.budget === "number" && a.budget !== budget) {
+      setBudget(a.budget);
+      applied.push(`${a.budget}฿ budget`);
+    }
+    if (a.filters) {
+      const next = { ...filters };
+      for (const c of FILTER_CHIPS) {
+        const v = a.filters[c.key];
+        if (v === true) next[c.key] = true;
+        else if (v === false && next[c.key]) {
+          delete next[c.key];
+          applied.push(`${c.label} off`);
+        }
+        if (v === true && !filters[c.key]) applied.push(c.label);
+      }
+      if (JSON.stringify(next) !== JSON.stringify(filters)) {
+        setFilters(next);
+        refetch = true;
+      }
+    }
+    return { applied, refetch };
+  };
+
   // Chat → action จริง: apply เข้า state เดิมของ planner แล้วรอ refetch ก่อนตอบ
   const sendChat = async () => {
     const msg = chatInput.trim();
@@ -226,39 +275,7 @@ export default function PlannerClient() {
         method: "POST",
         body: JSON.stringify({ message: msg, current: { intent, origin, budget, filters } }),
       });
-      const a = r.actions;
-      const applied: string[] = [];
-      let refetch = false;
-      if (a.intent && a.intent !== intent) {
-        setIntent(a.intent);
-        applied.push(INTENTS.find((i) => i.key === a.intent)?.label ?? a.intent);
-        refetch = true;
-      }
-      if (a.origin && a.origin !== origin) {
-        setOrigin(a.origin);
-        applied.push(`from ${data?.zones.find((z) => z.id === a.origin)?.name_th ?? a.origin}`);
-        refetch = true;
-      }
-      if (typeof a.budget === "number" && a.budget !== budget) {
-        setBudget(a.budget);
-        applied.push(`${a.budget}฿ budget`);
-      }
-      if (a.filters) {
-        const next = { ...filters };
-        for (const c of FILTER_CHIPS) {
-          const v = a.filters[c.key];
-          if (v === true) next[c.key] = true;
-          else if (v === false && next[c.key]) {
-            delete next[c.key];
-            applied.push(`${c.label} off`);
-          }
-          if (v === true && !filters[c.key]) applied.push(c.label);
-        }
-        if (JSON.stringify(next) !== JSON.stringify(filters)) {
-          setFilters(next);
-          refetch = true;
-        }
-      }
+      const { applied, refetch } = applyChatActions(r.actions);
       track("chat_apply", { source: r.source, applied: applied.length });
       const meta: ChatMeta = { note: r.note, quick: r.source === "quick", applied, fresh: refetch };
       if (refetch) {
@@ -271,6 +288,48 @@ export default function PlannerClient() {
       setChatMsgs((m) => [...m, { role: "ai", text: "Something went wrong sending that — try again." }]);
       setChatSending(false);
     }
+  };
+
+  // follow-up chips — คำนวณสดจาก state ปัจจุบันตอน render (ไม่ค้างค่าเก่า) · กดแล้วยิง action จริงทันที
+  const buildFollowups = (): { label: string; actions: ChatActions }[] => {
+    const out: { label: string; actions: ChatActions }[] = [];
+    if (budget > 300) {
+      const cheaper = round50(budget * 0.75);
+      out.push({ label: `💸 Cheaper (~${cheaper}฿)`, actions: { budget: cheaper } });
+    }
+    if (data?.weather?.rainExpected && !filters.indoor) {
+      out.push({ label: "☔ Indoor only", actions: { filters: { indoor: true } } });
+    }
+    if (!filters.quiet && intent === "work") {
+      out.push({ label: "🎧 Quieter please", actions: { filters: { quiet: true } } });
+    }
+    if (!filters.near) {
+      out.push({ label: "⏱ Walkable only", actions: { filters: { near: true } } });
+    }
+    const other = INTENTS.find((i) => i.key !== intent);
+    if (other) out.push({ label: `${other.label} instead`, actions: { intent: other.key } });
+    return out.slice(0, 4);
+  };
+
+  const sendFollowup = (f: { label: string; actions: ChatActions }) => {
+    if (chatSending) return;
+    setChatMsgs((m) => [...m, { role: "user", text: f.label }]);
+    const { applied, refetch } = applyChatActions(f.actions);
+    track("chat_followup", { label: f.label });
+    const meta: ChatMeta = { note: null, quick: false, applied, fresh: refetch };
+    if (refetch) {
+      setChatSending(true);
+      pendingChat.current = meta;
+    } else {
+      setChatMsgs((m) => [...m, { role: "ai", text: buildChatReply(meta, data) }]);
+    }
+  };
+
+  // กดชื่อร้านใน chat → เลื่อนไปการ์ดจริงกลางจอ + ไฮไลต์
+  const highlightVenue = (id: string) => {
+    setHlVenueId(id);
+    document.querySelector(`[data-vid="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => setHlVenueId((cur) => (cur === id ? null : cur)), 2600);
   };
 
   useEffect(() => {
@@ -616,6 +675,20 @@ export default function PlannerClient() {
                 <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
                   {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
                   {m.text}
+                  {/* การ์ด Top 3 กดได้ — เลื่อนไปการ์ดจริง ไม่ใช่ text ลอยๆ */}
+                  {m.venues && m.venues.length > 0 && (
+                    <span className="mt-2 flex flex-wrap gap-1.5">
+                      {m.venues.map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => highlightVenue(v.id)}
+                          className="gn-press rounded-full border border-accent/40 bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-accent"
+                        >
+                          📍 {v.name}
+                        </button>
+                      ))}
+                    </span>
+                  )}
                 </div>
               ),
             )}
@@ -623,6 +696,20 @@ export default function PlannerClient() {
               <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
                 <span className="gn-spinner" />
                 thinking…
+              </div>
+            )}
+            {/* follow-up chips — โผล่หลังคำตอบล่าสุด กดแล้ว action จริงทันที ไม่ต้องพิมพ์ */}
+            {!chatSending && chatMsgs.length > 0 && chatMsgs[chatMsgs.length - 1].role === "ai" && (
+              <div className="flex flex-wrap gap-1.5">
+                {buildFollowups().map((f) => (
+                  <button
+                    key={f.label}
+                    onClick={() => sendFollowup(f)}
+                    className="gn-press rounded-full border border-line bg-bg px-3 py-1.5 text-[11.5px] text-mut hover:border-ink hover:text-ink"
+                  >
+                    {f.label}
+                  </button>
+                ))}
               </div>
             )}
             <div ref={chatEndRef} />
@@ -774,7 +861,11 @@ export default function PlannerClient() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {list.map((v, i) => (
-                <div key={v.id} className={firstCards.current ? `gn-rise ${i < 6 ? `gn-d${i + 1}` : ""}` : undefined}>
+                <div
+                  key={v.id}
+                  data-vid={v.id}
+                  className={`${firstCards.current ? `gn-rise ${i < 6 ? `gn-d${i + 1}` : ""}` : ""} ${hlVenueId === v.id ? "gn-chat-hl" : ""}`.trim() || undefined}
+                >
                 <VenueCard
                   venue={v}
                   cheapest={data.routes.cheapest}
@@ -852,22 +943,52 @@ export default function PlannerClient() {
 
           {plan ? (
             <>
-              <div className="flex flex-col">
-                {plan.stops.map((s, i) => (
-                  <div key={s.seq} className="flex gap-2.5 border-b border-dashed border-line py-2.5">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line bg-card-solid text-[13px]">
-                      {i === 0 ? "🏠" : CATEGORY_EMOJI[s.venue.category]}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <b className="text-[13.5px] text-ink">{s.venue.name_th}</b>
-                      <small className="block leading-relaxed text-mut">
-                        {s.venue.walk_min_from_hub} min walk from BTS Siam
-                      </small>
-                    </div>
-                    <div className="gn-num whitespace-nowrap font-semibold text-ink">~{s.est_cost}฿</div>
+              {/* ชื่อทริปอัตโนมัติ — ประกอบจากข้อมูลจริงของแผน */}
+              <h4 className="o-serif mt-1 text-[15.5px] font-semibold leading-snug text-ink">
+                {tripTitle(plan.intent, plan.origin_name, plan.budget_planned)}
+              </h4>
+
+              {/* timeline: เวลาเดินทาง = ตัวเลขจริงจาก route legs + walk_min ภาคสนาม · เวลาอยู่ต่อร้าน = ~ */}
+              {(() => {
+                const tl = buildTimeline(plan.stops, plan.route);
+                return (
+                  <div className="flex flex-col">
+                    {tl && (
+                      <div className="flex gap-2.5 border-b border-dashed border-line py-2.5">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line bg-card-solid text-[13px]">
+                          🏠
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <b className="text-[13.5px] text-ink">Leave {plan.origin_name} ~{tl.leaveOrigin}</b>
+                          <small className="block leading-relaxed text-mut">
+                            {tl.transitMin} min to the first stop ({plan.route_kind} route)
+                          </small>
+                        </div>
+                      </div>
+                    )}
+                    {plan.stops.map((s, i) => (
+                      <div key={s.seq}>
+                        {tl?.stops[i]?.walkFromPrev != null && (
+                          <p className="o-mono py-1 pl-9 text-[9.5px] text-mut">≤ {tl.stops[i].walkFromPrev} min walk</p>
+                        )}
+                        <div className="flex gap-2.5 border-b border-dashed border-line py-2.5">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line bg-card-solid text-[13px]">
+                            {CATEGORY_EMOJI[s.venue.category]}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <b className="text-[13.5px] text-ink">{s.venue.name_th}</b>
+                            <small className="block leading-relaxed text-mut">
+                              {tl && <>~{tl.stops[i].start}–{tl.stops[i].end} · </>}
+                              {s.venue.walk_min_from_hub} min from BTS Siam
+                            </small>
+                          </div>
+                          <div className="gn-num whitespace-nowrap font-semibold text-ink">~{s.est_cost}฿</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
 
               {plan.warnings.length > 0 && (
                 <div className="mt-2 rounded-lg border border-warn/40 bg-card-solid px-3 py-2 text-[12.5px] text-warn">
@@ -906,6 +1027,22 @@ export default function PlannerClient() {
                 className="gn-press gn-cta gn-pulse-ring o-pill-primary o-btn-label mt-3 w-full py-3"
               >
                 Start the trip ▶
+              </button>
+
+              {/* แชร์แผนเป็นลิงก์ view-only — เปิดได้โดยไม่ต้อง login, token กันเดา id */}
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.origin + plan.share_path);
+                    showToast("Share link copied 🔗 — anyone can view, no login");
+                  } catch {
+                    showToast("Couldn't copy — try again");
+                  }
+                  track("share_link_copy", { plan_id: plan.id });
+                }}
+                className="gn-press o-pill-dark o-btn-label mt-2 w-full py-2 text-[12.5px]"
+              >
+                🔗 Share this plan
               </button>
             </>
           ) : (

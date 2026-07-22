@@ -237,7 +237,7 @@ export default function PlanPage() {
 
       {/* ===== PLAN VIEW ===== */}
       {showPlan && (
-        <div className="gn-slide-l space-y-4">
+        <div className="gn-slide-l mx-auto max-w-2xl space-y-4">
           <RouteLegs
             route={plan.route}
             alt={plan.route_alt}

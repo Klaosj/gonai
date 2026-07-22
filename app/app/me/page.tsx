@@ -194,6 +194,23 @@ export default function TripsPage() {
         The more you go, the sharper it gets — every finished trip tunes your picks and budget
       </p>
 
+      {/* ทริปที่กำลังเที่ยว — ทางกลับเข้า live mode ต้องเด่นสุดในหน้า ไม่ใช่จมอยู่ใน Past trips */}
+      {me.plans
+        .filter((p) => p.status === "active")
+        .map((p) => (
+          <Link
+            key={p.id}
+            href={`/app/plan/${p.id}`}
+            className="gn-card-e gn-rise mb-4 flex items-center justify-between gap-3 border-accent/40 bg-tint/40 px-4 py-3.5"
+          >
+            <span className="flex items-center gap-2.5 text-[14px] text-ink">
+              <span className="gn-live-dot" aria-hidden />
+              <b>On the trip now</b> · {p.origin_name} → Siam · <span className="gn-num">{p.spent}฿ / {p.budget_planned}฿</span>
+            </span>
+            <span className="o-btn-label shrink-0 text-[12.5px] font-bold text-accent">Back to trip →</span>
+          </Link>
+        ))}
+
       {/* ===== แถวสถิติรวม ===== */}
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="gn-card-e p-4">

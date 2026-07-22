@@ -109,6 +109,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const donePlans = me?.plans.filter((p) => p.status === "done") ?? [];
+  const activePlan = me?.plans.find((p) => p.status === "active") ?? null;
   // มี done plan อย่างน้อย 1 + ไม่ใช่หน้า onboarding เท่านั้นถึงโชว์ — ไม่มีข้อมูล = ไม่โชว์อะไรเลย
   const showDna = donePlans.length > 0 && pathname !== "/app/welcome" && me !== null;
   const dnaDots = Math.min(5, donePlans.length);
@@ -140,6 +141,17 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
+          {/* มีทริปกำลังเที่ยว = ทางกลับเข้า live mode ติดตัวทุกหน้า */}
+          {activePlan && (
+            <Link
+              href={`/app/plan/${activePlan.id}`}
+              className="gn-press flex items-center gap-1.5 rounded-full border border-accent/40 bg-tint px-3 py-1.5 text-[11px] font-bold text-accent"
+            >
+              <span className="gn-live-dot" aria-hidden />
+              LIVE
+              <span className="hidden sm:inline">· back to trip</span>
+            </Link>
+          )}
           {showDna && (
             <Link
               href="/app/me"

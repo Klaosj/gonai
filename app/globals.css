@@ -215,6 +215,30 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* จุด LIVE กะพริบช้าๆ — บอกว่ามีทริปกำลังเที่ยวอยู่ */
+.gn-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: gn-live 1.6s ease-in-out infinite;
+}
+@keyframes gn-live {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gn-live-dot {
+    animation: none;
+  }
+}
+
 /* การ์ดที่ถูกชี้จาก chat — วงแหวน accent วูบแล้วจางหาย */
 .gn-chat-hl {
   border-radius: 20px;

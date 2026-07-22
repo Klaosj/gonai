@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import SplitPay from "@/components/SplitPay";
 import Odo from "@/components/Odo";
@@ -264,10 +265,8 @@ export default function PlannerClient() {
   };
 
   // Chat → action จริง: apply เข้า state เดิมของ planner แล้วรอ refetch ก่อนตอบ
-  const sendChat = async () => {
-    const msg = chatInput.trim();
+  const sendText = async (msg: string) => {
     if (!msg || chatSending) return;
-    setChatInput("");
     setChatSending(true);
     setChatMsgs((m) => [...m, { role: "user", text: msg }]);
     try {
@@ -289,6 +288,23 @@ export default function PlannerClient() {
       setChatSending(false);
     }
   };
+
+  const sendChat = () => {
+    const msg = chatInput.trim();
+    if (!msg) return;
+    setChatInput("");
+    void sendText(msg);
+  };
+
+  // ?q= จาก landing ask bar — ส่งเข้า chat ทันทีที่ data พร้อม (ครั้งเดียว)
+  const qConsumed = useRef(false);
+  useEffect(() => {
+    const q = sp.get("q");
+    if (!q || qConsumed.current || !data) return;
+    qConsumed.current = true;
+    void sendText(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   // follow-up chips — คำนวณสดจาก state ปัจจุบันตอน render (ไม่ค้างค่าเก่า) · กดแล้วยิง action จริงทันที
   const buildFollowups = (): { label: string; actions: ChatActions }[] => {
@@ -367,7 +383,7 @@ export default function PlannerClient() {
   // และยังไม่เคยทำ onboarding มาก่อน · เช็คครั้งเดียวตอน mount
   useEffect(() => {
     try {
-      const hasAnyQuery = sp.get("add") || sp.get("intent") || sp.get("origin") || sp.get("budget");
+      const hasAnyQuery = sp.get("add") || sp.get("intent") || sp.get("origin") || sp.get("budget") || sp.get("q");
       if (!hasAnyQuery && localStorage.getItem("gn_onboarded") !== "1") {
         router.replace("/app/welcome");
       }
@@ -562,8 +578,10 @@ export default function PlannerClient() {
   const memoryDiff = lastDonePlan ? lastDonePlan.budget_planned - memoryActual : 0;
   const memoryUnder = memoryDiff >= 0;
 
+  const estOver = plan?.status === "draft" && plan.est_total > plan.budget_planned;
+
   return (
-    <div className="mx-auto max-w-[1500px] px-4 py-4">
+    <div className="mx-auto max-w-[1500px] px-4 pb-24 pt-4 lg:pb-4">
       {/* Return-visit memory moment — เงียบๆ แถวเดียว เหนือ mood tiles, เฉพาะทริปที่จบแล้วภายใน 7 วัน */}
       {showMemory && lastDonePlan && (
         <div className="gn-card-e gn-rise mb-4 flex items-center justify-between gap-3 px-4 py-3">
@@ -611,7 +629,8 @@ export default function PlannerClient() {
 
       <div className="grid gap-4 lg:grid-cols-[330px_1fr_360px]">
         {/* ====== col 1: เงื่อนไข + ตัวกรอง + import ====== */}
-        <aside className="order-2 lg:order-none gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
+        {/* มือถือ: chat มาก่อน (01→02→03 ตรงเลขจริง) · desktop: ตำแหน่งคอลัมน์เดิม */}
+        <aside className="order-1 lg:order-none gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
           <span className="gn-step">01 — Your conditions</span>
 
           <div className="flex flex-col gap-2.5">
@@ -715,26 +734,29 @@ export default function PlannerClient() {
             <div ref={chatEndRef} />
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <input
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendChat()}
-              placeholder='Try "date from Lat Phrao, 500฿, quiet"'
-              aria-label="Chat to set your plan"
-              className="min-w-0 flex-1 rounded-full border border-line bg-bg px-3.5 py-2 text-[13px] text-ink placeholder:text-mut"
-            />
-            <button
-              onClick={sendChat}
-              disabled={chatSending}
-              aria-busy={chatSending}
-              aria-label="Send"
-              className="gn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white disabled:opacity-60"
-            >
-              {chatSending ? <span className="gn-spinner" style={{ margin: 0 }} /> : "↑"}
-            </button>
+          {/* sticky ล่างของ aside — คุยยาวแค่ไหนช่องพิมพ์ก็ไม่หาย */}
+          <div className="sticky bottom-0 z-10 -mx-1 bg-card px-1 pb-0.5 pt-1">
+            <div className="flex items-center gap-1.5">
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendChat()}
+                placeholder='Try "date from Lat Phrao, 500฿, quiet"'
+                aria-label="Chat to set your plan"
+                className="min-w-0 flex-1 rounded-full border border-line bg-bg px-3.5 py-2 text-[13px] text-ink placeholder:text-mut"
+              />
+              <button
+                onClick={sendChat}
+                disabled={chatSending}
+                aria-busy={chatSending}
+                aria-label="Send"
+                className="gn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white disabled:opacity-60"
+              >
+                {chatSending ? <span className="gn-spinner" style={{ margin: 0 }} /> : "↑"}
+              </button>
+            </div>
+            <p className="o-mono-text mt-1 text-[10.5px] text-mut">AI sets the conditions — every number comes from real data</p>
           </div>
-          <p className="o-mono-text -mt-1 text-[10.5px] text-mut">AI sets the conditions — every number comes from real data</p>
 
           {/* ตัวกรองจริง — กดแล้ว refetch ผลลัพธ์ */}
           <div className="flex flex-wrap gap-1.5">
@@ -778,7 +800,7 @@ export default function PlannerClient() {
         </aside>
 
         {/* ====== col 2: Top 3 + hero + intent chips ====== */}
-        <section className="order-1 lg:order-none gn-card-e gn-rise gn-d1 p-4">
+        <section className="order-2 lg:order-none gn-card-e gn-rise gn-d1 p-4">
           <span className="gn-step">02 — Pick a spot · top {data.cards.length} of {data.total}</span>
 
           <div
@@ -937,6 +959,17 @@ export default function PlannerClient() {
                 style={{ width: `${pct}%` }}
               />
             </div>
+            {/* est vs งบ ต้องเตือนตั้งแต่ตอน draft — ไม่ใช่รอให้เข้าไปเจอแถบแดงในหน้า plan */}
+            {plan && plan.status === "draft" && (
+              <div
+                key={plan.est_total}
+                className={`gn-bump mt-2 text-xs font-semibold ${plan.est_total > plan.budget_planned ? "text-bad" : "text-ok"}`}
+              >
+                {plan.est_total > plan.budget_planned
+                  ? `⚠️ Est. ~${plan.est_total}฿ incl. transport — ${plan.est_total - plan.budget_planned}฿ over budget`
+                  : `Est. ~${plan.est_total}฿ incl. transport — fits your budget ✓`}
+              </div>
+            )}
           </div>
 
           <SplitPay base={splitBase} />
@@ -1056,6 +1089,29 @@ export default function PlannerClient() {
           </div>
         </aside>
       </div>
+
+      {/* งบติดจอบนมือถือ — หัวใจของแอปต้องไม่ต้อง scroll 3 จอถึงเห็น · แตะ = เลื่อนไปกล่องงบ
+          portal ไป body เพราะ ancestor มี transform (gn-rise) ทำให้ position:fixed โดนจับเป็น local */}
+      {createPortal(
+        <button
+          onClick={() => document.getElementById("gn-budget-target")?.scrollIntoView({ behavior: "smooth", block: "center" })}
+          className="gn-glass fixed inset-x-3 bottom-3 z-40 flex items-center justify-between gap-2 rounded-full border border-line px-4 py-2.5 shadow-[0_4px_10px_rgba(18,20,17,.07),0_26px_56px_rgba(18,20,17,.14)] lg:hidden"
+          aria-label="Jump to budget"
+        >
+          <span className="o-mono text-[10px] text-mut">BUDGET</span>
+          <span className="gn-num text-[14px] font-semibold text-ink">
+            {spent}฿ / {budget}฿
+            <span className={`ml-1.5 ${estOver || left < 0 ? "text-bad" : "text-ok"}`}>
+              {estOver
+                ? `· est ~${plan!.est_total}฿ over ⚠️`
+                : left < 0
+                  ? `· ${-left}฿ over ⚠️`
+                  : `· ${left}฿ left`}
+            </span>
+          </span>
+        </button>,
+        document.body,
+      )}
 
       {/* chain picker — เลือกแล้วเพิ่มเข้าแผนได้จริง */}
       {chainList && plan && (

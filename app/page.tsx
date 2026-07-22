@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AskBar from "@/components/AskBar";
 import Logo from "@/components/Logo";
 import WaitlistForm from "@/components/WaitlistForm";
 
@@ -53,7 +54,8 @@ export default function LandingPage() {
           <h1 className="o-serif gn-rise gn-d1 mt-6 text-4xl font-light leading-[1.12] sm:text-[54px]" style={{ textWrap: "balance" }}>
             Plan a full day out
             <br />
-            <span className="whitespace-nowrap"><em className="o-marker">know every baht</em> before you leave</span>
+            {/* nowrap เฉพาะจอ ≥sm — บนมือถือบรรทัดนี้กว้าง ~570px เกินจอแล้วโดนตัด */}
+            <span className="sm:whitespace-nowrap"><em className="o-marker">know every baht</em> before you leave</span>
           </h1>
           <p className="gn-rise gn-d1 mx-auto mt-6 max-w-xl text-lg text-ink/80">
             Top 3 picks for your vibe, validated by real visitors — win bikes, boats and BTS all in one budget
@@ -68,16 +70,8 @@ export default function LandingPage() {
             <p className="mt-3 text-xs text-ink/60">No sign-up · works right away</p>
           </div>
 
-          {/* ask-style bar — ลิงก์ไป /app เฉยๆ ไม่ใช่ AI chat จริง (Mindtrip signature element) */}
-          <Link
-            href="/app"
-            className="gn-press gn-rise gn-d1 o-grain group mx-auto mt-10 flex max-w-lg items-center gap-3 rounded-full border border-line bg-bg px-5 py-3.5 text-left shadow-[0_2px_6px_rgba(18,20,17,.05),0_18px_44px_rgba(18,20,17,.1)] transition-shadow hover:shadow-[0_4px_10px_rgba(18,20,17,.07),0_26px_56px_rgba(18,20,17,.14)]"
-          >
-            <span className="min-w-0 flex-1 truncate text-[15px] text-mut">Where to this Saturday, 450฿ budget…</span>
-            <span className="gn-pulse-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white">
-              ↑
-            </span>
-          </Link>
+          {/* ask bar จริง — พิมพ์แล้วส่งต่อให้ chat ในแอปประมวลผลทันที (ไม่ใช่ปุ่มหลอกแล้ว) */}
+          <AskBar />
         </div>
       </section>
 

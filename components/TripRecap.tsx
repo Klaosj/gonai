@@ -231,9 +231,25 @@ export default function TripRecap({ plan, onShared }: { plan: ExpandedPlan; onSh
     }, "image/png");
   };
 
+  // โมเมนต์อวด = จบทริป — ให้ทั้งรูป (โพสต์) และลิงก์ view-only (ส่งในแชท) คู่กัน
+  const copyLink = async () => {
+    track("share_link_copy", { plan_id: plan.id, from: "recap" });
+    try {
+      await navigator.clipboard.writeText(window.location.origin + plan.share_path);
+      onShared("Link copied 🔗 — anyone can view, no login");
+    } catch {
+      onShared("Couldn't copy — try again");
+    }
+  };
+
   return (
-    <button onClick={share} className="gn-press o-pill-primary o-btn-label w-full py-3">
-      📸 Share trip recap (ready to post)
-    </button>
+    <div className="flex gap-2">
+      <button onClick={share} className="gn-press o-pill-primary o-btn-label flex-1 py-3">
+        📸 Share recap
+      </button>
+      <button onClick={copyLink} className="gn-press o-pill-dark o-btn-label shrink-0 px-4 py-3">
+        🔗 Copy link
+      </button>
+    </div>
   );
 }

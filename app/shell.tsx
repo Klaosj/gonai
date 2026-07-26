@@ -3,11 +3,12 @@
 // landing (/) ไม่ใช้ Shell — แยกโลก marketing กับแอปออกจากกัน
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Logo from "@/components/Logo";
-import { gn, track } from "@/lib/api";
+import { track } from "@/lib/api";
 import type { ExpandedPlan } from "@/lib/server";
 import type { Venue } from "@/lib/types";
+import { useApiResource } from "@/lib/use-api-resource";
 import { ToastProvider } from "@/lib/use-toast";
 
 const TABS = [
@@ -81,14 +82,8 @@ function tasteDnaLabels(me: MeResponse): string[] {
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "";
-  const [me, setMe] = useState<MeResponse | null>(null);
-
-  // Taste DNA — โหลดครั้งเดียวตอน mount ทุกหน้าในโซนแอป · เงียบเมื่อพัง (ไม่บล็อค UI)
-  useEffect(() => {
-    gn<MeResponse>("/api/me")
-      .then(setMe)
-      .catch(() => {});
-  }, []);
+  // Taste DNA — โหลดครั้งเดียวตอน mount ทุกหน้าในโซนแอป · เงียบเมื่อพัง (ไม่บล็อค UI) — ไม่ใช้ error ที่ hook คืนมา ตั้งใจให้พังเงียบเหมือนเดิม
+  const { data: me } = useApiResource<MeResponse>("/api/me");
 
   // client error reporter — ส่งเข้า events ให้เห็นปัญหาจริงจากเครื่องผู้ใช้ (สูงสุด 1 ครั้ง/30 วิ)
   useEffect(() => {

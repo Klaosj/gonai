@@ -3,10 +3,11 @@
 // ใช้ /api/me จริง — ทุกตัวเลข/badge คำนวณจาก me.plans + me.priceConfirms เท่านั้น ไม่มีระบบแต้ม/รางวัลลอยๆ
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { gn } from "@/lib/api";
 import { mid } from "@/lib/costing";
+import { useApiResource } from "@/lib/use-api-resource";
 import { useToast } from "@/lib/use-toast";
 import type { ExpandedPlan } from "@/lib/server";
 import { INTENT_LABELS, type Venue } from "@/lib/types";
@@ -87,16 +88,9 @@ function computeBadges(donePlans: ExpandedPlan[], priceConfirms: number): Badge[
 
 export default function TripsPage() {
   const router = useRouter();
-  const [me, setMe] = useState<MeResponse | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const { data: me, error: loadError, reload: load } = useApiResource<MeResponse>("/api/me");
   const [confirmingWipe, setConfirmingWipe] = useState(false);
   const showToast = useToast();
-
-  const load = () => {
-    setLoadError(false);
-    gn<MeResponse>("/api/me").then(setMe).catch(() => setLoadError(true));
-  };
-  useEffect(load, []);
 
   if (loadError) {
     return (

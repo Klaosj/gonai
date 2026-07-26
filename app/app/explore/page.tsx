@@ -2,9 +2,10 @@
 // /app/explore — ผังระยะเดินจาก BTS สยาม (ยังไม่ใช่แผนที่จริง) + grid ที่โชว์ได้ทั้งหมด + วิดีโอครีเอเตอร์ (plan §5)
 // ต้นแบบ: Gonai explore.html — ปุ่ม "ส่งคลิปให้ทีมดึงที่เที่ยว" → เข้าคิว imports จริง (ไม่เปลี่ยน)
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
+import { useApiResource } from "@/lib/use-api-resource";
 import { useToast } from "@/lib/use-toast";
 import type { Intent, Venue } from "@/lib/types";
 import { CATEGORY_AMBIENCE, CATEGORY_EMOJI, INTENT_EMOJI } from "@/lib/venue-display";
@@ -76,19 +77,28 @@ function pinPosition(v: Venue, index: number, count: number): { left: string; to
 
 export default function ExplorePage() {
   const [openVideo, setOpenVideo] = useState<string | null>(null);
-  const [hot, setHot] = useState<Venue[] | null>(null); // null = กำลังโหลด
+  const { data: hotRes, error: loadError, reload: load } = useApiResource<{ hot: Venue[] }>("/api/explore");
+  const hot = hotRes?.hot ?? null; // null = กำลังโหลด — พังแล้วแยกไป loadError ข้างล่าง ไม่กลืนเงียบอีกต่อไป
   const [filter, setFilter] = useState<FilterKey>("all");
   const [sentVideos, setSentVideos] = useState<Set<string>>(new Set());
   const showToast = useToast();
 
-  useEffect(() => {
-    gn<{ hot: Venue[] }>("/api/explore")
-      .then((d) => setHot(d.hot))
-      .catch(() => {});
-  }, []);
-
   // /api/explore คืนมาเรียง hit_rank ก่อนแล้ว unseen_rank อยู่แล้ว — filter รักษาลำดับเดิม
+  // hooks ต้องมาก่อน early return ทุกตัว (pattern เดียวกับ plan/[id]/page.tsx)
   const filtered = useMemo(() => (hot ?? []).filter((v) => matchesFilter(v, filter)), [hot, filter]);
+
+  // ปิดบั๊กเดิม: hot เคย .catch(() => {}) กลืน error เงียบ — ลอก pattern loadError จาก app/app/me/page.tsx มาใช้ตรงนี้
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <p className="text-4xl">🎒</p>
+        <p className="mt-3 font-bold text-ink">Couldn't load data</p>
+        <button onClick={load} className="gn-press o-pill-primary o-btn-label mt-4 px-6 py-2.5">
+          Try again ↻
+        </button>
+      </div>
+    );
+  }
 
   const sendVideo = async (v: { id: string; title: string }) => {
     try {

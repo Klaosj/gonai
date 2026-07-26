@@ -3,7 +3,7 @@
 // โหมดหลักตาม plan.status (draft→plan | active→trip | done→summary)
 // toggle ให้สลับ "ดู" ระหว่างแผน⇄เที่ยวได้จริงตอน active (ของเดิมกดแล้วไม่เกิดอะไร)
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import BudgetBar from "@/components/BudgetBar";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import RouteLegs from "@/components/RouteLegs";
@@ -13,6 +13,7 @@ import Odo from "@/components/Odo";
 import SplitPay from "@/components/SplitPay";
 import { gn, track } from "@/lib/api";
 import { fmtRange, mid } from "@/lib/costing";
+import { useApiResource } from "@/lib/use-api-resource";
 import { useCountUp } from "@/lib/use-count-up";
 import { useToast } from "@/lib/use-toast";
 import type { ExpandedPlan, ExpandedStop } from "@/lib/server";
@@ -84,8 +85,12 @@ function SpendInput({ onSave, onClose }: { onSave: (amount: number) => void; onC
 export default function PlanPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [plan, setPlan] = useState<ExpandedPlan | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const {
+    data: plan,
+    error: loadError,
+    reload: load,
+    setData: setPlan,
+  } = useApiResource<ExpandedPlan>(`/api/plans/${id}`);
   const [view, setView] = useState<"plan" | "trip" | null>(null); // null = ตาม status
   const [suggestions, setSuggestions] = useState<{ list: Venue[]; indoor: boolean } | null>(null);
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
@@ -96,15 +101,6 @@ export default function PlanPage() {
   const [acting, setActing] = useState<string | null>(null); // in-flight lock ต่อ action // (3) ripple จุดที่เพิ่งเช็คอิน // stop ที่กำลังพิมพ์จำนวนเงินเอง
 
   const showToast = useToast();
-
-  const load = useCallback(() => {
-    setLoadError(false);
-    gn<ExpandedPlan>(`/api/plans/${id}`)
-      .then(setPlan)
-      .catch(() => setLoadError(true));
-  }, [id]);
-
-  useEffect(load, [load]);
 
   const act = useCallback(
     async (action: string, extra: Record<string, unknown> = {}) => {

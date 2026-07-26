@@ -32,6 +32,9 @@
 
 ## 2. Fonts — `app/layout.tsx` (next/font/google)
 
+> **แทนที่แล้วเมื่อ 2026-07-26 (v0.8):** Bricolage Grotesque + Instrument Sans ถูกถอดออก ทั้งแอปใช้ IBM Plex Sans Thai + IBM Plex Mono
+> ส่วนล่างของหัวข้อนี้เก็บไว้เป็นประวัติของ v0.6 — ของจริงปัจจุบันดูที่ `PLAN.md` หัวข้อ "ตัวอักษร v0.8"
+
 - Display: **Bricolage_Grotesque** (`opsz 12..96, wght 500..800`) → ผูกกับ var เดิมของ `.o-serif` (คงชื่อคลาส แก้ font-family + letter-spacing -0.02em + weight 700-800) — Fraunces ออก
 - Body: **Instrument_Sans** (400-700) + คง **IBM_Plex_Sans_Thai** ใน stack ต่อท้าย (ชื่อร้านจริงจาก W2 จะเป็นไทย)
 - Mono: IBM Plex Mono คงเดิม

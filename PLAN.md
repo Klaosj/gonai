@@ -7,8 +7,32 @@
 
 แอปวางแผนเที่ยว 1 วัน พร้อมค่าเดินทาง+งบทุกบาท ก่อนออกจากบ้าน เน้นย่านสยามเป็น launch zone
 
-- **Tech**: Next.js 15 (App Router) + React 19 + Tailwind v4 + Zustand
-- **UI**: Mobile-first (max-w-md), ไทยล้วน, IBM Plex Sans Thai
+- **Tech**: Next.js 15 (App Router) + React 19 + Tailwind v4 (`zustand` อยู่ใน package.json แต่ยังไม่มีไฟล์ไหน import — state ทั้งแอปเป็น useState/useRef)
+- **UI**: Mobile-first (max-w-md), ข้อความในแอปเป็นภาษาอังกฤษ, ตัวอักษร IBM Plex Sans Thai
+- **ตัวอักษร v0.8** (2026-07-26, `app/layout.tsx`) — ตระกูล IBM Plex ล้วน:
+  - ตัวหนังสือทั้งหมด (display + body + ชื่อร้าน) = **IBM Plex Sans Thai** 300–700 · subsets `thai` + `latin` → var `--font-plex-thai`
+  - ตัวเลข/ป้าย mono = **IBM Plex Mono** 400–600 → var `--font-mono`
+  - `.o-serif`/`.gn-serif` (display) ชี้มาที่ Plex Thai แล้ว — ชื่อคลาสเดิมทั้งแอปไม่ต้องแตะ · tracking -0.01em (เดิม -0.02em ของ Bricolage บีบเกินไปสำหรับสระไทย)
+  - หนักสุดที่ใช้ได้คือ **700** (Bricolage เดิมมี 800) — `.gn-logo-word` และ canvas ของ TripRecap ปรับตามแล้ว
+  - **Instrument Sans + Bricolage Grotesque ถูกถอดออกทั้งคู่** (ไม่มีอักษรไทย ทำให้ชื่อร้านไทยจาก W2 หลุดไปเป็นฟอนต์ระบบ)
+  - canvas ของ `TripRecap` อ่านชื่อ family จาก CSS var (`--font-plex-thai` / `--font-mono`) แทนพิมพ์ชื่อตรงๆ — next/font สร้างคู่ family เสมอ (`'IBM Plex Sans Thai'` + `'…Fallback'` ที่ปรับ metric) การ์ด PNG จึงใช้ฟอนต์ชุดเดียวกับหน้าจอ · ฟอนต์ถูก preload ตอน mount ไม่ใช่ตอนกดปุ่ม เพราะ `navigator.share` ต้องอยู่ใน user gesture เดิม
+  - ระวัง: Tailwind v4 มี theme var ชื่อ `--font-mono` ของตัวเอง — ที่ชนะคือของ next/font (class บน `<html>` ไม่ได้อยู่ใน `@layer`) · ทั้งแอปไม่ได้ใช้ utility `font-sans`/`font-mono` เลย จึงไม่มีจุดไหนหลุด
+  - **stack ของ mono ทุกคลาสต้องต่อท้ายด้วย Plex Thai** (`.o-mono`, `.o-mono-text`, `.o-btn-label`, `.gn-step` + `mono` ใน TripRecap) — IBM Plex Mono ไม่มี subset ไทย **และไม่มีแม้แต่ ฿ (U+0E3F)** ถ้าไม่ต่อ ตัวเลขเป็น mono แต่ ฿ กับชื่อร้านไทยหลุดไปฟอนต์ระบบ
+  - โหลด mono น้ำหนัก 700 ด้วย เพราะ canvas ของ recap วาดตัวเลขเงินที่ 700 (ไม่งั้นได้ตัวหนาสังเคราะห์)
+  - `.o-marker` คงค่า `74%` ไว้ — เรนเดอร์เทียบ 58/66/74/82% ที่ 36px และ 54px แล้ว ต่ำกว่านี้แถบขึ้นไปคาดกลางคำ · **% นี้อิงกล่อง inline ของฟอนต์ เปลี่ยนฟอนต์เมื่อไรต้องดูภาพจริง ห้ามคำนวณเอา**
+  - โลโก้: ธงขยับจาก `bottom: 0.78em` → `0.86em` (จุดบน i ของ Plex กลมใหญ่กว่า Bricolage จนโคนเสาทับจุด)
+
+## บั๊ก layout ที่เจอตอน QA ฟอนต์ (มีมาก่อน ไม่ได้เกิดจากฟอนต์ — แก้แล้วทั้งหมด 2026-07-26)
+
+กวาดด้วย headless Chrome 6 หน้า × 9 ความกว้าง (360→1440) + หน้า plan ทั้ง 3 สถานะ + หน้าแชร์
+
+| อาการ | สาเหตุ | แก้ที่ |
+|-------|--------|--------|
+| `/app/explore` ล้นแนวนอน 360px=136px · 390px=106px · 640px=16px | `aspect-[4/3]` + `min-h` → CSS แปลงความสูงขั้นต่ำข้ามอัตราส่วนเป็นความกว้างขั้นต่ำ (480/640px) และ grid track `auto` โดนชื่อร้านที่ truncate ดันเป็น 408px | `explore/page.tsx` — ตัด `min-h` เหลือ `aspect-[4/3]` ล้วน + `grid-cols-[minmax(0,1fr)]` |
+| header ล้นจอ 640–789px (iPad แนวตั้ง 768) เมื่อมีทั้งทริป active และทริป done | แถวหัวต้องการ 790px (โลโก้ 116 + แท็บ 311 + LIVE&nbsp;pill&nbsp;+&nbsp;Taste&nbsp;DNA 265 + avatar) | `shell.tsx` — Taste DNA chip และข้อความ "· back to trip" ขึ้นเฉพาะ `lg` |
+| ชื่อร้านในการ์ด explore ถูกตัดทุกใบที่ 390px (ช่องเหลือ 142px แต่ชื่อยาว 175–231px) | badge เต็มกินความกว้าง ~100px | ป้ายสั้นบนมือถือ + `line-clamp-2` แทน `truncate` |
+| ป้ายชื่อหมุดในผังทับกันเอง 9 คู่ · caption บังป้ายวงนอก | ป้าย pill กว้าง ~105px ทุกอันบนผังกว้าง 358px | ซ่อนป้ายชื่อหมุดต่ำกว่า `sm` + caption ใช้ข้อความสั้นบนมือถือ |
+| หน้าแชร์: คำว่า "budget" ตกไปคนละบรรทัดกับตัวเลข | แถว `flex justify-between` ที่ป้าย mono ตกเป็น 2 บรรทัดแล้วบีบคอลัมน์ขวา | `p/[id]/page.tsx` — วางซ้อนบนมือถือ (`flex-col sm:flex-row`) + `whitespace-nowrap` |
 - **Design tokens** (v0.7 "Forest on White + brand gradient" — ค่าจริงอยู่ที่ `app/globals.css`):
   - พื้นขาว `#ffffff` + หมึก `#121411` + accent `#107f6b` / bright `#41b982`
   - brand gradient จากตัว G ของโลโก้: teal `#0f9fa6` → `#41b982` → lime `#6ccf63` (`--gn-brand-grad`, 38deg)

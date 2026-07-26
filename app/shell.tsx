@@ -149,14 +149,16 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             >
               <span className="gn-live-dot" aria-hidden />
               LIVE
-              <span className="hidden sm:inline">· back to trip</span>
+              {/* ข้อความยาวเฉพาะ lg+ — ที่ 640–789px แถวหัวรวมกันแล้วยาว 790px ดันจอล้น (iPad แนวตั้ง 768 โดนเต็มๆ) */}
+              <span className="hidden lg:inline">· back to trip</span>
             </Link>
           )}
           {showDna && (
             <Link
               href="/app/me"
               title={`Built from ${donePlans.length} completed trips`}
-              className="gn-press hidden items-center gap-2.5 rounded-full border border-line bg-card px-3.5 py-1.5 sm:flex"
+              /* lg+ เท่านั้น — ชิปนี้เป็นของประดับ ยอมหายก่อนเพื่อไม่ให้แถวหัวดันจอล้นในช่วง 640–789px */
+              className="gn-press hidden items-center gap-2.5 rounded-full border border-line bg-card px-3.5 py-1.5 lg:flex"
             >
               <span className="o-mono text-[10px] text-accent">Taste DNA</span>
               <span className="flex gap-[3px]">

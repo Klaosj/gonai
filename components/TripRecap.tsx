@@ -1,6 +1,7 @@
 "use client";
 // สรุปทริปแบบแชร์ได้ — ปิดวง Sharing → คนเห็น → มา Dreaming ต่อ
 // วาด PNG ด้วย canvas แล้ว Web Share API (มือถือ) หรือดาวน์โหลด (desktop)
+import { useEffect } from "react";
 import { track } from "@/lib/api";
 import type { ExpandedPlan } from "@/lib/server";
 
@@ -26,6 +27,16 @@ function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number,
   g.arcTo(x, y + h, x, y, r);
   g.arcTo(x, y, x + w, y, r);
   g.closePath();
+}
+
+// อ่านชื่อ family จาก CSS var ที่ layout ผูกไว้ แทนการพิมพ์ชื่อฟอนต์ตรงๆ ใน canvas
+// เหตุผล: next/font สร้าง family คู่กันเสมอ ('IBM Plex Sans Thai' + 'IBM Plex Sans Thai Fallback'
+// ที่ปรับ metric ให้ไม่ขยับตอนสลับ) และชื่อที่มันสร้างเป็นรายละเอียดภายในที่เปลี่ยนได้ตามเวอร์ชัน —
+// อ่านจาก var แล้วการ์ด PNG ใช้ฟอนต์ชุดเดียวกับที่หน้าจอใช้เสมอ ไม่มีทางหลุดไปฟอนต์ระบบเงียบๆ
+function fontStack(varName: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback;
+  const v = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  return v ? `${v}, ${fallback}` : fallback;
 }
 
 // Chromium รองรับ ctx.letterSpacing แล้ว แต่ lib.dom เก่าบางเวอร์ชันยังไม่มี type — feature-detect ไว้กันพัง
@@ -55,9 +66,14 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   c.width = W;
   c.height = H;
   const g = c.getContext("2d")!;
-  const font = (size: number, weight = 600) => `${weight} ${size}px 'Instrument Sans', 'IBM Plex Sans Thai', system-ui, sans-serif`;
-  const displayFont = (size: number, weight = 800) => `${weight} ${size}px 'Bricolage Grotesque', 'IBM Plex Sans Thai', system-ui, sans-serif`;
-  const monoFont = (size: number, weight = 600) => `${weight} ${size}px 'IBM Plex Mono', monospace`;
+  // v0.8: ทั้งการ์ดใช้ IBM Plex Sans Thai + IBM Plex Mono ชุดเดียวกับในแอป (700 คือหนักสุดของ Plex Thai)
+  const sans = fontStack("--font-plex-thai", "system-ui, sans-serif");
+  // ต่อ sans ท้าย stack ของ mono: IBM Plex Mono ไม่มี ฿ (U+0E3F) และไม่มีอักษรไทย — ถ้าไม่ต่อ
+  // เลขได้ mono แต่ ฿ กับชื่อร้านไทยจะหลุดไปฟอนต์ระบบ กลายเป็นสองตระกูลในบรรทัดเดียว
+  const mono = `${fontStack("--font-mono", "ui-monospace")}, ${sans}, monospace`;
+  const font = (size: number, weight = 600) => `${weight} ${size}px ${sans}`;
+  const displayFont = (size: number, weight = 700) => `${weight} ${size}px ${sans}`;
+  const monoFont = (size: number, weight = 600) => `${weight} ${size}px ${mono}`;
 
   // พื้นขาวล้วน — Forest on White
   g.fillStyle = "#ffffff";
@@ -189,7 +205,9 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
   const footerBaseline = footerY + footerH / 2 + footerSize * 0.34;
 
   g.fillStyle = BRIGHT;
-  roundRect(g, M + preW - 3, footerBaseline - footerSize * 0.28, markedW + 6, footerSize * 0.34, 3);
+  // แถบมาร์กเกอร์เกาะโคนตัวอักษร ไม่พาดกลางคำ — ค่าเดิม (-0.28/0.34) จูนไว้กับ x-height ของ Bricolage
+  // พอเป็น Plex Thai ที่ตัวเตี้ยกว่า แถบเลยขึ้นไปคาดกลางคำเหมือนขีดฆ่า
+  roundRect(g, M + preW - 3, footerBaseline - footerSize * 0.1, markedW + 6, footerSize * 0.22, 3);
   g.fill();
 
   g.fillStyle = INK;
@@ -205,6 +223,23 @@ function drawRecap(plan: ExpandedPlan): HTMLCanvasElement {
 }
 
 export default function TripRecap({ plan, onShared }: { plan: ExpandedPlan; onShared: (m: string) => void }) {
+  // อุ่นฟอนต์ไว้ตั้งแต่การ์ดโผล่ ไม่ใช่ตอนกดแชร์ — canvas วาดด้วยฟอนต์ที่ยังไม่โหลดจะตกไปฟอนต์ระบบเงียบๆ
+  // และห้าม await ในจังหวะกดปุ่ม เพราะ navigator.share ต้องอยู่ใน user gesture เดิม (iOS ตัดทิ้ง)
+  useEffect(() => {
+    if (!document.fonts) return;
+    const sans = fontStack("--font-plex-thai", "system-ui");
+    const mono = fontStack("--font-mono", "monospace");
+    const specs = [
+      `500 24px ${sans}`,
+      `600 25px ${sans}`,
+      `700 27px ${sans}`,
+      `700 13px ${mono}`,
+      `700 25px ${mono}`,
+      `700 84px ${mono}`,
+    ];
+    for (const s of specs) document.fonts.load(s).catch(() => {});
+  }, []);
+
   const share = () => {
     track("share_recap", { plan_id: plan.id });
     const canvas = drawRecap(plan);

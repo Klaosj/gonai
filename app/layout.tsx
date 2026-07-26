@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, IBM_Plex_Mono, IBM_Plex_Sans_Thai, Instrument_Sans } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
 
+// ตัวอักษร v0.8 (2026-07-26) — ตระกูล IBM Plex ล้วน ทั้งแอป
+//   ทุกอย่างที่เป็นตัวหนังสือ = IBM Plex Sans Thai (display + body + ชื่อร้านไทยจาก W2 ตัวเดียวกัน)
+//   ตัวเลข/ป้าย mono = IBM Plex Mono
+// เหตุผล: ไทยกับอังกฤษต้องเป็นตระกูลเดียวกัน ไม่งั้นชื่อร้านไทยจะเป็นฟอนต์ระบบที่ไม่เข้าพวก
+// (เดิม Instrument Sans สำหรับ latin + Bricolage Grotesque เป็น display — ทั้งคู่ไม่มีอักษรไทย)
 const plexThai = IBM_Plex_Sans_Thai({
   weight: ["300", "400", "500", "600", "700"],
   subsets: ["thai", "latin"],
@@ -9,25 +14,9 @@ const plexThai = IBM_Plex_Sans_Thai({
   display: "swap",
 });
 
-const instrumentSans = Instrument_Sans({
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-// v0.6 "Forest on White" — display font สลับจาก Fraunces (serif) เป็น Bricolage Grotesque (plan §2)
-// ผูกกับ var เดิม --font-fraunces เพื่อไม่ต้องแตะ .o-serif/.gn-serif ทั่วแอป
-const fraunces = Bricolage_Grotesque({
-  weight: ["500", "600", "700", "800"],
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  display: "swap",
-});
-
 const plexMono = IBM_Plex_Mono({
-  weight: ["400", "500", "600"],
+  // 700 จำเป็น: canvas ของ TripRecap วาดตัวเลขเงินด้วย mono 700 — ถ้าไม่โหลดจะได้ตัวหนาปลอมที่เบราว์เซอร์สังเคราะห์
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
@@ -60,10 +49,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" className={`${plexThai.variable} ${instrumentSans.variable} ${fraunces.variable} ${plexMono.variable}`}>
+    <html lang="th" className={`${plexThai.variable} ${plexMono.variable}`}>
       <body
         className="min-h-screen bg-bg text-ink antialiased"
-        style={{ fontFamily: "var(--font-sans), var(--font-plex-thai), system-ui, sans-serif" }}
+        style={{ fontFamily: "var(--font-plex-thai), system-ui, sans-serif" }}
       >
         {children}
       </body>

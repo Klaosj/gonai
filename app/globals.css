@@ -123,12 +123,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* logo + hero titles — เดิมใช้ Fraunces (serif), ตอนนี้คือ Bricolage Grotesque (display sans, plan §2) */
+/* logo + hero titles — v0.8: display = IBM Plex Sans Thai ตัวเดียวกับ body (Fraunces → Bricolage → Plex)
+   ชื่อคลาสเดิมคงไว้ทั้งแอปเพื่อไม่ต้องแตะ JSX · tracking หลวมกว่าเดิมเพราะ Plex Thai ตัวแคบกว่า Bricolage
+   และสระ/วรรณยุกต์ไทยจะชนกันถ้าบีบ -0.02em */
 .gn-serif,
 .o-serif {
-  font-family: var(--font-fraunces), "Bricolage Grotesque", sans-serif;
+  font-family: var(--font-plex-thai), "IBM Plex Sans Thai", sans-serif;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 .o-serif em,
 .gn-serif em {
@@ -153,9 +155,9 @@ body {
   position: relative;
   display: inline-flex;
   align-items: baseline;
-  font-family: var(--font-fraunces), "Bricolage Grotesque", sans-serif;
-  font-weight: 800;
-  letter-spacing: 0.09em;
+  font-family: var(--font-plex-thai), "IBM Plex Sans Thai", sans-serif;
+  font-weight: 700; /* Plex Thai หนักสุด 700 (Bricolage เดิม 800) */
+  letter-spacing: 0.085em;
   line-height: 1;
   color: var(--ink);
   /* กันธงบนหัว i ล้นไปทับของที่อยู่ถัดไป */
@@ -180,17 +182,19 @@ body {
   height: 1.2em;
   color: var(--ink);
 }
-/* ธงชาติบนหัว i — เสาโผล่จากจุดของ i ธงสะบัดขวา */
+/* ธงชาติบนหัว i — เสาโผล่จากจุดของ i ธงสะบัดขวา
+   0.86em (เดิม 0.78em): จุดบน i ของ Plex Thai กลมและใหญ่กว่า Bricolage เดิม ค่าเก่าทำให้โคนเสาทับจุดจนกลืนเป็นก้อนเดียว
+   ค่านี้เทียบจากการเรนเดอร์จริง 3 ขนาด (19/30/44px) — สูงกว่านี้เสาจะลอยหลุดจากตัว i */
 .gn-logo-flag {
   position: absolute;
   left: 26%;
-  bottom: 0.78em;
+  bottom: 0.86em;
   width: 1.05em;
   height: auto;
 }
 .gn-logo-tag {
   margin-top: 0.4em;
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-plex-thai), "IBM Plex Sans Thai", sans-serif;
   font-weight: 700;
   font-size: 0.26em;
   letter-spacing: 0.34em;
@@ -201,9 +205,11 @@ body {
 }
 
 /* mono uppercase micro-labels — ลายเซ็นสำคัญที่สุดของดีไซน์นี้ (ปุ่ม/badge/หัวคอลัมน์/ชิป)
-   ไม่กำหนด font-size ในนี้ — ให้แต่ละจุดคุม text-[…]/text-xs ของตัวเองตามบริบท */
+   ไม่กำหนด font-size ในนี้ — ให้แต่ละจุดคุม text-[…]/text-xs ของตัวเองตามบริบท
+   ต่อท้าย stack ด้วย Plex Thai เสมอ: IBM Plex Mono ไม่มี subset ไทยและ**ไม่มีแม้แต่ ฿ (U+0E3F)**
+   ถ้าไม่ต่อ ตัวเลขจะเป็น mono แต่ ฿ กับชื่อร้านไทยจะหลุดไปฟอนต์ระบบคนละตระกูล */
 .o-mono {
-  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-family: var(--font-mono), "IBM Plex Mono", var(--font-plex-thai), monospace;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-weight: 500;
@@ -211,7 +217,7 @@ body {
 /* mono ตัวพิมพ์เล็ก — ใช้กับข้อความยาว (footer/hint/คำอธิบาย) ที่ยังอยากได้ผิว mono
    แต่ไม่ต้อง uppercase + tracking กว้างจนอ่านไทยยาก */
 .o-mono-text {
-  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-family: var(--font-mono), "IBM Plex Mono", var(--font-plex-thai), monospace;
   letter-spacing: 0.01em;
 }
 
@@ -364,7 +370,7 @@ body {
 /* ตัวอักษรบนปุ่ม/CTA — ใช้ฟอนต์ mono ตามดีไซน์แต่ไม่ uppercase/ไม่ tracking กว้างจัด
    (ปุ่มยาวๆ อ่านยากถ้า tracking กว้างแบบ .o-mono) */
 .o-btn-label {
-  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-family: var(--font-mono), "IBM Plex Mono", var(--font-plex-thai), monospace;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -556,7 +562,7 @@ input:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-family: var(--font-mono), "IBM Plex Mono", var(--font-plex-thai), monospace;
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
@@ -636,6 +642,9 @@ input:focus-visible {
 .o-marker {
   font-style: normal;
   box-shadow: none;
+  /* 74% ผ่านการเรนเดอร์เทียบกับ Plex Thai แล้ว — ลอง 58/66/74/82% ที่ 36px และ 54px
+     (qa/shots/zoom/marker-tune.png): ต่ำกว่านี้แถบขึ้นไปคาดกลางคำเหมือนขีดฆ่า สูงกว่านี้กลายเป็นเส้นใต้ลอย
+     % นี้อิงความสูงกล่อง inline ของฟอนต์ — เปลี่ยนฟอนต์เมื่อไรต้องเรนเดอร์เทียบใหม่ ห้ามคำนวณเอาอย่างเดียว */
   background: linear-gradient(var(--color-accent-bright), var(--color-accent-bright)) no-repeat 0 74%;
   background-size: 0% 0.34em;
   animation: gn-marker-draw 0.7s var(--gn-ease) 0.45s forwards;

@@ -1,5 +1,5 @@
 // โลโก้ GoNai — วาดใหม่เป็น SVG/CSS จากไฟล์โลโก้ต้นฉบับ (Downloads/Stylized GoNai Logo)
-// เพื่อให้คมทุกขนาด พื้นหลังโปร่ง และ wordmark ใช้ Bricolage ตัวเดียวกับ display font ของแอป
+// เพื่อให้คมทุกขนาด พื้นหลังโปร่ง และ wordmark ใช้ IBM Plex Sans Thai ตัวเดียวกับทั้งแอป (v0.8)
 // ขนาดคุมด้วย font-size ที่ครอบ เช่น <Logo className="text-[19px]" /> — สไตล์อยู่ที่ .gn-logo-* ใน globals.css
 
 function Plane() {

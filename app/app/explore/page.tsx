@@ -150,14 +150,21 @@ export default function ExplorePage() {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        {/* ผังระยะเดิน — ไม่ใช่แผนที่จริง ไม่มีพิกัดจนกว่า W2 */}
+      {/* minmax(0,…) ทุก track: ค่า default ของ grid คือ auto ซึ่งกว้างอย่างน้อยเท่า min-content ของลูก
+          — ชื่อร้านยาวๆ ที่ truncate ไว้ยังดัน min-content ได้ถึง 408px แล้วล้นจอมือถือ (วัดจริงที่ 390px) */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        {/* ผังระยะเดิน — ไม่ใช่แผนที่จริง ไม่มีพิกัดจนกว่า W2
+            อัตราส่วน 4:3 ต้องคงไว้ (วงแหวนเวลาเดินใช้ % ทั้งกว้างและสูง ถ้าสัดส่วนเปลี่ยนวงจะบิดตามจอ)
+            แต่ห้ามใส่ min-h คู่กับ aspect: CSS จะแปลงความสูงขั้นต่ำข้ามอัตราส่วนกลับมาเป็น
+            ความกว้างขั้นต่ำ (360×4/3 = 480px) แล้วดันจอล้น — วัดจริงตอนมี min-h: 390px ล้น 106px */}
         <div
-          className="relative aspect-[4/3] min-h-[360px] overflow-hidden rounded-[20px] border border-line sm:min-h-[480px]"
+          className="relative aspect-[4/3] overflow-hidden rounded-[20px] border border-line"
           style={{ background: "#f7f7f4" }}
         >
+          {/* ข้อความเต็มตกเป็น 2 บรรทัดบนมือถือแล้วไปบังป้าย "≤15+ min" ของวงนอกสุด — มือถือใช้ข้อความสั้น */}
           <span className="o-mono absolute right-3 top-3 z-[3] rounded-full border border-line bg-bg/75 px-3 py-1.5 text-[10px] text-mut backdrop-blur">
-            Walk-distance chart from BTS Siam — real positions land with W2 coordinates
+            <span className="sm:hidden">Sample layout · W2 pending</span>
+            <span className="hidden sm:inline">Walk-distance chart from BTS Siam — real positions land with W2 coordinates</span>
           </span>
 
           {[5, 10, 15].map((mins) => {
@@ -199,7 +206,9 @@ export default function ExplorePage() {
                 >
                   {CATEGORY_EMOJI[v.category]}
                 </span>
-                <span className="o-mono whitespace-nowrap rounded-full border border-line bg-bg/80 px-2 py-0.5 text-[9px] text-ink backdrop-blur">
+                {/* ป้ายชื่อโผล่ตั้งแต่ sm ขึ้นไป — ที่ 390px ป้ายกว้าง ~105px ทุกอันซ้อนทับกันเอง 9 คู่
+                    จนอ่านไม่ออก · มือถือเหลือหมุด+อีโมจิ แล้วแตะเข้าไปดูชื่อเต็มในหน้าวางแผน */}
+                <span className="o-mono hidden whitespace-nowrap rounded-full border border-line bg-bg/80 px-2 py-0.5 text-[9px] text-ink backdrop-blur sm:block">
                   {shortName}
                 </span>
               </Link>
@@ -226,7 +235,9 @@ export default function ExplorePage() {
                 <span className="relative z-[2]">{CATEGORY_EMOJI[v.category]}</span>
               </span>
               <div className="min-w-0 flex-1">
-                <b className="block truncate text-[15px] text-ink">{v.name_th}</b>
+                {/* 2 บรรทัดแทนตัดทิ้ง: ที่ 390px ช่องชื่อเหลือ ~190px แต่ชื่อร้านจริงยาว 175–231px
+                    ตัดทิ้งแล้ว "Campus Night Ma…" กับ "Campus Night Market" แยกกันไม่ออก */}
+                <b className="line-clamp-2 text-[15px] leading-snug text-ink">{v.name_th}</b>
                 <div className="mt-0.5 text-[12.5px] text-mut">
                   ~{mid(v.price_per_head_min, v.price_per_head_max)}฿/person · {standoutAttribute(v)}
                 </div>
@@ -237,7 +248,11 @@ export default function ExplorePage() {
                   v.badge === "hit" ? "bg-pill text-bg" : "border border-accent bg-tint text-accent"
                 }`}
               >
-                {v.badge === "hit" ? `${INTENT_EMOJI[v.intents[0]] ?? ""} HIT Nº${v.hit_rank}` : "UNSEEN"}
+                {/* มือถือใช้ป้ายสั้น — ป้ายเต็มกินความกว้าง ~100px จากช่องชื่อที่มีอยู่น้อยอยู่แล้ว */}
+                <span className="sm:hidden">{v.badge === "hit" ? `Nº${v.hit_rank}` : "NEW"}</span>
+                <span className="hidden sm:inline">
+                  {v.badge === "hit" ? `${INTENT_EMOJI[v.intents[0]] ?? ""} HIT Nº${v.hit_rank}` : "UNSEEN"}
+                </span>
               </span>
             </Link>
           ))}

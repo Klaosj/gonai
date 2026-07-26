@@ -84,9 +84,11 @@ export default async function SharedPlanPage({
             ))}
           </div>
 
-          <div className="mt-3 flex items-baseline justify-between rounded-xl border border-line bg-card-solid/60 px-3 py-2.5">
-            <span className="o-mono text-[10px] text-mut">EST. TOTAL INCL. TRANSPORT</span>
-            <span className="gn-num text-[22px] font-semibold">
+          {/* มือถือวางซ้อนกัน: ที่ 390px ป้าย mono ตกเป็น 2 บรรทัดแล้วบีบคอลัมน์ขวาจนคำว่า budget
+              หลุดไปคนละบรรทัดกับตัวเลขที่มันขยาย (หน้านี้คือหน้าแรกที่คนนอกเห็น ห้ามพัง) */}
+          <div className="mt-3 flex flex-col gap-1 rounded-xl border border-line bg-card-solid/60 px-3 py-2.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+            <span className="o-mono text-[10px] text-mut sm:shrink-0">EST. TOTAL INCL. TRANSPORT</span>
+            <span className="gn-num whitespace-nowrap text-[22px] font-semibold">
               ~{plan.est_total}฿ <span className="text-[12px] font-normal text-mut">/ {plan.budget_planned}฿ budget</span>
             </span>
           </div>

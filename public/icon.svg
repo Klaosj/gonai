@@ -15,8 +15,8 @@
     y="300"
     text-anchor="middle"
     dominant-baseline="central"
-    font-family="'Bricolage Grotesque', 'Arial Black', Arial, sans-serif"
-    font-weight="800"
+    font-family="'IBM Plex Sans Thai', 'IBM Plex Sans', 'Arial Black', Arial, sans-serif"
+    font-weight="700"
     font-size="252"
     fill="#ffffff"
   >G</text>

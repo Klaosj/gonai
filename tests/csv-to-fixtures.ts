@@ -1,6 +1,11 @@
 // csv-to-fixtures.ts — แปลง CSV (W2 field sprint output) → lib/fixtures.ts
-// วิธีใช้: tsx tests/csv-to-fixtures.ts < input.csv > lib/fixtures.ts
-// หรือ: tsx tests/csv-to-fixtures.ts tests/fixtures-template.csv
+// วิธีใช้: tsx tests/csv-to-fixtures.ts <venues.csv> <routes.csv> > lib/fixtures.ts
+// ตัวอย่าง: tsx tests/csv-to-fixtures.ts tests/fixtures-template.csv tests/routes-template.csv
+//
+// routes.csv: 1 แถว = 1 leg · คอลัมน์:
+//   route_id, origin_zone, dest_zone, kind (cheapest|fastest), seq,
+//   mode (walk|win|boat|bts|mrt|songthaew|van|grab), detail_th,
+//   price_min, price_max, minutes, warning_th (เว้นว่าง = null)
 //
 // CSV columns (ตาม spec 2.4):
 //   venue_id, name_th, zone_id, category, intents (semicolon-sep), badge,
@@ -12,7 +17,6 @@
 //   video_url (empty=null), source (sprint|tat|import), last_validated_at (ISO date), validation_count
 
 import fs from "node:fs";
-import { parse } from "node:path";
 
 // minimal CSV parser (handles commas inside quotes + empty fields)
 function parseCSV(text: string): string[][] {
@@ -99,26 +103,64 @@ function venueToTS(row: Record<string, string>): string {
   },`;
 }
 
-function main() {
-  const inputPath = process.argv[2];
-  const text = inputPath ? fs.readFileSync(inputPath, "utf8") : fs.readFileSync(0, "utf8");
-  const rows = parseCSV(text);
+function legTS(routeId: string, l: Record<string, string>): string {
+  const warn = l.warning_th === "" ? "null" : s(l.warning_th);
+  return `      { route_id: ${s(routeId)}, seq: ${Number(l.seq)}, mode: ${s(l.mode)} as RouteLeg["mode"], detail_th: ${s(l.detail_th)}, price_min: ${Number(l.price_min)}, price_max: ${Number(l.price_max)}, minutes: ${Number(l.minutes)}, warning_th: ${warn} },`;
+}
+
+function routesToTS(rows: Record<string, string>[]): string {
+  const byId = new Map<string, Record<string, string>[]>();
+  for (const r of rows) {
+    const list = byId.get(r.route_id) ?? [];
+    list.push(r);
+    byId.set(r.route_id, list);
+  }
+  const out: string[] = [];
+  for (const [id, legs] of byId) {
+    legs.sort((a, b) => Number(a.seq) - Number(b.seq));
+    const head = legs[0];
+    out.push(`  {
+    id: ${s(id)},
+    origin_zone: ${s(head.origin_zone)},
+    dest_zone: ${s(head.dest_zone)},
+    kind: ${s(head.kind)} as Route["kind"],
+    legs: [
+${legs.map((l) => legTS(id, l)).join("\n")}
+    ],
+  },`);
+  }
+  return out.join("\n");
+}
+
+function readRows(filePath: string): Record<string, string>[] {
+  const rows = parseCSV(fs.readFileSync(filePath, "utf8"));
   if (rows.length < 2) {
-    console.error("CSV must have header + at least 1 row");
+    console.error(`${filePath}: CSV must have header + at least 1 row`);
     process.exit(1);
   }
   const header = rows[0];
-  const dataRows = rows.slice(1).map((r) => {
+  return rows.slice(1).map((r) => {
     const obj: Record<string, string> = {};
     header.forEach((h, i) => (obj[h] = (r[i] ?? "").trim()));
     return obj;
   });
+}
 
-  const venuesTS = dataRows.map(venueToTS).join("\n");
+function main() {
+  const venuesPath = process.argv[2];
+  const routesPath = process.argv[3];
+  if (!venuesPath || !routesPath) {
+    console.error("Usage: tsx tests/csv-to-fixtures.ts <venues.csv> <routes.csv> > lib/fixtures.ts");
+    console.error("routes.csv บังคับ — fixtures ที่ไม่มี ROUTES ทำให้ lib/catalog.ts compile ไม่ผ่าน");
+    process.exit(1);
+  }
+
+  const venuesTS = readRows(venuesPath).map(venueToTS).join("\n");
+  const routesTS = routesToTS(readRows(routesPath));
 
   const output = `// Fixtures — generated from CSV by tests/csv-to-fixtures.ts
 // แหล่ง: W2 field sprint — ห้ามแก้มือ, รัน script ใหม่ทุกครั้งที่ CSV เปลี่ยน
-import type { Badge, FoodLevel, Intent, Noise, Plugs, Route, Venue, Zone } from "./types";
+import type { Badge, FoodLevel, Intent, Noise, Plugs, Route, RouteLeg, Venue, Zone } from "./types";
 
 export const ZONES: Zone[] = [
   { id: "bangkapi", name_th: "บางกะปิ", is_origin: true, km_to_siam: 13 },
@@ -134,8 +176,9 @@ export const VENUES: Venue[] = [
 ${venuesTS}
 ];
 
-// TODO: เก็บ routes จริงใน W2 (ตอนนี้ใช้ seeded ROUTES ในไฟล์เดิม)
-// export const ROUTES: Route[] = [...];
+export const ROUTES: Route[] = [
+${routesTS}
+];
 
 export const BUDGET_DEFAULTS: Record<Intent, number> = {
   work: 450,

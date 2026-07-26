@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "tsx tests/logic.test.ts && tsx tests/infra.test.ts"
+    "check": "tsx tests/logic.test.ts && tsx tests/infra.test.ts && tsx tests/pipeline.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.4",

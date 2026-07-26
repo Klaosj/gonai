@@ -1,0 +1,8 @@
+route_id,origin_zone,dest_zone,kind,seq,mode,detail_th,price_min,price_max,minutes,warning_th
+R001,bangkapi,siam,cheapest,1,win,Win bike to Bang Kapi pier,20,20,10,
+R001,bangkapi,siam,cheapest,2,boat,Saen Saep boat to Pratunam pier,27,27,33,Last boat 19:40
+R001,bangkapi,siam,cheapest,3,walk,Walk into Siam,0,0,5,
+R002,bangkapi,siam,fastest,1,grab,Grab from home to Siam,180,210,35,
+R003,ladprao,siam,cheapest,1,walk,Walk to BTS Ha Yaek Lat Phrao,0,0,8,
+R003,ladprao,siam,cheapest,2,bts,BTS to Siam,44,44,22,
+R004,ladprao,siam,fastest,1,grab,Grab from home to Siam,150,180,30,

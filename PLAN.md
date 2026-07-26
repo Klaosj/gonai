@@ -192,6 +192,7 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 
 ### W2 field sprint (งานภาคสนาม — ตัวจริงของ product)
 - เก็บข้อมูลจริงตาม CSV template (spec 2.4) — สยาม 15-20 ที่ + เส้นทางจริง 6 origins
+- เส้นทางจริงกรอกใน routes CSV (1 แถว = 1 leg, ดู `tests/routes-template.csv`) — generator รวมเป็น ROUTES ให้
 - validate สถานที่: validation_count ≥ 3 ถึงจะโชว์ unseen
 - ใส่เข้า DB ผ่าน Supabase dashboard หรือ CSV → `tests/csv-to-fixtures.ts` → seed
 - stale check: last_validated_at เก่ากว่า 45 วัน → revalidate
@@ -237,7 +238,9 @@ gonai/
 │   ├── logic.test.ts       # 32 integration tests
 │   ├── infra.test.ts       # 11 infra tests (auth/ratelimit/catalog)
 │   ├── w2-data.ts          # W2 mock data (24 venues + 16 routes)
-│   └── w2-seed.ts          # พิมพ์ W2 mock เป็น fixtures
+│   ├── w2-seed.ts          # พิมพ์ W2 mock เป็น fixtures
+│   ├── routes-template.csv # routes CSV template (1 แถว = 1 leg)
+│   └── pipeline.test.ts    # CSV → fixtures pipeline end-to-end (7 ข้อ)
 ├── QA-RESULTS.md           # QA 10 รอบ
 └── PLAN.md                 # ไฟล์นี้
 ```
@@ -251,4 +254,5 @@ npm run build                      # production build
 npx tsx supabase/seed.ts           # seed catalog ลง Supabase (fixtures)
 npx tsx supabase/seed.ts --w2      # seed catalog ลง Supabase (W2 mock 24 venues)
 npx tsx tests/w2-seed.ts > lib/fixtures.ts   # ใช้ W2 mock เป็น fixtures local
+npx tsx tests/csv-to-fixtures.ts <venues.csv> <routes.csv> > lib/fixtures.ts   # W2 CSV → fixtures (venues + routes)
 ```

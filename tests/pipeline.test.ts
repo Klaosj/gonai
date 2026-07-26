@@ -2,6 +2,7 @@
 // รันด้วย: npm run check (ต่อจาก infra.test.ts)
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -30,6 +31,36 @@ const ok = (cond: boolean, msg: string) => {
 
 // เขียนใน lib/ เพื่อให้ import "./types" ของไฟล์ generated resolve ได้
 const TMP = path.join("lib", ".pipeline-tmp-fixtures.ts");
+
+// --- helpers สำหรับ test guard (route consistency + numeric) ---
+// วางไฟล์ CSV ชั่วคราวใน os.tmpdir() เสมอ — ไม่มีทางหลุดเข้า git ไม่ว่าจะ crash ระหว่างไหน
+function mkTmpDir(): string {
+  return fs.mkdtempSync(path.join(os.tmpdir(), "gonai-pipeline-"));
+}
+
+// รัน generator แล้วคืน exit status + stderr (ไม่โยน exception เพื่อให้ test อ่านผลง่าย)
+function runGenerator(venuesPath: string, routesPath: string): { status: number; stderr: string } {
+  try {
+    execFileSync("node_modules/.bin/tsx", ["tests/csv-to-fixtures.ts", venuesPath, routesPath], {
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+    return { status: 0, stderr: "" };
+  } catch (e) {
+    const err = e as { status?: number; stderr?: string };
+    return { status: err.status ?? 1, stderr: err.stderr ?? "" };
+  }
+}
+
+// venues CSV แถวเดียวที่ valid ทุกคอลัมน์ — ใช้เป็นฐานสำหรับ test ฝั่ง routes
+const VALID_VENUES_CSV = `venue_id,name_th,zone_id,category,intents,badge,hit_rank,unseen_rank,transition_rank,plugs,wifi_mbps,seat_hours,noise,parking,food_level,indoor,shade,price_per_head_min,price_per_head_max,open_time,close_time,walk_min_from_hub,video_url,source,last_validated_at,validation_count
+V001,Test Cafe,siam,cafe,work,hit,1,,,all,200,999,medium,false,meals,true,true,150,250,09:00,21:00,6,,sprint,2026-07-12,12
+`;
+
+// routes CSV leg เดียวที่ valid ทุกคอลัมน์ — ใช้เป็นฐานสำหรับ test ฝั่ง venues
+const VALID_ROUTES_CSV = `route_id,origin_zone,dest_zone,kind,seq,mode,detail_th,price_min,price_max,minutes,warning_th
+R001,bangkapi,siam,cheapest,1,win,Test leg,20,20,10,
+`;
 
 async function main() {
   console.log("pipeline.test.ts — W2 CSV → fixtures");
@@ -97,9 +128,139 @@ async function main() {
       }
       ok(code !== 0, "should exit non-zero without routes csv");
     });
+
+    await test("nullable numeric ว่างใน CSV จริง → null, มีค่า (999=ไม่จำกัด) → เลขจริง", () => {
+      const u001 = mod.VENUES.find((v: { id: string }) => v.id === "U001");
+      ok(!!u001, "U001 not found");
+      eq(u001.hit_rank, null, "U001 hit_rank ควรว่าง→null");
+      eq(u001.unseen_rank, 1, "U001 unseen_rank มีค่าจริง");
+      eq(u001.transition_rank, null, "U001 transition_rank ควรว่าง→null");
+      eq(u001.attributes.seat_hours, 999, "seat_hours=999 คือไม่จำกัด ไม่ใช่ค่าต้องห้าม");
+    });
   } finally {
     fs.rmSync(TMP, { force: true });
   }
+
+  // --- guard ใหม่: route consistency + numeric (RED ก่อนแก้ generator) ---
+
+  await test("route: leg ของ route เดียวกัน origin_zone ไม่ตรงกัน → exit non-zero + บอก route_id", () => {
+    const dir = mkTmpDir();
+    try {
+      const venuesPath = path.join(dir, "venues.csv");
+      const routesPath = path.join(dir, "routes.csv");
+      fs.writeFileSync(venuesPath, VALID_VENUES_CSV);
+      fs.writeFileSync(
+        routesPath,
+        `route_id,origin_zone,dest_zone,kind,seq,mode,detail_th,price_min,price_max,minutes,warning_th
+R001,bangkapi,siam,cheapest,1,win,leg one,20,20,10,
+R001,ladprao,siam,cheapest,2,walk,leg two,0,0,5,
+`,
+      );
+      const { status, stderr } = runGenerator(venuesPath, routesPath);
+      ok(status !== 0, "ควร exit non-zero เมื่อ origin_zone ชนกันใน route เดียวกัน");
+      ok(stderr.includes("R001"), `stderr ควรมี route_id R001: ${stderr}`);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test("route: seq ซ้ำใน route เดียวกัน → exit non-zero + บอก route_id + seq", () => {
+    const dir = mkTmpDir();
+    try {
+      const venuesPath = path.join(dir, "venues.csv");
+      const routesPath = path.join(dir, "routes.csv");
+      fs.writeFileSync(venuesPath, VALID_VENUES_CSV);
+      fs.writeFileSync(
+        routesPath,
+        `route_id,origin_zone,dest_zone,kind,seq,mode,detail_th,price_min,price_max,minutes,warning_th
+R001,bangkapi,siam,cheapest,1,win,leg one,20,20,10,
+R001,bangkapi,siam,cheapest,1,walk,leg two,0,0,5,
+`,
+      );
+      const { status, stderr } = runGenerator(venuesPath, routesPath);
+      ok(status !== 0, "ควร exit non-zero เมื่อ seq ซ้ำใน route เดียวกัน");
+      ok(stderr.includes("R001"), `stderr ควรมี route_id R001: ${stderr}`);
+      ok(stderr.includes("1"), `stderr ควรมี seq ที่ซ้ำ: ${stderr}`);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test("routes: mandatory numeric ว่าง (price_min) → exit non-zero", () => {
+    const dir = mkTmpDir();
+    try {
+      const venuesPath = path.join(dir, "venues.csv");
+      const routesPath = path.join(dir, "routes.csv");
+      fs.writeFileSync(venuesPath, VALID_VENUES_CSV);
+      fs.writeFileSync(
+        routesPath,
+        `route_id,origin_zone,dest_zone,kind,seq,mode,detail_th,price_min,price_max,minutes,warning_th
+R001,bangkapi,siam,cheapest,1,win,leg one,,20,10,
+`,
+      );
+      const { status } = runGenerator(venuesPath, routesPath);
+      ok(status !== 0, "ควร exit non-zero เมื่อ price_min ว่าง (ห้ามกลาย seq: 0 เงียบๆ)");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test("routes: mandatory numeric เพี้ยน (minutes=abc) → exit non-zero", () => {
+    const dir = mkTmpDir();
+    try {
+      const venuesPath = path.join(dir, "venues.csv");
+      const routesPath = path.join(dir, "routes.csv");
+      fs.writeFileSync(venuesPath, VALID_VENUES_CSV);
+      fs.writeFileSync(
+        routesPath,
+        `route_id,origin_zone,dest_zone,kind,seq,mode,detail_th,price_min,price_max,minutes,warning_th
+R001,bangkapi,siam,cheapest,1,win,leg one,20,20,abc,
+`,
+      );
+      const { status } = runGenerator(venuesPath, routesPath);
+      ok(status !== 0, "ควร exit non-zero เมื่อ minutes parse ไม่ได้ (ห้ามกลาย NaN เงียบๆ)");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test("venues: mandatory numeric ว่าง (price_per_head_min) → exit non-zero", () => {
+    const dir = mkTmpDir();
+    try {
+      const venuesPath = path.join(dir, "venues.csv");
+      const routesPath = path.join(dir, "routes.csv");
+      fs.writeFileSync(
+        venuesPath,
+        `venue_id,name_th,zone_id,category,intents,badge,hit_rank,unseen_rank,transition_rank,plugs,wifi_mbps,seat_hours,noise,parking,food_level,indoor,shade,price_per_head_min,price_per_head_max,open_time,close_time,walk_min_from_hub,video_url,source,last_validated_at,validation_count
+V001,Test Cafe,siam,cafe,work,hit,1,,,all,200,999,medium,false,meals,true,true,,250,09:00,21:00,6,,sprint,2026-07-12,12
+`,
+      );
+      fs.writeFileSync(routesPath, VALID_ROUTES_CSV);
+      const { status } = runGenerator(venuesPath, routesPath);
+      ok(status !== 0, "ควร exit non-zero เมื่อ price_per_head_min ว่าง");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test("venues: nullable numeric เพี้ยน (hit_rank=abc) → exit non-zero", () => {
+    const dir = mkTmpDir();
+    try {
+      const venuesPath = path.join(dir, "venues.csv");
+      const routesPath = path.join(dir, "routes.csv");
+      fs.writeFileSync(
+        venuesPath,
+        `venue_id,name_th,zone_id,category,intents,badge,hit_rank,unseen_rank,transition_rank,plugs,wifi_mbps,seat_hours,noise,parking,food_level,indoor,shade,price_per_head_min,price_per_head_max,open_time,close_time,walk_min_from_hub,video_url,source,last_validated_at,validation_count
+V001,Test Cafe,siam,cafe,work,hit,abc,,,all,200,999,medium,false,meals,true,true,150,250,09:00,21:00,6,,sprint,2026-07-12,12
+`,
+      );
+      fs.writeFileSync(routesPath, VALID_ROUTES_CSV);
+      const { status } = runGenerator(venuesPath, routesPath);
+      ok(status !== 0, "ควร exit non-zero เมื่อ hit_rank มีค่าแต่ parse ไม่ได้ (nullable ≠ ยอมทุกอย่าง)");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
 
   console.log("═".repeat(60));
   console.log(`  ${pass} passed, ${fail} failed (${pass + fail} total)`);

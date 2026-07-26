@@ -60,7 +60,29 @@ function parseCSV(text: string): string[][] {
 }
 
 const b = (s: string): boolean => s.toLowerCase() === "true";
-const n = (s: string): number | null => (s === "" || s == null ? null : Number(s));
+
+// field ตัวเลขบังคับ: ว่าง หรือ parse ไม่ได้ (!Number.isFinite) → error ระบุแถว+คอลัมน์+ค่าที่เจอ แล้ว exit 1
+// หมายเหตุ: Number("") = 0 ไม่ใช่ NaN — ต้องเช็คความว่างแยกจากเช็ค finite ทั้งคู่
+function reqNum(rowId: string, col: string, raw: string): number {
+  const v = Number(raw);
+  if (raw === "" || !Number.isFinite(v)) {
+    console.error(`${rowId}: คอลัมน์ "${col}" ต้องเป็นตัวเลข แต่พบค่า "${raw}"`);
+    process.exit(1);
+  }
+  return v;
+}
+
+// field ตัวเลขที่ว่างได้ (blank → null เหมือนเดิมทุกประการ) แต่ถ้ามีค่าแล้ว parse ไม่ได้ → error เหมือนกัน
+function optNum(rowId: string, col: string, raw: string): number | null {
+  if (raw === "" || raw == null) return null;
+  const v = Number(raw);
+  if (!Number.isFinite(v)) {
+    console.error(`${rowId}: คอลัมน์ "${col}" ว่างได้แต่ถ้ามีค่าต้องเป็นตัวเลข พบค่า "${raw}"`);
+    process.exit(1);
+  }
+  return v;
+}
+
 const QUOTE = String.fromCharCode(34); // "
 const s = (v: string | null | undefined): string => {
   if (v == null) return "null";
@@ -78,34 +100,38 @@ function venueToTS(row: Record<string, string>): string {
     category: ${s(row.category)} as Venue["category"],
     intents: [${intents}] as Intent[],
     badge: ${s(row.badge)} as Badge,
-    hit_rank: ${n(row.hit_rank) ?? "null"},
-    unseen_rank: ${n(row.unseen_rank) ?? "null"},
-    transition_rank: ${n(row.transition_rank) ?? "null"},
+    hit_rank: ${optNum(row.venue_id, "hit_rank", row.hit_rank) ?? "null"},
+    unseen_rank: ${optNum(row.venue_id, "unseen_rank", row.unseen_rank) ?? "null"},
+    transition_rank: ${optNum(row.venue_id, "transition_rank", row.transition_rank) ?? "null"},
     attributes: {
       plugs: ${s(row.plugs)} as Plugs,
-      wifi_mbps: ${n(row.wifi_mbps) ?? "null"},
-      seat_hours: ${n(row.seat_hours) ?? "null"},
+      wifi_mbps: ${optNum(row.venue_id, "wifi_mbps", row.wifi_mbps) ?? "null"},
+      seat_hours: ${optNum(row.venue_id, "seat_hours", row.seat_hours) ?? "null"},
       noise: ${s(row.noise)} as Noise,
       parking: ${b(row.parking)},
       food_level: ${s(row.food_level)} as FoodLevel,
       indoor: ${b(row.indoor)},
       shade: ${b(row.shade)},
     },
-    price_per_head_min: ${Number(row.price_per_head_min)},
-    price_per_head_max: ${Number(row.price_per_head_max)},
+    price_per_head_min: ${reqNum(row.venue_id, "price_per_head_min", row.price_per_head_min)},
+    price_per_head_max: ${reqNum(row.venue_id, "price_per_head_max", row.price_per_head_max)},
     open_time: ${s(row.open_time)},
     close_time: ${s(row.close_time)},
-    walk_min_from_hub: ${Number(row.walk_min_from_hub)},
+    walk_min_from_hub: ${reqNum(row.venue_id, "walk_min_from_hub", row.walk_min_from_hub)},
     video_url: ${videoUrl},
     source: ${s(row.source)} as Venue["source"],
     last_validated_at: ${s(row.last_validated_at)},
-    validation_count: ${Number(row.validation_count)},
+    validation_count: ${reqNum(row.venue_id, "validation_count", row.validation_count)},
   },`;
 }
 
 function legTS(routeId: string, l: Record<string, string>): string {
   const warn = l.warning_th === "" ? "null" : s(l.warning_th);
-  return `      { route_id: ${s(routeId)}, seq: ${Number(l.seq)}, mode: ${s(l.mode)} as RouteLeg["mode"], detail_th: ${s(l.detail_th)}, price_min: ${Number(l.price_min)}, price_max: ${Number(l.price_max)}, minutes: ${Number(l.minutes)}, warning_th: ${warn} },`;
+  const seq = reqNum(routeId, "seq", l.seq);
+  const priceMin = reqNum(routeId, "price_min", l.price_min);
+  const priceMax = reqNum(routeId, "price_max", l.price_max);
+  const minutes = reqNum(routeId, "minutes", l.minutes);
+  return `      { route_id: ${s(routeId)}, seq: ${seq}, mode: ${s(l.mode)} as RouteLeg["mode"], detail_th: ${s(l.detail_th)}, price_min: ${priceMin}, price_max: ${priceMax}, minutes: ${minutes}, warning_th: ${warn} },`;
 }
 
 function routesToTS(rows: Record<string, string>[]): string {
@@ -117,8 +143,30 @@ function routesToTS(rows: Record<string, string>[]): string {
   }
   const out: string[] = [];
   for (const [id, legs] of byId) {
+    // seq ต้องเป็นตัวเลขบังคับ + ห้ามซ้ำในเส้นทางเดียวกัน (เช็คก่อน sort กันเงียบ ๆ)
+    const seqSeen = new Set<number>();
+    for (const l of legs) {
+      const seq = reqNum(id, "seq", l.seq);
+      if (seqSeen.has(seq)) {
+        console.error(`route ${id}: seq "${seq}" ซ้ำ — leg ของเส้นทางเดียวกันห้าม seq ซ้ำ`);
+        process.exit(1);
+      }
+      seqSeen.add(seq);
+    }
     legs.sort((a, b) => Number(a.seq) - Number(b.seq));
     const head = legs[0];
+    // ทุก leg ต้องมี origin_zone/dest_zone/kind ตรงกับ leg แรก — ไม่ตรงแม้ตัวเดียว
+    // แปลว่า field copy-paste route_id ผิด (เคสจริงจาก field sprint) ต้องจับให้เจอ ไม่ใช่ทิ้งเงียบ
+    for (const l of legs) {
+      for (const field of ["origin_zone", "dest_zone", "kind"] as const) {
+        if (l[field] !== head[field]) {
+          console.error(
+            `route ${id}: leg seq="${l.seq}" มี ${field}="${l[field]}" แต่ leg แรกของ route เดียวกันมี ${field}="${head[field]}" — ตรวจ route_id ใน CSV`,
+          );
+          process.exit(1);
+        }
+      }
+    }
     out.push(`  {
     id: ${s(id)},
     origin_zone: ${s(head.origin_zone)},

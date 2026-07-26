@@ -239,12 +239,12 @@ gonai/
 ├── scripts/
 │   └── preflight.ts        # CLI: npm run preflight (ตรวจ env ก่อน deploy)
 ├── tests/
-│   ├── logic.test.ts       # 32 integration tests
-│   ├── infra.test.ts       # 11 infra tests (auth/ratelimit/catalog)
+│   ├── logic.test.ts       # 43 integration tests
+│   ├── infra.test.ts       # 21 infra tests (auth/ratelimit/catalog/weather/filters/w2-data/store/preflight)
 │   ├── w2-data.ts          # W2 mock data (24 venues + 16 routes)
 │   ├── w2-seed.ts          # พิมพ์ W2 mock เป็น fixtures
 │   ├── routes-template.csv # routes CSV template (1 แถว = 1 leg)
-│   └── pipeline.test.ts    # CSV → fixtures pipeline end-to-end (7 ข้อ)
+│   └── pipeline.test.ts    # CSV → fixtures pipeline end-to-end (14 ข้อ)
 ├── QA-RESULTS.md           # QA 10 รอบ
 └── PLAN.md                 # ไฟล์นี้
 ```
@@ -253,7 +253,7 @@ gonai/
 
 ```bash
 npm run dev                        # รัน dev server (localhost:3000)
-npm run check                      # tests: logic 32 ข้อ + infra 11 ข้อ
+npm run check                      # tests: logic 43 ข้อ + infra 21 ข้อ + pipeline 14 ข้อ
 npm run build                      # production build
 npm run preflight                  # ตรวจ env ก่อน deploy
 npx tsx supabase/seed.ts           # seed catalog ลง Supabase (fixtures)

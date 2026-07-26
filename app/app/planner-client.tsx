@@ -20,6 +20,7 @@ import { BUDGET_DEFAULTS } from "@/lib/fixtures";
 import type { ExpandedPlan } from "@/lib/server";
 import type { Intent, Route, Venue, Zone } from "@/lib/types";
 import type { RainForecast } from "@/lib/weather";
+import { CATEGORY_EMOJI, INTENT_AMBIENCE } from "@/lib/venue-display";
 
 // 4 intents จริงเท่านั้น — "กินของอร่อย/ธรรมชาติ" เดิมเป็นปุ่มหลอก (ผลลัพธ์เป็น work) เลยตัดออก
 const INTENTS: { key: Intent; label: string }[] = [
@@ -28,14 +29,6 @@ const INTENTS: { key: Intent; label: string }[] = [
   { key: "photo", label: "📷 Photo" },
   { key: "family", label: "👨‍👩‍👧 Family" },
 ];
-
-// ambience ต่อ intent — ใช้กับ hero กลาง (plan §2/§3.3)
-const INTENT_AMBIENCE: Record<Intent, string> = {
-  work: "o-ambience-work",
-  date: "o-ambience-date",
-  photo: "o-ambience-photo",
-  family: "o-ambience-family",
-};
 
 interface ChatMeta {
   note: string | null;
@@ -1163,10 +1156,3 @@ export default function PlannerClient() {
     </div>
   );
 }
-
-const CATEGORY_EMOJI: Record<Venue["category"], string> = {
-  cafe: "☕",
-  restaurant: "🍜",
-  activity: "🎨",
-  market: "🛍️",
-};

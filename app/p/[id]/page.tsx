@@ -8,17 +8,11 @@ import { expandPlan } from "@/lib/server";
 import { verifyShareToken } from "@/lib/share";
 import { store } from "@/lib/store";
 import { buildTimeline, tripTitle } from "@/lib/timeline";
+import { CATEGORY_EMOJI } from "@/lib/venue-display";
 
 export const metadata: Metadata = {
   title: "Trip plan — GoNai",
   description: "A day plan with every baht counted — made with GoNai",
-};
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  cafe: "☕",
-  restaurant: "🍜",
-  activity: "🎨",
-  market: "🛍️",
 };
 
 export default async function SharedPlanPage({

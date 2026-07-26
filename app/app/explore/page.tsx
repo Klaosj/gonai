@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
 import type { Intent, Venue } from "@/lib/types";
+import { CATEGORY_AMBIENCE, CATEGORY_EMOJI, INTENT_EMOJI } from "@/lib/venue-display";
 
 const VIDEOS = [
   { id: "3_Fg14DzVhA", title: "5 Aesthetic Cafes in Bangkok — Relaxing Cafe Hopping", date: "Jan 2026", tag: "☕ 5 cafes in this clip" },
@@ -15,23 +16,6 @@ const VIDEOS = [
   { id: "rjXAYlkpURE", title: "Bangkok Guide: 5 Must-Dos, Hidden Gems & Tourist Traps", date: "Aug 2025", tag: "⚠️ Skip the tourist traps" },
   { id: "nFTdc4OW1dc", title: "Bangkok Travel Guide 2025 — markets, food, Siam Square", date: "Jan 2026", tag: "🇹🇭 A visitor's view" },
 ];
-
-const CATEGORY_EMOJI: Record<Venue["category"], string> = {
-  cafe: "☕",
-  restaurant: "🍜",
-  activity: "🎨",
-  market: "🛍️",
-};
-
-// hit_rank เป็นอันดับภายใน intent ของตัวเอง — โชว์อีโมจิ intent กำกับ ไม่งั้น Nº1 ซ้ำกันหลายใบอ่านแล้วงง
-const INTENT_EMOJI: Record<string, string> = { work: "💻", date: "💛", family: "👨‍👩‍👧", photo: "📷" };
-
-const CATEGORY_AMBIENCE: Record<Venue["category"], string> = {
-  cafe: "o-ambience-work",
-  restaurant: "o-ambience-date",
-  activity: "o-ambience-photo",
-  market: "o-ambience-family",
-};
 
 type FilterKey = "all" | "unseen" | Intent | "cheap";
 

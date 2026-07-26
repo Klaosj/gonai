@@ -16,21 +16,7 @@ import { fmtRange, mid } from "@/lib/costing";
 import { useCountUp } from "@/lib/use-count-up";
 import type { ExpandedPlan, ExpandedStop } from "@/lib/server";
 import { MODE_LABELS, type Route, type Venue } from "@/lib/types";
-
-const CATEGORY_EMOJI: Record<Venue["category"], string> = {
-  cafe: "☕",
-  restaurant: "🍜",
-  activity: "🎨",
-  market: "🛍️",
-};
-
-// ambience ต่อ category — คงไว้เป็น visual เท่านั้น (ใช้แบบเดียวกับ explore/me)
-const CATEGORY_AMBIENCE: Record<Venue["category"], string> = {
-  cafe: "o-ambience-work",
-  restaurant: "o-ambience-date",
-  activity: "o-ambience-photo",
-  market: "o-ambience-family",
-};
+import { CATEGORY_AMBIENCE, CATEGORY_EMOJI } from "@/lib/venue-display";
 
 // สรุปเส้นทางจาก data จริง — แทน string hardcode เดิม (ถูกเฉพาะบางกะปิ)
 function legsSummary(r: Route) {

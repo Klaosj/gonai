@@ -8,7 +8,8 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { gn } from "@/lib/api";
 import { mid } from "@/lib/costing";
 import type { ExpandedPlan } from "@/lib/server";
-import { INTENT_LABELS, type Intent, type Venue } from "@/lib/types";
+import { INTENT_LABELS, type Venue } from "@/lib/types";
+import { CATEGORY_AMBIENCE, CATEGORY_EMOJI, INTENT_AMBIENCE, INTENT_EMOJI } from "@/lib/venue-display";
 
 interface MeResponse {
   saves: Venue[];
@@ -24,34 +25,6 @@ const IMPORT_STATUS_TH: Record<string, string> = {
   processing: "🔎 Being pulled",
   done: "✅ Added to the app",
   failed: "⚠️ Couldn't pull it",
-};
-
-const CATEGORY_EMOJI: Record<Venue["category"], string> = {
-  cafe: "☕",
-  restaurant: "🍜",
-  activity: "🎨",
-  market: "🛍️",
-};
-
-const CATEGORY_AMBIENCE: Record<Venue["category"], string> = {
-  cafe: "o-ambience-work",
-  restaurant: "o-ambience-date",
-  activity: "o-ambience-photo",
-  market: "o-ambience-family",
-};
-
-const INTENT_EMOJI: Record<Intent, string> = {
-  work: "💻",
-  date: "💛",
-  family: "👨‍👩‍👧",
-  photo: "📷",
-};
-
-const INTENT_AMBIENCE: Record<Intent, string> = {
-  work: "o-ambience-work",
-  date: "o-ambience-date",
-  family: "o-ambience-family",
-  photo: "o-ambience-photo",
 };
 
 interface Badge {

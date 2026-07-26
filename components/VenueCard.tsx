@@ -4,24 +4,9 @@ import { useState } from "react";
 import { Car, Clock3, Plug, UtensilsCrossed, Wifi, Heart, Play } from "lucide-react";
 import { mid } from "@/lib/costing";
 import type { Route, Venue } from "@/lib/types";
+import { CATEGORY_AMBIENCE, CATEGORY_EMOJI } from "@/lib/venue-display";
 import BahtChip from "./BahtChip";
 import TrustBadge from "./TrustBadge";
-
-const CATEGORY_EMOJI: Record<Venue["category"], string> = {
-  cafe: "☕",
-  restaurant: "🍜",
-  activity: "🎨",
-  market: "🛍️",
-};
-
-// thumbnail ambience ต่อ category — คงไว้เป็น visual เท่านั้น ไม่ผูกกับ intent ของหน้า
-// (VenueCard ไม่มี prop intent อยู่แล้ว เพื่อไม่ให้ต้องเพิ่ม prop ใหม่)
-const CATEGORY_AMBIENCE: Record<Venue["category"], string> = {
-  cafe: "o-ambience-work",
-  restaurant: "o-ambience-date",
-  activity: "o-ambience-photo",
-  market: "o-ambience-family",
-};
 
 const FOOD_LABELS = { meals: "Real meals", snacks: "Snacks", drinks: "Drinks" } as const;
 

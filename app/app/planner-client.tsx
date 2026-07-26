@@ -16,6 +16,7 @@ import { mid } from "@/lib/costing";
 import { buildTimeline, tripTitle } from "@/lib/timeline";
 import { filtersToParams, type VenueFilters } from "@/lib/filters";
 import { useCountUp } from "@/lib/use-count-up";
+import { usePlan } from "@/lib/use-plan";
 import { useToast } from "@/lib/use-toast";
 import { BUDGET_DEFAULTS } from "@/lib/fixtures";
 import type { ExpandedPlan } from "@/lib/server";
@@ -381,24 +382,7 @@ export default function PlannerClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const actingRef = useRef(false);
-  const act = useCallback(
-    async (action: string, extra: Record<string, unknown> = {}) => {
-      if (!plan || actingRef.current) return null;
-      actingRef.current = true;
-      try {
-      const p = await gn<ExpandedPlan>(`/api/plans/${plan.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ action, ...extra }),
-      });
-      setPlan(p);
-      return p;
-      } finally {
-        actingRef.current = false;
-      }
-    },
-    [plan],
-  );
+  const { act, acting } = usePlan(plan, setPlan); // in-flight lock ต่อ action มาจาก hook กลาง (T1.4)
 
   // (5) fly-to-plan — เงาการ์ดลอยเข้าคอลัมน์งบ (WAAPI, ไม่มี dependency)
   const flyToBudget = (fromEl?: HTMLElement | null) => {
@@ -431,7 +415,8 @@ export default function PlannerClient() {
       flyToBudget(cardEl);
       if (plan) {
         try {
-          await act("add_stop", { venue_id: venueId });
+          const p = await act("add_stop", { venue_id: venueId });
+          if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (ก่อนหน้านี้ throw แล้วข้าม track+toast)
           track("add_stop", { venue_id: venueId, via: "card" });
           showToast(`Added ${venueName} to your plan`);
         } finally {
@@ -1043,7 +1028,8 @@ export default function PlannerClient() {
 
               <button
                 onClick={async () => {
-                  await act("start");
+                  const p = await act("start");
+                  if (!p) return; // PATCH พัง — เงียบเหมือนเดิม
                   track("plan_start_trip", { plan_id: plan.id });
                   router.push(`/app/plan/${plan.id}`);
                 }}
@@ -1131,7 +1117,8 @@ export default function PlannerClient() {
                 </div>
                 <button
                   onClick={async () => {
-                    await act("add_stop", { venue_id: v.id });
+                    const p = await act("add_stop", { venue_id: v.id });
+                    if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (dialog เปิดค้างเหมือนเดิม)
                     setChainList(null);
                     showToast(`Added ${v.name_th} to your plan`);
                   }}

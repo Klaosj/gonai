@@ -3,7 +3,7 @@
 // โหมดหลักตาม plan.status (draft→plan | active→trip | done→summary)
 // toggle ให้สลับ "ดู" ระหว่างแผน⇄เที่ยวได้จริงตอน active (ของเดิมกดแล้วไม่เกิดอะไร)
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import BudgetBar from "@/components/BudgetBar";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import RouteLegs from "@/components/RouteLegs";
@@ -15,6 +15,7 @@ import { gn, track } from "@/lib/api";
 import { fmtRange, mid } from "@/lib/costing";
 import { useApiResource } from "@/lib/use-api-resource";
 import { useCountUp } from "@/lib/use-count-up";
+import { usePlan } from "@/lib/use-plan";
 import { useToast } from "@/lib/use-toast";
 import type { ExpandedPlan, ExpandedStop } from "@/lib/server";
 import { MODE_LABELS, type Route, type Venue } from "@/lib/types";
@@ -97,28 +98,10 @@ export default function PlanPage() {
   const [editingBudget, setEditingBudget] = useState(false);
   const [spendingSeq, setSpendingSeq] = useState<number | null>(null);
   const [celebrate, setCelebrate] = useState(false); // (1) confetti เฉพาะจังหวะกดจบทริปเอง
-  const [lastCheckin, setLastCheckin] = useState<number | null>(null);
-  const [acting, setActing] = useState<string | null>(null); // in-flight lock ต่อ action // (3) ripple จุดที่เพิ่งเช็คอิน // stop ที่กำลังพิมพ์จำนวนเงินเอง
+  const [lastCheckin, setLastCheckin] = useState<number | null>(null); // (3) ripple จุดที่เพิ่งเช็คอิน // stop ที่กำลังพิมพ์จำนวนเงินเอง
 
   const showToast = useToast();
-
-  const act = useCallback(
-    async (action: string, extra: Record<string, unknown> = {}) => {
-      if (acting) return null; // กันกดซ้ำทุก action
-      setActing(action);
-      try {
-        const p = await gn<ExpandedPlan>(`/api/plans/${id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ action, ...extra }),
-        });
-        setPlan(p);
-        return p;
-      } finally {
-        setActing(null);
-      }
-    },
-    [id, acting],
-  );
+  const { act, acting } = usePlan(plan, setPlan); // in-flight lock ต่อ action มาจาก hook กลาง (T1.4)
 
   const openChain = async (opts: { indoor?: boolean } = {}) => {
     const params = new URLSearchParams({ planId: plan!.id });
@@ -304,7 +287,8 @@ export default function PlanPage() {
           {plan.status === "draft" && (
             <button
               onClick={async () => {
-                await act("start");
+                const p = await act("start");
+                if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (ก่อนหน้านี้ throw แล้วข้ามท่อนล่าง)
                 track("plan_start_trip", { plan_id: plan.id });
                 setView("trip");
                 showToast("Trip mode on: check in and log real spending");
@@ -384,7 +368,8 @@ export default function PlanPage() {
                   {!currentStop.checked_in_at && (
                     <button
                       onClick={async () => {
-                        await act("checkin", { seq: currentStop.seq });
+                        const p = await act("checkin", { seq: currentStop.seq });
+                        if (!p) return; // PATCH พัง — เงียบเหมือนเดิม
                         setLastCheckin(currentStop.seq);
                         track("checkin", { seq: currentStop.seq, venue_id: currentStop.venue.id });
                       }}
@@ -411,7 +396,8 @@ export default function PlanPage() {
                         busy={acting === "spend"}
                         estCost={currentStop.est_cost}
                         onQuick={async () => {
-                          await act("spend", { seq: currentStop.seq, amount: currentStop.est_cost });
+                          const p = await act("spend", { seq: currentStop.seq, amount: currentStop.est_cost });
+                          if (!p) return; // PATCH พัง — เงียบเหมือนเดิม
                           track("spend_log", { seq: currentStop.seq, amount: currentStop.est_cost });
                         }}
                         onCustom={() => setSpendingSeq(currentStop.seq)}
@@ -491,7 +477,8 @@ export default function PlanPage() {
                           {!s.checked_in_at ? (
                             <button
                               onClick={async () => {
-                                await act("checkin", { seq: s.seq });
+                                const p = await act("checkin", { seq: s.seq });
+                                if (!p) return; // PATCH พัง — เงียบเหมือนเดิม
                                 setLastCheckin(s.seq);
                                 track("checkin", { seq: s.seq, venue_id: s.venue.id });
                               }}
@@ -512,7 +499,8 @@ export default function PlanPage() {
                               busy={acting === "spend"}
                               estCost={s.est_cost}
                               onQuick={async () => {
-                                await act("spend", { seq: s.seq, amount: s.est_cost });
+                                const p = await act("spend", { seq: s.seq, amount: s.est_cost });
+                                if (!p) return; // PATCH พัง — เงียบเหมือนเดิม
                                 track("spend_log", { seq: s.seq, amount: s.est_cost });
                               }}
                               onCustom={() => setSpendingSeq(s.seq)}
@@ -545,7 +533,8 @@ export default function PlanPage() {
           <button
             onClick={async () => {
               const done = await act("done");
-              if (done) setCelebrate(true);
+              if (!done) return; // PATCH พัง — เงียบเหมือนเดิม (ก่อนหน้านี้ throw แล้วข้าม track+toast)
+              setCelebrate(true);
               track("plan_done", { plan_id: plan.id });
               showToast("Trip done 🎉 Help confirm prices for the next traveler");
             }}
@@ -605,7 +594,8 @@ export default function PlanPage() {
                 </div>
                 <button
                   onClick={async () => {
-                    await act("add_stop", { venue_id: v.id });
+                    const p = await act("add_stop", { venue_id: v.id });
+                    if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (bottom sheet เปิดค้างเหมือนเดิม)
                     setSuggestions(null);
                     showToast(`Added ${v.name_th} to your plan`);
                   }}

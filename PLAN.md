@@ -7,7 +7,7 @@
 
 แอปวางแผนเที่ยว 1 วัน พร้อมค่าเดินทาง+งบทุกบาท ก่อนออกจากบ้าน เน้นย่านสยามเป็น launch zone
 
-- **Tech**: Next.js 15 (App Router) + React 19 + Tailwind v4 (`zustand` อยู่ใน package.json แต่ยังไม่มีไฟล์ไหน import — state ทั้งแอปเป็น useState/useRef)
+- **Tech**: Next.js 15 (App Router) + React 19 + Tailwind v4 — state ทั้งแอปเป็น useState/useRef (ไม่มี state lib)
 - **UI**: Mobile-first (max-w-md), ข้อความในแอปเป็นภาษาอังกฤษ, ตัวอักษร IBM Plex Sans Thai
 - **ตัวอักษร v0.8** (2026-07-26, `app/layout.tsx`) — ตระกูล IBM Plex ล้วน:
   - ตัวหนังสือทั้งหมด (display + body + ชื่อร้าน) = **IBM Plex Sans Thai** 300–700 · subsets `thai` + `latin` → var `--font-plex-thai`

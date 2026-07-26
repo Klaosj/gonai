@@ -185,6 +185,7 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 - auth: anonymous ผ่าน signed cookie ทันทีที่แตะ API แรก · LINE Login เมื่อตั้ง `LINE_CHANNEL_ID/SECRET`
 
 ### ขั้น deploy จริง (เหลือทำ)
+0. `npm run preflight` (ตั้ง env เหมือน production แล้วรัน — ผ่านค่อยไปต่อ)
 1. สร้างโปรเจค Supabase → รัน `supabase/schema.sql` ใน SQL Editor
 2. `npx tsx supabase/seed.ts --w2` (staging) หรือไม่ใส่ `--w2` (fixtures)
 3. ตั้ง env บน host: `GN_AUTH_SECRET` (บังคับ), `SUPABASE_*`, `NEXT_PUBLIC_BASE_URL`, `LINE_*`
@@ -229,11 +230,14 @@ gonai/
 │   ├── store-json.ts       # JSON backend (dev เท่านั้น)
 │   ├── auth.ts             # signed cookie + LINE Login
 │   ├── ratelimit.ts        # in-memory sliding window
+│   ├── preflight.ts        # ตรวจ env ก่อน deploy (pure function)
 │   └── api.ts              # client fetch helper
 ├── supabase/
 │   ├── schema.sql          # 9 ตาราง + RLS
 │   ├── store-adapter.ts    # Supabase backend + catalog fetch/upsert
 │   └── seed.ts             # seed catalog (fixtures | --w2)
+├── scripts/
+│   └── preflight.ts        # CLI: npm run preflight (ตรวจ env ก่อน deploy)
 ├── tests/
 │   ├── logic.test.ts       # 32 integration tests
 │   ├── infra.test.ts       # 11 infra tests (auth/ratelimit/catalog)
@@ -251,6 +255,7 @@ gonai/
 npm run dev                        # รัน dev server (localhost:3000)
 npm run check                      # tests: logic 32 ข้อ + infra 11 ข้อ
 npm run build                      # production build
+npm run preflight                  # ตรวจ env ก่อน deploy
 npx tsx supabase/seed.ts           # seed catalog ลง Supabase (fixtures)
 npx tsx supabase/seed.ts --w2      # seed catalog ลง Supabase (W2 mock 24 venues)
 npx tsx tests/w2-seed.ts > lib/fixtures.ts   # ใช้ W2 mock เป็น fixtures local

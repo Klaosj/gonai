@@ -9,6 +9,7 @@ import { decodeUid, encodeUid, verifyLineState } from "../lib/auth";
 import { getCatalog } from "../lib/catalog";
 import { applyVenueFilters } from "../lib/filters";
 import { VENUES } from "../lib/fixtures";
+import { preflightChecks } from "../lib/preflight";
 import { rateLimit, resetRateLimits } from "../lib/ratelimit";
 import { analyzeRain } from "../lib/weather";
 import { W2_VENUES } from "./w2-data";
@@ -31,6 +32,10 @@ const eq = <T>(actual: T, expected: T, msg?: string) => {
   if (actual !== expected) {
     throw new Error(`${msg ?? "eq"}: expected ${expected}, got ${actual}`);
   }
+};
+
+const ok = (cond: boolean, msg: string) => {
+  if (!cond) throw new Error(msg);
 };
 
 async function main() {
@@ -177,6 +182,37 @@ console.log(JSON.stringify({ a, b, c }));
         fs.unlinkSync(tmpData);
       } catch {}
     }
+  });
+
+  // ===== preflight: env check ก่อน deploy (pure function, ไม่มี network) =====
+  const GOOD_ENV = {
+    GN_AUTH_SECRET: "x".repeat(40),
+    SUPABASE_URL: "https://abc123.supabase.co",
+    SUPABASE_SERVICE_KEY: "k".repeat(30),
+    NEXT_PUBLIC_BASE_URL: "https://gonai.example.com",
+  };
+
+  await test("preflight: env ว่าง → required fail ครบ 4 ตัว", () => {
+    const c = preflightChecks({});
+    eq(c.filter((x) => x.required && !x.ok).length, 4);
+  });
+
+  await test("preflight: env ครบถูก → required ผ่านหมด", () => {
+    const c = preflightChecks(GOOD_ENV);
+    eq(c.filter((x) => x.required && !x.ok).length, 0);
+  });
+
+  await test("preflight: secret สั้น หรือค่า default → ไม่ผ่าน", () => {
+    const short = preflightChecks({ ...GOOD_ENV, GN_AUTH_SECRET: "short" });
+    ok(!short.find((x) => x.name === "GN_AUTH_SECRET")!.ok, "สั้นต้องไม่ผ่าน");
+    const dflt = preflightChecks({ ...GOOD_ENV, GN_AUTH_SECRET: "change-me-change-me-change-me-change-me" });
+    ok(!dflt.find((x) => x.name === "GN_AUTH_SECRET")!.ok, "ขึ้นต้น change-me ต้องไม่ผ่าน");
+  });
+
+  await test("preflight: LINE ตั้งครึ่งเดียว → เตือน (ไม่นับ required)", () => {
+    const c = preflightChecks({ ...GOOD_ENV, LINE_CHANNEL_ID: "123" });
+    const line = c.find((x) => x.name === "LINE_CHANNEL_ID/SECRET")!;
+    ok(!line.ok && !line.required, "half-set ต้อง warn แบบไม่ block");
   });
 
   console.log("════════════════════════════════════════════════════════════");

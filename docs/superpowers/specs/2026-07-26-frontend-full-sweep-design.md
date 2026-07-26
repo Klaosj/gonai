@@ -27,9 +27,9 @@
 
 frontend ไม่มี component test เลย — ก่อน refactor ต้องมีตาข่าย:
 
-- รัน `journey.mjs` (13 ขั้น, selector อังกฤษ) กับ dev server ให้เขียวเป็น baseline — ถ้าแดงต้องแก้ให้เขียวก่อนเริ่มทุกอย่าง
-- ขยาย journey ให้ครอบหน้า explore / me / share (`/p/[id]`) อย่างน้อยระดับ smoke (โหลดหน้า + element หลักปรากฏ)
-- เก็บ CDP screenshot baseline ทุกหน้า @ 360/390/768/1280 ไว้เทียบหลังจบ
+- **ข้อเท็จจริงที่แก้จากตอนเขียน spec ครั้งแรก (scout 2026-07-26): `journey.mjs` ไม่มีอยู่ใน repo** — เป็นสคริปต์ชั่วคราวใน scratchpad ของ session เก่า (Playwright ซึ่งไม่ได้อยู่ใน dependencies) ที่ไม่เคยถูก commit — เหลือแค่บันทึกผลใน design/QA-*.md
+- ดังนั้น Phase 0 = **เขียน `tests/journey.mjs` ใหม่เป็น asset ถาวรของ repo**: smoke driver ที่ขับ headless Chrome ผ่าน raw CDP (ใช้ global `WebSocket` + `fetch` ที่ built-in ใน Node ≥22 — **ไม่เพิ่ม dependency**) · ครอบ landing / app / explore / me / group / welcome / share-404 + เช็ค horizontal overflow ที่ 360/768/1280 + นับ console error ต้องเป็น 0 · npm script `journey`
+- เก็บ screenshot baseline ทุกหน้า @ 360/390/768/1280 ไว้เทียบหลังจบ (โฟลเดอร์ `design/qa/` — gitignore)
 
 ## Phase 1 — Foundation refactor (architecture)
 

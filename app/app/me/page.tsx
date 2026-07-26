@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { gn } from "@/lib/api";
 import { mid } from "@/lib/costing";
+import { useToast } from "@/lib/use-toast";
 import type { ExpandedPlan } from "@/lib/server";
 import { INTENT_LABELS, type Venue } from "@/lib/types";
 import { CATEGORY_AMBIENCE, CATEGORY_EMOJI, INTENT_AMBIENCE, INTENT_EMOJI } from "@/lib/venue-display";
@@ -89,11 +90,7 @@ export default function TripsPage() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [confirmingWipe, setConfirmingWipe] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const showToast = (m: string) => {
-    setToast(m);
-    setTimeout(() => setToast(null), 2600);
-  };
+  const showToast = useToast();
 
   const load = () => {
     setLoadError(false);
@@ -426,12 +423,6 @@ export default function TripsPage() {
           )}
         </div>
       </div>
-
-      {toast && (
-        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
-          {toast}
-        </div>
-      )}
     </div>
   );
 }

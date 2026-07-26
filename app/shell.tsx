@@ -8,6 +8,7 @@ import Logo from "@/components/Logo";
 import { gn, track } from "@/lib/api";
 import type { ExpandedPlan } from "@/lib/server";
 import type { Venue } from "@/lib/types";
+import { ToastProvider } from "@/lib/use-toast";
 
 const TABS = [
   { key: "planner", label: "🗺️ Plan", href: "/app" },
@@ -116,7 +117,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const dnaLabels = me ? tasteDnaLabels(me) : [];
 
   return (
-    <>
+    <ToastProvider>
       {/* pt สูงกว่า pb เล็กน้อย — เผื่อหัวเครื่องบินของโลโก้ยื่นเหนือ cap height ไม่ให้โดนขอบจอตัด */}
       <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 pb-2 pt-3.5">
         <Link href="/app" className="flex items-baseline gap-2">
@@ -191,6 +192,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <span>🗺 Win/boat/BTS routes field-collected · Grab formula until validated</span>
         <span>🔒 PDPA compliant — view/delete your data anytime</span>
       </footer>
-    </>
+    </ToastProvider>
   );
 }

@@ -14,6 +14,7 @@ import SplitPay from "@/components/SplitPay";
 import { gn, track } from "@/lib/api";
 import { fmtRange, mid } from "@/lib/costing";
 import { useCountUp } from "@/lib/use-count-up";
+import { useToast } from "@/lib/use-toast";
 import type { ExpandedPlan, ExpandedStop } from "@/lib/server";
 import { MODE_LABELS, type Route, type Venue } from "@/lib/types";
 import { CATEGORY_AMBIENCE, CATEGORY_EMOJI } from "@/lib/venue-display";
@@ -87,7 +88,6 @@ export default function PlanPage() {
   const [loadError, setLoadError] = useState(false);
   const [view, setView] = useState<"plan" | "trip" | null>(null); // null = ตาม status
   const [suggestions, setSuggestions] = useState<{ list: Venue[]; indoor: boolean } | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
   const [editingBudget, setEditingBudget] = useState(false);
   const [spendingSeq, setSpendingSeq] = useState<number | null>(null);
@@ -95,10 +95,7 @@ export default function PlanPage() {
   const [lastCheckin, setLastCheckin] = useState<number | null>(null);
   const [acting, setActing] = useState<string | null>(null); // in-flight lock ต่อ action // (3) ripple จุดที่เพิ่งเช็คอิน // stop ที่กำลังพิมพ์จำนวนเงินเอง
 
-  const showToast = (m: string) => {
-    setToast(m);
-    setTimeout(() => setToast(null), 2600);
-  };
+  const showToast = useToast();
 
   const load = useCallback(() => {
     setLoadError(false);
@@ -623,12 +620,6 @@ export default function PlanPage() {
               </li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {toast && (
-        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
-          {toast}
         </div>
       )}
     </div>

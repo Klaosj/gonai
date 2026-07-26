@@ -16,6 +16,7 @@ import { mid } from "@/lib/costing";
 import { buildTimeline, tripTitle } from "@/lib/timeline";
 import { filtersToParams, type VenueFilters } from "@/lib/filters";
 import { useCountUp } from "@/lib/use-count-up";
+import { useToast } from "@/lib/use-toast";
 import { BUDGET_DEFAULTS } from "@/lib/fixtures";
 import type { ExpandedPlan } from "@/lib/server";
 import type { Intent, Route, Venue, Zone } from "@/lib/types";
@@ -152,7 +153,6 @@ export default function PlannerClient() {
   const [loadError, setLoadError] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [saved, setSaved] = useState<Set<string>>(new Set());
-  const [toast, setToast] = useState<string | null>(null);
   const [importUrl, setImportUrl] = useState("");
   const [plan, setPlan] = useState<ExpandedPlan | null>(null);
   const [chainList, setChainList] = useState<Venue[] | null>(null);
@@ -175,10 +175,7 @@ export default function PlannerClient() {
   const [lastDonePlan, setLastDonePlan] = useState<ExpandedPlan | null>(null);
   const [memoryDismissedId, setMemoryDismissedId] = useState<string | null>(null);
 
-  const showToast = (m: string) => {
-    setToast(m);
-    setTimeout(() => setToast(null), 2600);
-  };
+  const showToast = useToast();
 
   const load = useCallback(() => {
     setLoadError(false);
@@ -1145,12 +1142,6 @@ export default function PlannerClient() {
               </li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {toast && (
-        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
-          {toast}
         </div>
       )}
     </div>

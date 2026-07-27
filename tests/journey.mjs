@@ -106,7 +106,12 @@ const STEPS = [
   { name: "me-past-trips", url: "/app/me", width: 1280, expr: `document.body.innerText.includes("Past trips")` },
   { name: "group-loads", url: "/app/group", width: 1280, expr: `!!document.querySelector("h1")` },
   { name: "welcome-loads", url: "/app/welcome", width: 1280, expr: `!!document.querySelector("h1")` },
-  { name: "share-bad-404", url: "/p/bad?k=bad", width: 1280, expr: `document.body.innerText.includes("404")` },
+  // notFound() ใน app/p/[id]/page.tsx bubble ขึ้นไปที่ app/not-found.tsx (root) เหมือน unmatched route
+  // ทุกตัว เพราะไม่มี not-found.tsx ที่ specific กว่านี้ในทรี — เช็คเนื้อ branded จริง ไม่ใช่แค่เลข "404"
+  { name: "share-bad-404", url: "/p/bad?k=bad", width: 1280, expr: `document.body.innerText.includes("Back to planner")` },
+  // T2.5 — unmatched route ใต้ /app ต้องได้ 404 ในแบรนด์เหมือนกัน (คนละทางเข้ากับ share-bad-404 ที่มาจาก
+  // notFound() ใน page component — เผื่อวันหลังมีคนเพิ่ม not-found.tsx เฉพาะทางใดทางหนึ่งแล้วอีกทางหลุด)
+  { name: "app-404", url: "/app/nonexistent", width: 1280, expr: `document.body.innerText.includes("Back to planner")` },
   { name: "no-overflow-360-app", url: "/app", width: 360, expr: NO_OVERFLOW },
   { name: "no-overflow-390-app", url: "/app", width: 390, expr: NO_OVERFLOW },
   { name: "no-overflow-768-app", url: "/app", width: 768, expr: NO_OVERFLOW },

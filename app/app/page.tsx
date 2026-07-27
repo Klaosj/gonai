@@ -1,9 +1,10 @@
 import { Suspense } from "react";
+import { SkeletonPage } from "@/components/LoadingSkeleton";
 import PlannerClient from "./planner-client";
 
 export default function Page() {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-gn-mut">Loading…</p>}>
+    <Suspense fallback={<SkeletonPage />}>
       <PlannerClient />
     </Suspense>
   );

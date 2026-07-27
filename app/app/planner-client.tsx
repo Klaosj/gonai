@@ -429,7 +429,7 @@ export default function PlannerClient() {
             ย้าย DOM จริงมาก่อน col 1 (ไม่ใช่แค่ CSS order) เพื่อให้ลำดับที่ screen reader / keyboard
             tab อ่านตรงกับสิ่งที่ตาเห็นบนมือถือ (การ์ดก่อนแชท) · desktop (lg+): lg:order-2 ดึงกลับไป
             คอลัมน์กลางเหมือนเดิมเป๊ะ (grid 330px/1fr/360px เดิมไม่เปลี่ยน) */}
-        <section className="order-1 lg:order-2 gn-card-e gn-rise gn-d1 p-4">
+        <section className="@container order-1 lg:order-2 gn-card-e gn-rise gn-d1 p-4">
           {/* T2.8 fix: ซ่อนเลขขั้นตอนบนมือถือ (< lg) เพราะ DOM order สลับจาก desktop (การ์ดมาก่อนเงื่อนไข)
               เลข 01/02/03 เลยไม่ตรงลำดับที่ตาเห็นอีกต่อไป — desktop (≥ lg) ยังเห็นเลขเหมือนเดิมทุกตัวอักษร */}
           <h2 className="gn-step"><span className="hidden lg:inline">02 — </span>Pick a spot · top {data.cards.length} of {data.total}</h2>
@@ -517,12 +517,15 @@ export default function PlannerClient() {
             </p>
           )}
 
+          {/* กริดการ์ด: จำนวนคอลัมน์ตามความกว้างจริงของ col2 (@container บน section) ไม่ใช่ viewport —
+              lg:grid-cols-3 เดิมทำการ์ดเหลือ 66px ที่ 1024 (col2 ~270px แต่ฝืน 3 คอลัมน์)
+              threshold 540/820 = การ์ดไม่มีวันแคบกว่า ~260px ที่เนื้อหาการ์ด (ชิปราคา+หัวใจ+ปุ่ม) ต้องการจริง */}
           {list.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-line py-10 text-center text-sm text-mut">
               Nothing matches every filter 😅 — try turning some off
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 @[540px]:grid-cols-2 @[820px]:grid-cols-3">
               {list.map((v, i) => (
                 <div
                   key={v.id}

@@ -56,24 +56,29 @@ function VenueCard({
         <span aria-hidden className="relative z-[2] m-3 text-[36px] leading-none drop-shadow">
           {CATEGORY_EMOJI[venue.category]}
         </span>
-        <BahtChip legs={route.legs} className="absolute right-2 top-2 z-[2]" />
-        <button
-          onClick={() => onSave(venue)}
-          aria-label={saved ? "Remove from saved" : "Save"}
-          aria-pressed={saved}
-          className={`gn-press absolute left-2 top-2 z-[2] rounded-full bg-bg/70 p-1.5 backdrop-blur ${saved ? "text-bad" : "text-ink"}`}
-        >
-          <span className={`relative ${saved ? "gn-pop" : ""} inline-block`}>
-            <Heart size={16} fill={saved ? "currentColor" : "none"} />
-            {saved && (
-              <span className="gn-burst pointer-events-none absolute inset-0" aria-hidden>
-                {[0, 60, 120, 180, 240, 300].map((a) => (
-                  <i key={a} style={{ "--a": `${a}deg` } as React.CSSProperties} />
-                ))}
-              </span>
-            )}
-          </span>
-        </button>
+        {/* หัวใจ+บาทชิปอยู่แถว flex เดียวกัน (in-flow) — ห้ามกลับไปเป็น absolute แยกมุม:
+            การ์ดแคบ (เช่น 3 คอลัมน์ + scrollbar ที่ 1280) จะทำให้สองก้อนทับกันแล้วหัวใจบังเลขหน้าของราคา
+            ถ้าที่ไม่พอ chip จะ wrap ลงบรรทัดใหม่แทน (ml-auto คงชิดขวาไว้ทั้งสองกรณี) */}
+        <div data-topbar className="absolute inset-x-2 top-2 z-[2] flex flex-wrap items-start gap-1.5">
+          <button
+            onClick={() => onSave(venue)}
+            aria-label={saved ? "Remove from saved" : "Save"}
+            aria-pressed={saved}
+            className={`gn-press rounded-full bg-bg/70 p-1.5 backdrop-blur ${saved ? "text-bad" : "text-ink"}`}
+          >
+            <span className={`relative ${saved ? "gn-pop" : ""} inline-block`}>
+              <Heart size={16} fill={saved ? "currentColor" : "none"} />
+              {saved && (
+                <span className="gn-burst pointer-events-none absolute inset-0" aria-hidden>
+                  {[0, 60, 120, 180, 240, 300].map((a) => (
+                    <i key={a} style={{ "--a": `${a}deg` } as React.CSSProperties} />
+                  ))}
+                </span>
+              )}
+            </span>
+          </button>
+          <BahtChip legs={route.legs} className="ml-auto" />
+        </div>
         <button
           onClick={toggle}
           className="o-mono gn-press absolute bottom-2 right-2 z-[2] rounded-full bg-bg/70 px-2 py-1.5 text-[10px] text-ink backdrop-blur"

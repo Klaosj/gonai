@@ -49,6 +49,21 @@
 2. ดู client error จริง: Supabase dashboard → Table editor → `events` → filter `type = client_error`
 3. Server error: Vercel → Functions → Logs
 
+## 4.5 SLO — เป้าที่วัดจริง (เพิ่ม 2026-07-27 จาก system-design QA — "เขียว" ต้องมีนิยาม)
+- Availability เป้า **99.5%/เดือน** (≈ ดับได้ 3.6 ชม./เดือน — ตรงความจริงของ free tier ทั้ง Vercel+Supabase) · วัดจาก UptimeRobot uptime %
+- API p95 **< 500ms** ตอน warm · cold start ~2.5s ยอมรับได้ (serverless) — ดูจาก Vercel Logs/Analytics
+- Chat: ตอบแบบ AI (badge GONAI AI ไม่มี QUICK MATCH) **≥ 80% ของข้อความ** — ถ้า QUICK MATCH เกิน ~20% = Ollama cloud มีปัญหา เช็ค key + logs
+- หลุดเป้า 2 เดือนติด = ลงมือ (Supabase Pro / ปรับ chat engine) ไม่ใช่แค่รับทราบ
+
+## 4.6 Backup ข้อมูลผู้ใช้ — RPO 7 วัน / RTO ~1 ชม. (เพิ่ม 2026-07-27 จาก system-design QA)
+- **catalog กู้จาก git ได้เสมอ** (`data/w2/*.csv` + `npm run seed:w2`) → RPO ≈ 0 ไม่ต้องทำอะไร
+- **ข้อมูลผู้ใช้ (users/plans/saves/events/imports/waitlist) คือของเดียวที่กู้ไม่ได้** — free tier ไม่มี backup อัตโนมัติ (ยืนยันสถานะจริงใน dashboard → Database → Backups อีกครั้งตอนสร้างโปรเจค)
+- ตั้ง dump รายสัปดาห์บนเครื่อง Klao (launchd หรือ Hermes cron — **Hermes ใช้เวลา LOCAL**):
+  `supabase db dump --db-url "$SUPABASE_DB_URL" -f ~/Backups/gonai-$(date +%Y%m%d).sql`
+  (ไม่มี supabase CLI ใช้ `pg_dump "$SUPABASE_DB_URL"` แทน · connection string: dashboard → Settings → Database · **ห้าม commit ไฟล์ dump ลง repo**)
+- **ขั้นกู้ (RTO ~1 ชม.)**: สร้างโปรเจคใหม่ → รัน `schema.sql` → `npm run seed:w2` → restore dump ล่าสุด (`psql "$NEW_DB_URL" < gonai-XXXXXXXX.sql` เฉพาะตาราง user data) → สลับ SUPABASE_* ใน Vercel → smoke test ตามขั้น 2.5
+- อัพเกรด Supabase Pro (daily backup + PITR) เมื่อผู้ใช้จริงทำให้การเสียข้อมูล 7 วันรับไม่ได้
+
 ## 5. Field day (ตาม data/w2/FIELD-CHECKLIST.md — เดิน 5 โซน)
 - ตรวจ 21 ที่ + 12 เส้นทางตามลำดับโซน A→E ใน checklist · จดราคา/เวลาจริงทับใน CSV
 - V106 (Erawan Tea Room) / U103 (GATTA cafe) / U106 (BANGKOK sign) = confidence ต่ำสุด — ห้ามข้าม

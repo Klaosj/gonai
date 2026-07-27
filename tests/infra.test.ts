@@ -341,6 +341,26 @@ console.log(JSON.stringify({ aGone: a === null, bStays: b !== null }));
     }
   });
 
+  // ===== trust badge state =====
+  await test("trust: เก่ากว่า staleDays → stale ชนะทุกอย่าง", async () => {
+    const { trustState } = await import("../lib/trust");
+    eq(trustState("2026-05-01", 5, Date.parse("2026-07-27"), 45).kind, "stale");
+  });
+  await test("trust: count 0 + ยังสด → unverified ไม่ใช่ confirmed", async () => {
+    const { trustState } = await import("../lib/trust");
+    eq(trustState("2026-07-27", 0, Date.parse("2026-07-27"), 45).kind, "unverified");
+  });
+  await test("trust: count 1 → confirmed dots 1", async () => {
+    const { trustState } = await import("../lib/trust");
+    const st = trustState("2026-07-20", 1, Date.parse("2026-07-27"), 45);
+    ok(st.kind === "confirmed" && st.dots === 1, `got ${JSON.stringify(st)}`);
+  });
+  await test("trust: count 7 → dots cap ที่ 3", async () => {
+    const { trustState } = await import("../lib/trust");
+    const st = trustState("2026-07-20", 7, Date.parse("2026-07-27"), 45);
+    ok(st.kind === "confirmed" && st.dots === 3, `got ${JSON.stringify(st)}`);
+  });
+
   console.log("════════════════════════════════════════════════════════════");
   console.log(`  ${pass} passed, ${fail} failed (${pass + fail} total)`);
   if (fail > 0) process.exit(1);

@@ -323,6 +323,24 @@ console.log(JSON.stringify({ aGone: a === null, bStays: b !== null }));
     eq("Authorization" in ollamaHeaders({} as NodeJS.ProcessEnv), false);
   });
 
+  // ===== line: redirect_uri ต้องกัน trailing slash =====
+  await test("line: NEXT_PUBLIC_BASE_URL มี trailing slash → redirect_uri ไม่มี //", async () => {
+    const prevBase = process.env.NEXT_PUBLIC_BASE_URL;
+    const prevId = process.env.LINE_CHANNEL_ID;
+    try {
+      process.env.NEXT_PUBLIC_BASE_URL = "https://gonai.example.com/";
+      process.env.LINE_CHANNEL_ID = "test-channel";
+      const { getLineLoginUrl } = await import("../lib/auth");
+      const url = new URL(getLineLoginUrl("/app"));
+      eq(url.searchParams.get("redirect_uri"), "https://gonai.example.com/api/auth/line/callback");
+    } finally {
+      if (prevBase === undefined) delete process.env.NEXT_PUBLIC_BASE_URL;
+      else process.env.NEXT_PUBLIC_BASE_URL = prevBase;
+      if (prevId === undefined) delete process.env.LINE_CHANNEL_ID;
+      else process.env.LINE_CHANNEL_ID = prevId;
+    }
+  });
+
   console.log("════════════════════════════════════════════════════════════");
   console.log(`  ${pass} passed, ${fail} failed (${pass + fail} total)`);
   if (fail > 0) process.exit(1);

@@ -3,7 +3,7 @@
 // ใช้ /api/me จริง — ทุกตัวเลข/badge คำนวณจาก me.plans + me.priceConfirms เท่านั้น ไม่มีระบบแต้ม/รางวัลลอยๆ
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { gn } from "@/lib/api";
 import { mid } from "@/lib/costing";
@@ -82,6 +82,20 @@ export default function TripsPage() {
   const { me, error: loadError, reload: load } = useMe();
   const [confirmingWipe, setConfirmingWipe] = useState(false);
   const showToast = useToast();
+
+  // auth_error จาก LINE redirect (not_configured / line / bad_state / exchange_failed)
+  // เดิมไม่มีใครอ่าน — ผู้ใช้กดปุ่มแล้วหน้าเด้งกลับเฉยๆ · อ่านจาก window ตรงๆ เลี่ยง
+  // useSearchParams ที่บังคับ Suspense boundary ตอน build
+  useEffect(() => {
+    const err = new URLSearchParams(window.location.search).get("auth_error");
+    if (!err) return;
+    showToast(
+      err === "not_configured"
+        ? "LINE sign-in isn't available yet — everything still works as guest"
+        : "LINE sign-in didn't go through — please try again",
+    );
+    router.replace("/app/me"); // ล้าง query กัน toast เด้งซ้ำ
+  }, [router, showToast]);
 
   if (loadError) {
     return (

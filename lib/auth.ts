@@ -101,7 +101,9 @@ export function isLineConfigured(): boolean {
 }
 
 function lineRedirectUri(): string {
-  return `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/api/auth/line/callback`;
+  // ตัด trailing slash — "https://โดเมน/" ที่ copy มาจาก browser จะกลาย //api/... แล้ว LINE reject
+  const base = (process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  return `${base}/api/auth/line/callback`;
 }
 
 // state เซ็นด้วย HMAC กัน CSRF — callback รับเฉพาะ state ที่เราออกเองใน 10 นาที

@@ -23,6 +23,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  // OG/Twitter image URL ต้อง resolve กับโดเมนจริง ไม่ใช่ localhost — ค่าเดียวกับที่ LINE callback ใช้
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"),
   title: "GoNai — plan · go · never over budget",
   description:
     "Plan a full Bangkok day out with every baht counted before you leave — Top 3 picks validated by real visitors",

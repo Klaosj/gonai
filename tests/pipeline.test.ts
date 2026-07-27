@@ -52,6 +52,20 @@ function runGenerator(venuesPath: string, routesPath: string): { status: number;
   }
 }
 
+// รัน seed CLI — ใช้เฉพาะ --dry / --w2 ใน test เท่านั้น (ห้ามมีทางไปแตะ Supabase จริง)
+function runSeed(args: string[]): { status: number; stdout: string; stderr: string } {
+  try {
+    const stdout = execFileSync("node_modules/.bin/tsx", ["supabase/seed.ts", ...args], {
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+    return { status: 0, stdout, stderr: "" };
+  } catch (e) {
+    const err = e as { status?: number; stdout?: string; stderr?: string };
+    return { status: err.status ?? 1, stdout: err.stdout ?? "", stderr: err.stderr ?? "" };
+  }
+}
+
 // venues CSV แถวเดียวที่ valid ทุกคอลัมน์ — ใช้เป็นฐานสำหรับ test ฝั่ง routes
 const VALID_VENUES_CSV = `venue_id,name_th,zone_id,category,intents,badge,hit_rank,unseen_rank,transition_rank,plugs,wifi_mbps,seat_hours,noise,parking,food_level,indoor,shade,price_per_head_min,price_per_head_max,open_time,close_time,walk_min_from_hub,video_url,source,last_validated_at,validation_count
 V001,Test Cafe,siam,cafe,work,hit,1,,,all,200,999,medium,false,meals,true,true,150,250,09:00,21:00,6,,sprint,2026-07-12,12
@@ -287,6 +301,20 @@ V001,Test Cafe,siam,cafe,work,hit,abc,,,all,200,999,medium,false,meals,true,true
   await test("w2 จริง: data/w2/*.csv ผ่าน generator (กัน field-day แก้ CSV แล้วพังเงียบ)", () => {
     const res = runGenerator("data/w2/venues.csv", "data/w2/routes.csv");
     eq(res.status, 0, res.stderr);
+  });
+
+  // ===== seed CLI =====
+  await test("seed: --w2 ถูกถอด → exit 1 ชี้ทางไป --csv", () => {
+    const r = runSeed(["--w2"]);
+    eq(r.status, 1);
+    ok(r.stderr.includes("--csv"), "ต้องชี้ทางไป --csv");
+  });
+
+  await test("seed: --csv w2 จริง --dry → นับ 21 venues / 12 routes โดยไม่แตะ Supabase", () => {
+    const r = runSeed(["--csv", "data/w2/venues.csv", "data/w2/routes.csv", "--dry"]);
+    eq(r.status, 0, r.stderr);
+    ok(r.stdout.includes("21 venues"), `stdout: ${r.stdout}`);
+    ok(r.stdout.includes("12 routes"), `stdout: ${r.stdout}`);
   });
 
   console.log("═".repeat(60));

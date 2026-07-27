@@ -8,6 +8,9 @@
     "start": "next start",
     "check": "tsx tests/logic.test.ts && tsx tests/infra.test.ts && tsx tests/pipeline.test.ts",
     "preflight": "tsx scripts/preflight.ts",
+    "seed": "tsx supabase/seed.ts",
+    "seed:w2": "tsx supabase/seed.ts --csv data/w2/venues.csv data/w2/routes.csv",
+    "fixtures:w2": "tsx tests/csv-to-fixtures.ts data/w2/venues.csv data/w2/routes.csv > lib/fixtures.ts",
     "journey": "node tests/journey.mjs"
   },
   "dependencies": {

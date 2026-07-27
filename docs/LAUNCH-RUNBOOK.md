@@ -16,7 +16,7 @@
 4. ใส่ใน `.env` เครื่องตัวเอง: `SUPABASE_URL=...` `SUPABASE_SERVICE_KEY=...`
 5. ซ้อมมือ: `npm run seed:w2 -- --dry` → ต้องเห็น `21 venues, 12 routes`
    (ยัง**ห้าม** seed จริง — FIELD-CHECKLIST สั่งห้าม seed ข้อมูลที่ยังไม่ field-verify ขึ้น production)
-6. seed ชั่วคราวสำหรับทดสอบระบบ: `npm run seed` (fixtures placeholder 6 ร้าน) — พอไว้ smoke test
+6. seed ชั่วคราวสำหรับทดสอบระบบ: `npm run seed` (fixtures placeholder 9 ร้าน — dry run โชว์ 7 zones, 9 venues, 6 routes) — พอไว้ smoke test
    ข้อมูลจริงค่อยทับตอนหลัง field day (ขั้น 6)
 
 ## 2. Vercel (~20 นาที)

@@ -249,7 +249,7 @@ gonai/
 ├── supabase/
 │   ├── schema.sql          # 9 ตาราง + RLS
 │   ├── store-adapter.ts    # Supabase backend + catalog fetch/upsert
-│   └── seed.ts             # seed catalog (fixtures | --w2)
+│   └── seed.ts             # seed catalog (fixtures | --csv <venues.csv> <routes.csv>)
 ├── scripts/
 │   └── preflight.ts        # CLI: npm run preflight (ตรวจ env ก่อน deploy)
 ├── tests/
@@ -269,7 +269,7 @@ gonai/
 
 ```bash
 npm run dev                        # รัน dev server (localhost:3000)
-npm run check                      # tests: logic 46 ข้อ + infra 22 ข้อ + pipeline 14 ข้อ (รวม 82)
+npm run check                      # tests: logic 46 ข้อ + infra 36 ข้อ + pipeline 19 ข้อ (รวม 101)
 npm run journey                    # smoke test raw-CDP บน dev server ที่รันอยู่ — 20 steps, ต้อง 0 console error
 npm run build                      # production build
 npm run preflight                  # ตรวจ env ก่อน deploy

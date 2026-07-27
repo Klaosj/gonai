@@ -38,7 +38,7 @@ export default async function SharedPlanPage({
           <Logo className="text-[24px]" />
         </div>
 
-        <div className="gn-card-e p-5">
+        <div className="gn-card-e gn-rise p-5">
           <p className="o-mono text-[10px] text-mut">SHARED PLAN · VIEW ONLY</p>
           <h1 className="o-serif mt-1 text-[22px] font-medium leading-snug">{title}</h1>
 
@@ -54,7 +54,7 @@ export default async function SharedPlanPage({
           </div>
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="gn-rise gn-d1 mt-6 text-center">
           {/* Task 2.6: เข้าแอปตรง ไม่ผ่านหน้าแรกอีกชั้น */}
           <Link href="/app" className="gn-press gn-cta o-pill-primary o-btn-label inline-block px-7 py-3 text-sm">
             Plan yours free — every baht counted ▶

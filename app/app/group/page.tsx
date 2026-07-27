@@ -23,8 +23,13 @@ export default function GroupPage() {
       </p>
 
       <div className="space-y-3">
-        {PLANNED.map((f) => (
-          <div key={f.title} className="gn-card-e flex items-start gap-3 p-4">
+        {PLANNED.map((f, i) => (
+          <div
+            key={f.title}
+            className={`gn-card-e flex items-start gap-3 p-4 ${
+              i === 0 ? "gn-rise" : i === 1 ? "gn-rise gn-d1" : "gn-rise gn-d2"
+            }`}
+          >
             <span className="text-2xl">{f.icon}</span>
             <div>
               <h3 className="font-semibold text-ink">{f.title}</h3>

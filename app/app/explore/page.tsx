@@ -2,7 +2,7 @@
 // /app/explore — ผังระยะเดินจาก BTS สยาม (ยังไม่ใช่แผนที่จริง) + grid ที่โชว์ได้ทั้งหมด + วิดีโอครีเอเตอร์ (plan §5)
 // ต้นแบบ: Gonai explore.html — ปุ่ม "ส่งคลิปให้ทีมดึงที่เที่ยว" → เข้าคิว imports จริง (ไม่เปลี่ยน)
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
 import { useApiResource } from "@/lib/use-api-resource";
@@ -84,10 +84,19 @@ export default function ExplorePage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [sentVideos, setSentVideos] = useState<Set<string>>(new Set());
   const showToast = useToast();
+  // gn-rise เฉพาะโหลดแรก — กันการ์ดวูบตอนเปลี่ยน filter (pattern เดียวกับ app/app/planner-client.tsx)
+  const firstCards = useRef(true);
 
   // /api/explore คืนมาเรียง hit_rank ก่อนแล้ว unseen_rank อยู่แล้ว — filter รักษาลำดับเดิม
   // hooks ต้องมาก่อน early return ทุกตัว (pattern เดียวกับ plan/[id]/page.tsx)
   const filtered = useMemo(() => (hot ?? []).filter((v) => matchesFilter(v, filter)), [hot, filter]);
+
+  useEffect(() => {
+    if (hot && firstCards.current) {
+      const t = setTimeout(() => (firstCards.current = false), 900); // หลัง entrance ชุดแรกจบ
+      return () => clearTimeout(t);
+    }
+  }, [hot]);
 
   // ปิดบั๊กเดิม: hot เคย .catch(() => {}) กลืน error เงียบ — ลอก pattern loadError จาก app/app/me/page.tsx มาใช้ตรงนี้
   if (loadError) {
@@ -215,12 +224,14 @@ export default function ExplorePage() {
         {/* grid ขวา — hit_rank ก่อนแล้ว unseen_rank (ลำดับจาก /api/explore) */}
         <div className="flex flex-col gap-2.5">
           <p className="o-mono text-[10px] text-mut">Hits first, then confirmed Unseen</p>
-          {filtered.map((v) => (
+          {filtered.map((v, i) => (
             <Link
               key={v.id}
               href={`/app?add=${v.id}`}
               onClick={() => track("explore_pick", { venue_id: v.id, via: "grid" })}
-              className="gn-card-e gn-lift flex items-center gap-3.5 p-3.5"
+              className={`gn-card-e gn-lift flex items-center gap-3.5 p-3.5 ${
+                firstCards.current ? (i === 0 ? "gn-rise" : i === 1 ? "gn-rise gn-d1" : "gn-rise gn-d2") : ""
+              }`}
             >
               <span className={`o-grain relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl ${CATEGORY_AMBIENCE[v.category]}`}>
                 <span className="relative z-[2]">{CATEGORY_EMOJI[v.category]}</span>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AskBar from "@/components/AskBar";
 import Logo from "@/components/Logo";
+import { Reveal } from "@/components/Reveal";
 import WaitlistForm from "@/components/WaitlistForm";
 
 // Landing page (PART B) — แทน redirect เดิม
@@ -98,19 +99,21 @@ export default function LandingPage() {
         <p className="mt-3 text-center text-mut">
           The three problems every Bangkok day trip has
         </p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {[
-            { icon: "💸", title: "Budget blowouts", desc: "You budget for food, then forget the boat, the win bike, the BTS" },
-            { icon: "🤷", title: "Nowhere to go", desc: "30 minutes of searching and still no decision" },
-            { icon: "📍", title: "Same famous spots", desc: "Everyone goes viral places — hidden gems stay hidden" },
-          ].map((p) => (
-            <div key={p.title} className="gn-card-e gn-lift p-5 text-center">
-              <div className="text-2xl">{p.icon}</div>
-              <h3 className="mt-2 font-semibold text-ink">{p.title}</h3>
-              <p className="mt-1 text-sm text-mut">{p.desc}</p>
-            </div>
-          ))}
-        </div>
+        <Reveal>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {[
+              { icon: "💸", title: "Budget blowouts", desc: "You budget for food, then forget the boat, the win bike, the BTS" },
+              { icon: "🤷", title: "Nowhere to go", desc: "30 minutes of searching and still no decision" },
+              { icon: "📍", title: "Same famous spots", desc: "Everyone goes viral places — hidden gems stay hidden" },
+            ].map((p) => (
+              <div key={p.title} className="gn-card-e gn-lift p-5 text-center">
+                <div className="text-2xl">{p.icon}</div>
+                <h3 className="mt-2 font-semibold text-ink">{p.title}</h3>
+                <p className="mt-1 text-sm text-mut">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       {/* How it works */}
@@ -119,21 +122,23 @@ export default function LandingPage() {
           <h2 className="o-serif text-center text-3xl font-medium text-ink">
             Three steps, that's it
           </h2>
-          <div className="mt-8 grid gap-6 sm:grid-cols-3">
-            {[
-              { num: "01", title: "Pick your vibe", desc: "Work session / date / family day / photo walk" },
-              { num: "02", title: "Choose from Top 3", desc: "2 proven hits + 1 hidden gem, with prices and routes" },
-              { num: "03", title: "See plan + total budget", desc: "Win, boat, walk — one number, instantly see what's left" },
-            ].map((s) => (
-              <div key={s.num} className="text-center">
-                <div className="o-mono mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-line bg-card-solid text-[13px] text-ink">
-                  {s.num}
+          <Reveal>
+            <div className="mt-8 grid gap-6 sm:grid-cols-3">
+              {[
+                { num: "01", title: "Pick your vibe", desc: "Work session / date / family day / photo walk" },
+                { num: "02", title: "Choose from Top 3", desc: "2 proven hits + 1 hidden gem, with prices and routes" },
+                { num: "03", title: "See plan + total budget", desc: "Win, boat, walk — one number, instantly see what's left" },
+              ].map((s) => (
+                <div key={s.num} className="text-center">
+                  <div className="o-mono mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-line bg-card-solid text-[13px] text-ink">
+                    {s.num}
+                  </div>
+                  <h3 className="mt-3 font-semibold text-ink">{s.title}</h3>
+                  <p className="mt-1 text-sm text-mut">{s.desc}</p>
                 </div>
-                <h3 className="mt-3 font-semibold text-ink">{s.title}</h3>
-                <p className="mt-1 text-sm text-mut">{s.desc}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -142,20 +147,22 @@ export default function LandingPage() {
         <h2 className="o-serif text-center text-3xl font-medium text-ink">
           Why the numbers are right
         </h2>
-        <div className="mt-8 space-y-3">
-          {[
-            { icon: "✅", text: "Validated by real visitors — prices locals actually pay, not travel-site prices" },
-            { icon: "🏛", text: "Unseen spots from TAT open data — gems before they trend" },
-            { icon: "🗺", text: "Real routes — win bikes, Saen Saep boats, songthaews, field-collected" },
-            { icon: "☔", text: "Replan on the spot — raining? We find indoor spots within what's left" },
-            { icon: "🔒", text: "PDPA compliant — delete anytime, never sold" },
-          ].map((f) => (
-            <div key={f.text} className="gn-card-e flex items-start gap-3 p-4">
-              <span className="text-2xl">{f.icon}</span>
-              <span className="text-sm text-ink">{f.text}</span>
-            </div>
-          ))}
-        </div>
+        <Reveal>
+          <div className="mt-8 space-y-3">
+            {[
+              { icon: "✅", text: "Validated by real visitors — prices locals actually pay, not travel-site prices" },
+              { icon: "🏛", text: "Unseen spots from TAT open data — gems before they trend" },
+              { icon: "🗺", text: "Real routes — win bikes, Saen Saep boats, songthaews, field-collected" },
+              { icon: "☔", text: "Replan on the spot — raining? We find indoor spots within what's left" },
+              { icon: "🔒", text: "PDPA compliant — delete anytime, never sold" },
+            ].map((f) => (
+              <div key={f.text} className="gn-card-e flex items-start gap-3 p-4">
+                <span className="text-2xl">{f.icon}</span>
+                <span className="text-sm text-ink">{f.text}</span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       {/* CTA — พื้น gradient เขียวสดตามต้นแบบ (plan §3), ไม่ใช้ o-ambience-* เดิม (นั่นคือ pastel ของ mood tiles) */}

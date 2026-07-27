@@ -22,6 +22,20 @@ export interface ChatResponse extends ChatParse {
   source: "ai" | "quick";
 }
 
+// D5 (Klao 2026-07-27): prod ใช้ Ollama cloud ก่อน (ollama.com) — ANTHROPIC_API_KEY ค่อยเปิดเมื่อผู้ใช้เยอะ
+// prod ลอง Ollama ต่อเมื่อตั้ง OLLAMA_URL เองเท่านั้น (Vercel ไม่มี localhost daemon)
+// dev ลองได้เสมอ (default localhost:11434 ของเครื่อง Klao)
+export function ollamaAllowed(env: NodeJS.ProcessEnv): boolean {
+  return !!env.OLLAMA_URL || env.NODE_ENV !== "production";
+}
+
+// ollama.com cloud ต้องมี Bearer key — local daemon ไม่ต้อง (key ไม่ตั้ง = ไม่ส่ง header)
+export function ollamaHeaders(env: NodeJS.ProcessEnv): Record<string, string> {
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  if (env.OLLAMA_API_KEY) h.Authorization = `Bearer ${env.OLLAMA_API_KEY}`;
+  return h;
+}
+
 // ---------- quick parser — fallback ตอนไม่มี Claude API key / เรียกไม่สำเร็จ ----------
 
 const INTENT_WORDS: [Intent, RegExp][] = [

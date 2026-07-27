@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { attachAuth, resolveUser } from "@/lib/auth";
-import { parseQuick, type ChatActions, type ChatParse, type ChatResponse } from "@/lib/chat";
+import { ollamaAllowed, ollamaHeaders, parseQuick, type ChatActions, type ChatParse, type ChatResponse } from "@/lib/chat";
 import { FILTER_KEYS } from "@/lib/filters";
 import { ZONES } from "@/lib/fixtures";
 import { rateLimit } from "@/lib/ratelimit";
@@ -10,6 +10,9 @@ import { store } from "@/lib/store";
 // Chat-to-plan: Claude Haiku 4.5 ทำหน้าที่เดียว — แปลภาษาอิสระเป็น action ที่ enum ล็อคไว้
 // (structured output บังคับ schema) แล้ว engine เดิมเป็นคนตอบตัวเลขจริงฝั่ง client
 // ไม่มี credential (dev เครื่องอื่น / ยังไม่ตั้ง ANTHROPIC_API_KEY) → ตกลง quick parser เงียบๆ
+
+// Vercel: เผื่อเวลา function ให้ครอบ Ollama timeout 20s (default บางแผน 10s ไม่พอ)
+export const maxDuration = 30;
 
 const ORIGIN_IDS = ZONES.filter((z) => z.is_origin).map((z) => z.id);
 const ORIGIN_LIST = ZONES.filter((z) => z.is_origin)
@@ -128,7 +131,7 @@ async function parseWithOllama(message: string, current: ChatBody["current"]): P
   const res = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: "POST",
     signal: AbortSignal.timeout(20_000),
-    headers: { "Content-Type": "application/json" },
+    headers: ollamaHeaders(process.env),
     body: JSON.stringify({
       model: OLLAMA_MODEL,
       stream: false,
@@ -164,14 +167,19 @@ export async function POST(req: NextRequest) {
     result = { ...(await parseWithClaude(message, current)), source: "ai" };
     engine = "claude";
   } catch {
-    try {
-      result = { ...(await parseWithOllama(message, current)), source: "ai" };
-      engine = "ollama";
-    } catch (e) {
-      // Ollama ไม่รัน / โมเดลไม่มี / timeout / ตอบไม่เป็น JSON — quick parser รับช่วง
-      // log สาเหตุไว้ฝั่ง server เสมอ (ผู้ใช้ไม่เห็น) — fallback เงียบสนิทเคยทำให้ debug ไม่ได้
-      console.error("[chat] ollama fallback:", e instanceof Error ? e.message : e);
+    if (!ollamaAllowed(process.env)) {
+      // prod ที่ไม่ได้ตั้ง OLLAMA_URL — ไม่มีทางมี Ollama ให้ลอง ข้ามไป quick เลย (ไม่เปลือง fetch + log)
       result = { ...parseQuick(message), source: "quick" };
+    } else {
+      try {
+        result = { ...(await parseWithOllama(message, current)), source: "ai" };
+        engine = "ollama";
+      } catch (e) {
+        // Ollama ไม่รัน / โมเดลไม่มี / timeout / ตอบไม่เป็น JSON — quick parser รับช่วง
+        // log สาเหตุไว้ฝั่ง server เสมอ (ผู้ใช้ไม่เห็น) — fallback เงียบสนิทเคยทำให้ debug ไม่ได้
+        console.error("[chat] ollama fallback:", e instanceof Error ? e.message : e);
+        result = { ...parseQuick(message), source: "quick" };
+      }
     }
   }
 

@@ -299,6 +299,30 @@ console.log(JSON.stringify({ aGone: a === null, bStays: b !== null }));
     eq(healthProblem({ NODE_ENV: "development" }, false), null);
   });
 
+  // ===== chat: Ollama engine config (D5 — Ollama-first ใน prod) =====
+  await test("chat: prod ไม่ตั้ง OLLAMA_URL → ห้ามลอง Ollama", async () => {
+    const { ollamaAllowed } = await import("../lib/chat");
+    eq(ollamaAllowed({ NODE_ENV: "production" }), false);
+  });
+  await test("chat: prod + ตั้ง OLLAMA_URL (ollama.com cloud) → ลองได้", async () => {
+    const { ollamaAllowed } = await import("../lib/chat");
+    eq(ollamaAllowed({ NODE_ENV: "production", OLLAMA_URL: "https://ollama.com" }), true);
+  });
+  await test("chat: dev → ลองได้เสมอ (default localhost)", async () => {
+    const { ollamaAllowed } = await import("../lib/chat");
+    eq(ollamaAllowed({ NODE_ENV: "development" }), true);
+  });
+  await test("chat: มี OLLAMA_API_KEY → ส่ง Authorization Bearer", async () => {
+    const { ollamaHeaders } = await import("../lib/chat");
+    const h = ollamaHeaders({ OLLAMA_API_KEY: "sk-test" } as unknown as NodeJS.ProcessEnv);
+    eq(h.Authorization, "Bearer sk-test");
+    eq(h["Content-Type"], "application/json");
+  });
+  await test("chat: ไม่มี OLLAMA_API_KEY → ไม่มี Authorization (local daemon)", async () => {
+    const { ollamaHeaders } = await import("../lib/chat");
+    eq("Authorization" in ollamaHeaders({} as NodeJS.ProcessEnv), false);
+  });
+
   console.log("════════════════════════════════════════════════════════════");
   console.log(`  ${pass} passed, ${fail} failed (${pass + fail} total)`);
   if (fail > 0) process.exit(1);

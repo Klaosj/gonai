@@ -62,7 +62,7 @@ export function TripView({ plan, act, acting, showToast, openChain, setCelebrate
       </div>
 
       {plan.warnings.map((w) => (
-        <div key={w} className="rounded-xl border border-warn/40 bg-[#fdf6ec] px-4 py-2.5 text-sm text-warn">
+        <div key={w} className="gn-warn-banner px-4 py-2.5 text-sm text-warn">
           ⛴️ {w}
         </div>
       ))}

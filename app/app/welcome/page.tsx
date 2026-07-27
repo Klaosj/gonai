@@ -39,7 +39,7 @@ export default function WelcomePage() {
         <p className="o-mono mb-2.5 text-[11px] text-accent">GONAI — ONE SENTENCE IS ENOUGH</p>
 
         <div className="gn-card-e gn-rise p-8">
-          <h1 className="o-serif text-[26px] font-semibold leading-tight text-ink">
+          <h1 className="o-serif text-[22px] font-medium leading-tight text-ink">
             Tell me your day — <em className="o-marker">I&apos;ll price it</em>
           </h1>
           <p className="mb-5 mt-1.5 text-sm text-mut">

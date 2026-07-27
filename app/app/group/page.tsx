@@ -17,7 +17,7 @@ export default function GroupPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <span className="gn-step">👥 Group</span>
-      <h1 className="o-serif mt-2 text-[24px] font-medium text-ink">Trips with friends — in the works</h1>
+      <h1 className="o-serif mt-2 text-[22px] font-medium text-ink">Trips with friends — in the works</h1>
       <p className="mb-6 text-mut">
         Solo planning is fully live. Group mode is being built — here's what's coming:
       </p>

@@ -40,7 +40,7 @@ export default async function SharedPlanPage({
 
         <div className="gn-card-e p-5">
           <p className="o-mono text-[10px] text-mut">SHARED PLAN · VIEW ONLY</p>
-          <h1 className="o-serif mt-1 text-[22px] font-semibold leading-snug">{title}</h1>
+          <h1 className="o-serif mt-1 text-[22px] font-medium leading-snug">{title}</h1>
 
           <StopTimelineList plan={plan} variant="readonly" />
 

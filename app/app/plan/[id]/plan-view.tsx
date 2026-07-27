@@ -82,7 +82,7 @@ export function PlanView({ plan, act, acting, showToast, setView }: PlanViewProp
 
       {/* callout สลับเส้นทาง — ตัวเลขจาก data จริงของ origin นี้ */}
       {plan.route.kind === "cheapest" ? (
-        <div className="rounded-[10px] border border-warn/40 bg-[#fdf6ec] px-3 py-2 text-[12.5px] text-warn">
+        <div className="gn-warn-banner px-3 py-2 text-[12.5px] text-warn">
           🚗 Tired of transfers? {fast.modes} {fast.price} · {fast.mins} min
           <button
             onClick={() => {
@@ -95,7 +95,7 @@ export function PlanView({ plan, act, acting, showToast, setView }: PlanViewProp
           </button>
         </div>
       ) : (
-        <div className="rounded-[10px] border border-warn/40 bg-[#fdf6ec] px-3 py-2 text-[12.5px] text-warn">
+        <div className="gn-warn-banner px-3 py-2 text-[12.5px] text-warn">
           🛵 Cheaper: {cheap.modes} {cheap.price} · {cheap.mins} min
           <button
             onClick={() => {

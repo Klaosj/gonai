@@ -119,7 +119,7 @@ export default function ExplorePage() {
   return (
     <div className="mx-auto max-w-[1500px] px-4 py-4">
       <span className="gn-step">🔎 Explore</span>
-      <h1 className="o-serif mt-2 text-[24px] font-medium text-ink">
+      <h1 className="o-serif mt-2 text-[22px] font-medium text-ink">
         Every spot around <em className="text-accent">Siam</em>
       </h1>
       <p className="mb-4 text-mut">
@@ -280,6 +280,8 @@ export default function ExplorePage() {
               <img
                 src={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover opacity-90"
                 onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
               />

@@ -599,7 +599,7 @@ export default function PlannerClient() {
             </div>
             {/* คำเตือนฝนจริงจาก Open-Meteo — ไม่มีข้อมูล = ไม่โชว์ */}
             {showRain && (
-              <div className="rounded-2xl border border-warn/40 bg-[#fdf6ec] px-3.5 py-2.5 text-[12.5px] text-warn">
+              <div className="gn-warn-banner px-3.5 py-2.5 text-[12.5px] text-warn">
                 ☔ <b>Today's forecast:</b> {rain.maxProb}% rain chance
                 {rain.peakHour !== null && ` around ${rain.peakHour}:00`}
                 {!filters.indoor && (
@@ -739,7 +739,7 @@ export default function PlannerClient() {
               <StopTimelineList plan={plan} variant="interactive" />
 
               {plan.warnings.length > 0 && (
-                <div className="mt-2 rounded-lg border border-warn/40 bg-card-solid px-3 py-2 text-[12.5px] text-warn">
+                <div className="gn-warn-banner mt-2 px-3 py-2 text-[12.5px] text-warn">
                   {plan.warnings.map((w) => (
                     <div key={w}>⚠️ {w}</div>
                   ))}

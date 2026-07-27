@@ -105,7 +105,7 @@ export default function LandingPage() {
             { icon: "📍", title: "Same famous spots", desc: "Everyone goes viral places — hidden gems stay hidden" },
           ].map((p) => (
             <div key={p.title} className="gn-card-e gn-lift p-5 text-center">
-              <div className="text-3xl">{p.icon}</div>
+              <div className="text-2xl">{p.icon}</div>
               <h3 className="mt-2 font-semibold text-ink">{p.title}</h3>
               <p className="mt-1 text-sm text-mut">{p.desc}</p>
             </div>
@@ -151,7 +151,7 @@ export default function LandingPage() {
             { icon: "🔒", text: "PDPA compliant — delete anytime, never sold" },
           ].map((f) => (
             <div key={f.text} className="gn-card-e flex items-start gap-3 p-4">
-              <span className="text-xl">{f.icon}</span>
+              <span className="text-2xl">{f.icon}</span>
               <span className="text-sm text-ink">{f.text}</span>
             </div>
           ))}

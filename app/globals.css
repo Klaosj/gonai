@@ -291,6 +291,13 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
+/* ===== warn banner — ทรงเดียวทั้งแอป (เดิม 4 radius 2 พื้น) ===== */
+.gn-warn-banner {
+  border: 1px solid var(--color-gn-amber-bd, #ecd9b0);
+  background: var(--color-gn-amber-bg, #fdf6ec);
+  border-radius: 12px;
+}
+
 /* ===== Pills / buttons (Mindtrip signature) ===== */
 
 /* CTA หลัก: pill ดำ ตัวขาว — hover ไม่มีเงาเรืองสี ใช้ brightness แทน */

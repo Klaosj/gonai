@@ -221,6 +221,42 @@ console.log(JSON.stringify({ aGone: a === null, bStays: b !== null }));
     }
   });
 
+  // ===== store: prod guard (launch audit 2026-07-27) =====
+  await test("store: production + ไม่มี Supabase env → throw บอกชื่อ env", async () => {
+    // next-env.d.ts ประกาศ NODE_ENV เป็น readonly ใน ProcessEnv — ต้อง cast เพื่อ set/delete ใน test
+    const env = process.env as Record<string, string | undefined>;
+    const prevNodeEnv = env.NODE_ENV;
+    const prevUrl = env.SUPABASE_URL;
+    const prevKey = env.SUPABASE_SERVICE_KEY;
+    try {
+      delete env.SUPABASE_URL;
+      delete env.SUPABASE_SERVICE_KEY;
+      env.NODE_ENV = "production";
+      const { resolveStore } = await import("../lib/store");
+      let threw = false;
+      try {
+        resolveStore();
+      } catch (e) {
+        threw = true;
+        ok(String(e).includes("SUPABASE_URL"), "error ต้องบอกชื่อ env ที่ขาด");
+      }
+      ok(threw, "production โดยไม่มี Supabase env ต้อง throw");
+    } finally {
+      if (prevNodeEnv === undefined) delete env.NODE_ENV;
+      else env.NODE_ENV = prevNodeEnv;
+      if (prevUrl === undefined) delete env.SUPABASE_URL;
+      else env.SUPABASE_URL = prevUrl;
+      if (prevKey === undefined) delete env.SUPABASE_SERVICE_KEY;
+      else env.SUPABASE_SERVICE_KEY = prevKey;
+    }
+  });
+
+  await test("store: dev ไม่มี Supabase env → ได้ jsonStore ตามเดิม", async () => {
+    const { resolveStore } = await import("../lib/store");
+    const s = resolveStore(); // NODE_ENV ตอนรัน test ไม่ใช่ production
+    ok(typeof s.ensureUser === "function", "ต้องได้ store ที่ใช้งานได้");
+  });
+
   // ===== preflight: env check ก่อน deploy (pure function, ไม่มี network) =====
   const GOOD_ENV = {
     GN_AUTH_SECRET: "x".repeat(40),

@@ -34,4 +34,23 @@ export interface Store {
 import { jsonStore } from "./store-json";
 import { isSupabaseEnabled, supabaseStore } from "../supabase/store-adapter";
 
-export const store: Store = isSupabaseEnabled() ? supabaseStore : jsonStore;
+// เลือก backend ตอน "ใช้" ไม่ใช่ตอน import — next build (NODE_ENV=production) import route
+// ทุกตัวโดยไม่มี Supabase env ซึ่งต้องยัง build ผ่าน · แต่ runtime prod ที่ env หาย ต้องตายดังๆ
+// ทันทีที่มีใครแตะ store ไม่ใช่ไปตายเงียบๆ ใน fs.writeFileSync บน filesystem read-only ของ Vercel
+export function resolveStore(): Store {
+  if (isSupabaseEnabled()) return supabaseStore;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Supabase env missing in production: set SUPABASE_URL + SUPABASE_SERVICE_KEY (JSON store is dev-only)",
+    );
+  }
+  return jsonStore;
+}
+
+export const store: Store = new Proxy({} as Store, {
+  get(_t, prop) {
+    const s = resolveStore();
+    const v = s[prop as keyof Store];
+    return typeof v === "function" ? v.bind(s) : v;
+  },
+});

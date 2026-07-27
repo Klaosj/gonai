@@ -4,6 +4,7 @@
 // indoorReason ควบคุม empty-state message: true = ข้อความตามเวลาจริง (ของเดิมฝั่ง replan)
 // false/undefined = ข้อความคงที่ (ของเดิมฝั่ง chain) — logic/className/ข้อความเดิมทุกตัวอักษรตามแต่ละที่
 import { mid } from "@/lib/costing";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 import type { Venue } from "@/lib/types";
 
 interface VenueSuggestSheetProps {
@@ -17,6 +18,7 @@ interface VenueSuggestSheetProps {
 }
 
 export function VenueSuggestSheet({ title, list, indoorReason, adding, onAdd, onClose, ariaLabel }: VenueSuggestSheetProps) {
+  const sheetRef = useFocusTrap<HTMLDivElement>(true); // sheet ถูก mount ตอนเปิดเท่านั้น (parent เงื่อนไข chainList/replanList && ...) — active คงที่ true
   return (
     <>
       <div className="gn-backdrop fixed inset-0 z-[29] bg-ink/20" onClick={onClose} aria-hidden />
@@ -25,7 +27,7 @@ export function VenueSuggestSheet({ title, list, indoorReason, adding, onAdd, on
         aria-modal="true"
         aria-label={ariaLabel}
         tabIndex={-1}
-        ref={(el) => el?.focus()}
+        ref={sheetRef}
         onKeyDown={(e) => e.key === "Escape" && onClose()}
         className="outline-none gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl"
       >

@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { gn, track } from "@/lib/api";
 import { mid } from "@/lib/costing";
 import { useApiResource } from "@/lib/use-api-resource";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 import { useToast } from "@/lib/use-toast";
 import type { Intent, Venue } from "@/lib/types";
 import { CATEGORY_AMBIENCE, CATEGORY_EMOJI, INTENT_EMOJI } from "@/lib/venue-display";
@@ -77,6 +78,7 @@ function pinPosition(v: Venue, index: number, count: number): { left: string; to
 
 export default function ExplorePage() {
   const [openVideo, setOpenVideo] = useState<string | null>(null);
+  const videoDialogRef = useFocusTrap<HTMLDivElement>(!!openVideo);
   const { data: hotRes, error: loadError, reload: load } = useApiResource<{ hot: Venue[] }>("/api/explore");
   const hot = hotRes?.hot ?? null; // null = กำลังโหลด — พังแล้วแยกไป loadError ข้างล่าง ไม่กลืนเงียบอีกต่อไป
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -264,12 +266,15 @@ export default function ExplorePage() {
       <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         {VIDEOS.map((v) => (
           <div key={v.id} className="gn-card-e overflow-hidden">
-            <div
-              className="relative aspect-video cursor-pointer bg-bg-elev"
+            <button
+              type="button"
               onClick={() => {
                 setOpenVideo(v.id);
                 track("video_open", { id: v.id });
               }}
+              // border-0/p-0/appearance-none/block ล้าง UA default ของ <button> (border+padding+inline-block)
+              // เพื่อให้หน้าตาเหมือน <div onClick> เดิมเป๊ะ — ของเดิมไม่มีคลาสพวกนี้เพราะเป็น div
+              className="relative block aspect-video w-full cursor-pointer appearance-none border-0 bg-bg-elev p-0 text-left"
             >
               <img
                 src={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
@@ -282,7 +287,7 @@ export default function ExplorePage() {
                   ▶
                 </span>
               </div>
-            </div>
+            </button>
             <div className="p-3">
               <h4 className="text-[13.5px] leading-relaxed text-ink">{v.title}</h4>
               <small className="text-mut">YouTube · {v.date}</small>
@@ -310,7 +315,15 @@ export default function ExplorePage() {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-6"
           onClick={() => setOpenVideo(null)}
         >
-          <div className="w-full max-w-[860px] overflow-hidden rounded-2xl bg-black">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Creator clip"
+            tabIndex={-1}
+            ref={videoDialogRef}
+            onKeyDown={(e) => e.key === "Escape" && setOpenVideo(null)}
+            className="outline-none w-full max-w-[860px] overflow-hidden rounded-2xl bg-black"
+          >
             <iframe
               src={`https://www.youtube.com/embed/${openVideo}?autoplay=1`}
               className="block aspect-video w-full"

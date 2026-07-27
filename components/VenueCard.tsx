@@ -76,7 +76,7 @@ function VenueCard({
         </button>
         <button
           onClick={toggle}
-          className="o-mono gn-press absolute bottom-2 right-2 z-[2] rounded-full bg-bg/70 px-2 py-1 text-[10px] text-ink backdrop-blur"
+          className="o-mono gn-press absolute bottom-2 right-2 z-[2] rounded-full bg-bg/70 px-2 py-1.5 text-[10px] text-ink backdrop-blur"
           title="Toggle route: cheapest ⇄ fastest"
         >
           ⇄ {kind === "cheapest" ? "See fastest" : "See cheapest"}

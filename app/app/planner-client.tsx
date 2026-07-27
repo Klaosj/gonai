@@ -393,7 +393,7 @@ export default function PlannerClient() {
             <button
               onClick={() => dismissMemory(lastDonePlan.id)}
               aria-label="Dismiss"
-              className="gn-press text-mut hover:text-ink"
+              className="gn-press p-1.5 text-mut hover:text-ink"
             >
               ✕
             </button>

@@ -666,7 +666,7 @@ input:focus-visible {
   }
   .gn-bump, .gn-ripple-once, .gn-boing, .gn-bob, .gn-cloud, .gn-floaty,
   .gn-marquee, .gn-drift, .gn-page, .gn-line-grow, .gn-slide-r, .gn-slide-l,
-  .gn-confetti-bit, .o-marker {
+  .gn-confetti-bit, .o-marker, .gn-chat-hl, .gn-burst i {
     animation: none !important;
   }
   .o-marker { background-size: 100% 0.34em; }

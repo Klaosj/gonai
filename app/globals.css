@@ -20,52 +20,20 @@
   --color-bad: #c6362c;
 
   /* ===== legacy gn-* tokens — remapped into the light palette so any class we
-     didn't touch (bg-gn-*, text-gn-*, border-gn-*) still renders correctly ===== */
-  --color-gn-green: #107f6b;
-  --color-gn-green-dark: #0c6354;
-  --color-gn-orange: #121411;
-  --color-gn-orange-dark: #3a3d3a;
-  --color-gn-purple: #107f6b;
-  --color-gn-purple-dark: #0c6354;
-  --color-gn-navy: #f2f2ee;
-
-  --color-gn-bg: #ffffff;
-  --color-gn-ink: #121411;
+     didn't touch (bg-gn-*, text-gn-*, border-gn-*) still renders correctly =====
+     T1.8: กวาด token ที่ grep ทั้ง repo แล้ว 0 ผู้ใช้ทิ้งไปแล้ว (เหลือแค่ตัวที่มี utility เรียกจริง) */
   --color-gn-mut: #63675f;
   --color-gn-line: #e3e3dd;
   --color-gn-card: #ffffff;
   --color-gn-cream: #f2f2ee;
 
-  --color-gn-red: #c6362c;
-  --color-gn-gray: #70746e;
-
+  /* กันไว้ให้ Task 4.2 (.gn-warn-banner) — ตอนนี้ grep ไม่เจอผู้ใช้แต่ห้ามลบ */
   --color-gn-amber-bg: rgba(168, 100, 29, 0.08);
   --color-gn-amber-bd: rgba(168, 100, 29, 0.35);
   --color-gn-amber-fg: #a8641d;
   --color-gn-amber-cta: #a8641d;
   --color-gn-amber-cta-bd: rgba(168, 100, 29, 0.4);
   --color-gn-amber-cta-bg: rgba(168, 100, 29, 0.08);
-
-  --color-gn-mint-bg: rgba(16, 127, 107, 0.08);
-  --color-gn-mint-bd: rgba(16, 127, 107, 0.25);
-  --color-gn-mint-bar: rgba(18, 20, 17, 0.08);
-
-  --color-gn-chat-user: #121411;
-  --color-gn-chat-ai-bg: rgba(18, 20, 17, 0.03);
-  --color-gn-chat-ai-bd: rgba(18, 20, 17, 0.1);
-  --color-gn-chat-cost-bg: rgba(18, 20, 17, 0.02);
-  --color-gn-chat-cost-bd: rgba(18, 20, 17, 0.15);
-
-  --color-gn-import-bg: rgba(16, 127, 107, 0.05);
-  --color-gn-import-bd: rgba(16, 127, 107, 0.25);
-
-  --color-gn-danger-bg: rgba(198, 54, 44, 0.08);
-  --color-gn-danger-bd: rgba(198, 54, 44, 0.3);
-  --color-gn-danger-fg: #c6362c;
-
-  --color-gn-pts-bg: rgba(16, 127, 107, 0.06);
-  --color-gn-pts-bd: rgba(16, 127, 107, 0.25);
-  --color-gn-pts-fg: #107f6b;
 }
 
 /* ===== Motion + material vocabulary ===== */
@@ -580,18 +548,8 @@ input:focus-visible {
 }
 
 /* ===== motion ท่าใหม่จากต้นแบบ Mindtrip (plan §3) ===== */
-@keyframes gn-bob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-14px) rotate(2deg);
-  }
-}
-.gn-bob {
-  animation: gn-bob 8s ease-in-out infinite;
-}
+/* T1.8: keyframe gn-bob บล็อกแรก + .gn-bob เดิมถูกลบทิ้ง — ซ้ำกับชุด gn-bob2 ด้านล่าง (motion pack v0.7)
+   ซึ่ง .gn-bob ที่มาทีหลังชนะ cascade อยู่แล้ว บล็อกนี้เลยเป็นโค้ดตายมาตลอด */
 
 @keyframes gn-pulse-ring {
   0% {

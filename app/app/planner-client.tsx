@@ -2,6 +2,10 @@
 // /app — รวม S1 (intent/origin/budget) + S2 (Top3 + ดูเพิ่ม + import) ในหน้าเดียว
 // 3-col grid (เงื่อนไข | Top3 | plan+budget)
 // หลักการ: ทุกอย่างที่ UI บอกว่าทำ ต้องทำจริง — ไม่มี toast หลอก
+//
+// T1.7: แตกออกเป็น 3 ก้อน — lib/use-venue-search.ts (state ค้นร้าน: intent/origin/budget/filters/data)
+// + components/ChatPanel.tsx (chat state ทั้งหมด — พิมพ์แชทไม่ลาก re-render การ์ดทั้งหน้าอีกต่อไป)
+// + ไฟล์นี้ (mood tiles / import box / plan+budget คอลัมน์ 3 / VenueCard grid) เหมือนเดิม
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,53 +14,22 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import SplitPay from "@/components/SplitPay";
 import { MoneyProgressBar } from "@/components/MoneyProgress";
 import Odo from "@/components/Odo";
+import { ChatPanel } from "@/components/ChatPanel";
 import { StopTimelineList } from "@/components/StopTimelineList";
 import VenueCard from "@/components/VenueCard";
 import { VenueSuggestSheet } from "@/components/VenueSuggestSheet";
 import { gn, track } from "@/lib/api";
-import type { ChatActions, ChatResponse } from "@/lib/chat";
+import type { ChatActions } from "@/lib/chat";
 import { tripTitle } from "@/lib/timeline";
-import { filtersToParams, type VenueFilters } from "@/lib/filters";
+import type { VenueFilters } from "@/lib/filters";
 import { useCountUp } from "@/lib/use-count-up";
 import { usePlan } from "@/lib/use-plan";
 import { useToast } from "@/lib/use-toast";
+import { INTENTS, useVenueSearch } from "@/lib/use-venue-search";
 import { BUDGET_DEFAULTS } from "@/lib/fixtures";
 import type { ExpandedPlan } from "@/lib/server";
-import type { Intent, Route, Venue, Zone } from "@/lib/types";
-import type { RainForecast } from "@/lib/weather";
+import type { Intent, Venue } from "@/lib/types";
 import { INTENT_AMBIENCE } from "@/lib/venue-display";
-
-// 4 intents จริงเท่านั้น — "กินของอร่อย/ธรรมชาติ" เดิมเป็นปุ่มหลอก (ผลลัพธ์เป็น work) เลยตัดออก
-const INTENTS: { key: Intent; label: string }[] = [
-  { key: "work", label: "💻 Work" },
-  { key: "date", label: "💛 Date" },
-  { key: "photo", label: "📷 Photo" },
-  { key: "family", label: "👨‍👩‍👧 Family" },
-];
-
-interface ChatMeta {
-  note: string | null;
-  quick: boolean;
-  applied: string[];
-  fresh: boolean; // มี refetch — ควรพูดถึงผลลัพธ์ใหม่
-}
-
-// คำตอบใน chat ประกอบจากข้อมูลจริงเท่านั้น — AI มีสิทธิ์แค่ตั้งค่า ไม่มีสิทธิ์เขียนตัวเลขเอง (หลัก audit เดิม)
-function buildChatReply(p: ChatMeta, d: { cards: unknown[]; total: number; routes: { cheapest: Route } } | null): string {
-  const parts: string[] = [];
-  if (p.applied.length > 0) parts.push(`Set: ${p.applied.join(" · ")}.`);
-  if (p.fresh && d) {
-    const fare = d.routes.cheapest.legs.reduce((s, l) => s + l.price_min, 0);
-    parts.push(`Top ${d.cards.length} of ${d.total} spots refreshed — cheapest route there ${fare}฿. Pick a card →`);
-  }
-  if (p.note) parts.push(p.note);
-  if (parts.length === 0) {
-    parts.push(
-      'I can set your vibe (work / date / family / photo), start zone, budget and the 5 filters — try "date from Lat Phrao, 500฿, somewhere quiet".',
-    );
-  }
-  return parts.join(" ");
-}
 
 // Mood tiles (plan §1) — แตะเดียว = ตั้ง intent+filters+budget จริง แล้ว refetch
 // subtitle เขียนจาก filters ที่ tile ตั้งจริงเท่านั้น (ห้ามเขียนเกินสิ่งที่ tile ทำ)
@@ -83,17 +56,6 @@ function moodSubtitle(m: (typeof MOODS)[number]): string {
   return [...labels, `~${BUDGET_DEFAULTS[m.key]}฿ budget`].join(" · ");
 }
 
-const round50 = (x: number) => Math.round(x / 50) * 50;
-
-// onboarding (/app/welcome) เขียน gn_pref ไว้ — planner อ่านตอน init เท่านั้น (ครั้งแรกของ session)
-function readGnPref(): { vibe?: "quiet" | "loud" | "food" | "photo"; budgetMul?: number } {
-  try {
-    return JSON.parse(localStorage.getItem("gn_pref") ?? "{}");
-  } catch {
-    return {};
-  }
-}
-
 // ตัวกรองจริง — ผูกกับ attribute ใน data (lib/filters.ts ฝั่ง server)
 const FILTER_CHIPS: { key: keyof VenueFilters; label: string }[] = [
   { key: "near", label: "⏱ ≤10 min walk" },
@@ -103,57 +65,29 @@ const FILTER_CHIPS: { key: keyof VenueFilters; label: string }[] = [
   { key: "indoor", label: "☂️ Indoor" },
 ];
 
-interface VenuesResponse {
-  cards: Venue[];
-  more: Venue[];
-  total: number;
-  unseenPoolEmpty: boolean;
-  savedIds: string[];
-  routes: { cheapest: Route; fastest: Route; fallback: boolean };
-  weather: RainForecast | null;
-  zones: Zone[];
-}
-
 export default function PlannerClient() {
   const router = useRouter();
   const sp = useSearchParams();
-  // deep link จริง (?add= หรือ ?intent=) ต้องชนะเสมอ — ค่า default จาก onboarding (gn_pref) ใช้เฉพาะตอนไม่มี deep link
-  const hasDeepLink = !!(sp.get("add") || sp.get("intent"));
-  const [intent, setIntent] = useState<Intent>(() => {
-    const q = sp.get("intent");
-    if (INTENTS.some((i) => i.key === q)) return q as Intent;
-    if (!sp.get("add") && readGnPref().vibe === "photo") return "photo";
-    return "work";
-  });
-  const [origin, setOrigin] = useState(() => {
-    if (sp.get("origin")) return sp.get("origin")!;
-    try {
-      return localStorage.getItem("gn_origin") ?? "bangkapi";
-    } catch {
-      return "bangkapi";
-    }
-  });
-  const [budget, setBudget] = useState<number>(() => {
-    const q = sp.get("budget");
-    if (q) return Number(q);
-    if (!sp.get("add")) {
-      const mul = readGnPref().budgetMul;
-      if (typeof mul === "number") return round50(BUDGET_DEFAULTS[intent] * mul);
-    }
-    return BUDGET_DEFAULTS[intent] ?? 800;
-  });
+  const {
+    intent,
+    setIntent,
+    origin,
+    setOrigin,
+    pickOrigin,
+    budget,
+    setBudget,
+    filters,
+    setFilters,
+    toggleFilter,
+    data,
+    loadError,
+    reload,
+    onLoaded,
+    pickMood,
+  } = useVenueSearch();
   const [editingBudget, setEditingBudget] = useState(false);
-  const [filters, setFilters] = useState<VenueFilters>(() => {
-    if (hasDeepLink) return {};
-    const vibe = readGnPref().vibe;
-    if (vibe === "quiet") return { quiet: true };
-    if (vibe === "food") return { food: true };
-    return {};
-  });
   const [rainDismissed, setRainDismissed] = useState(false);
 
-  const [data, setData] = useState<VenuesResponse | null>(null);
-  const [loadError, setLoadError] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [importUrl, setImportUrl] = useState("");
@@ -164,14 +98,6 @@ export default function PlannerClient() {
   const [addingId, setAddingId] = useState<string | null>(null); // in-flight lock ของ + Add to plan
   const [sendingImport, setSendingImport] = useState(false); // gn-rise เฉพาะโหลดแรก — กันการ์ดวูบตอนเปลี่ยน filter/intent
 
-  // Chat-to-plan (คอลัมน์ซ้าย) — คุยแล้วตั้ง intent/origin/budget/filters จริง
-  const [chatMsgs, setChatMsgs] = useState<
-    { role: "user" | "ai"; text: string; quick?: boolean; venues?: { id: string; name: string }[] }[]
-  >([]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatSending, setChatSending] = useState(false);
-  const pendingChat = useRef<ChatMeta | null>(null); // ตอบหลัง refetch เสร็จ — ตัวเลข = data ล่าสุดจริง
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
   const [hlVenueId, setHlVenueId] = useState<string | null>(null); // การ์ดที่ถูกชี้จาก chat
 
   // return-visit memory moment — "ทริปล่าสุดของคุณ" การ์ดเงียบๆ เหนือ mood tiles
@@ -180,45 +106,12 @@ export default function PlannerClient() {
 
   const showToast = useToast();
 
-  const load = useCallback(() => {
-    setLoadError(false);
-    gn<VenuesResponse>(`/api/venues?intent=${intent}&origin=${origin}${filtersToParams(filters)}`)
-      .then((d) => {
-        setData(d);
-        setSaved(new Set(d.savedIds));
-        track("results_view", { intent, origin, total: d.total });
-        // chat รอตอบอยู่ — ตอบด้วยตัวเลขจากผลลัพธ์ชุดใหม่นี้ + แนบการ์ด Top 3 ให้กดได้
-        if (pendingChat.current) {
-          const p = pendingChat.current;
-          pendingChat.current = null;
-          setChatMsgs((m) => [
-            ...m,
-            {
-              role: "ai",
-              text: buildChatReply(p, d),
-              quick: p.quick,
-              venues: d.cards.slice(0, 3).map((v) => ({ id: v.id, name: v.name_th })),
-            },
-          ]);
-          setChatSending(false);
-        }
-      })
-      .catch(() => {
-        setLoadError(true);
-        if (pendingChat.current) {
-          pendingChat.current = null;
-          setChatMsgs((m) => [...m, { role: "ai", text: "Set your conditions, but refreshing results failed — check connection." }]);
-          setChatSending(false);
-        }
-      });
-  }, [intent, origin, filters]);
-
-  useEffect(load, [load]);
-
-  // chat เลื่อนตามข้อความล่าสุดเสมอ
+  // saved venues รีเซ็ตจาก savedIds ทุกครั้งที่โหลดผลลัพธ์ใหม่สำเร็จ — เดิมอยู่ inline ใน load()
+  // ย้ายมาฟังผ่าน onLoaded (T1.7) แทน เพื่อให้ setData/setSaved อยู่ batch เดียวกันเหมือนเดิม
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [chatMsgs, chatSending]);
+    onLoaded((d) => setSaved(new Set(d.savedIds)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // apply ChatActions เข้า state จริงของ planner — ใช้ร่วมกันทั้งข้อความจาก AI และ follow-up chips
   const applyChatActions = (a: ChatActions): { applied: string[]; refetch: boolean } => {
@@ -255,83 +148,6 @@ export default function PlannerClient() {
       }
     }
     return { applied, refetch };
-  };
-
-  // Chat → action จริง: apply เข้า state เดิมของ planner แล้วรอ refetch ก่อนตอบ
-  const sendText = async (msg: string) => {
-    if (!msg || chatSending) return;
-    setChatSending(true);
-    setChatMsgs((m) => [...m, { role: "user", text: msg }]);
-    try {
-      const r = await gn<ChatResponse>("/api/chat", {
-        method: "POST",
-        body: JSON.stringify({ message: msg, current: { intent, origin, budget, filters } }),
-      });
-      const { applied, refetch } = applyChatActions(r.actions);
-      track("chat_apply", { source: r.source, applied: applied.length });
-      const meta: ChatMeta = { note: r.note, quick: r.source === "quick", applied, fresh: refetch };
-      if (refetch) {
-        pendingChat.current = meta; // load() ตอบให้เมื่อ data ใหม่มาถึง
-      } else {
-        setChatMsgs((m) => [...m, { role: "ai", text: buildChatReply(meta, data), quick: meta.quick }]);
-        setChatSending(false);
-      }
-    } catch {
-      setChatMsgs((m) => [...m, { role: "ai", text: "Something went wrong sending that — try again." }]);
-      setChatSending(false);
-    }
-  };
-
-  const sendChat = () => {
-    const msg = chatInput.trim();
-    if (!msg) return;
-    setChatInput("");
-    void sendText(msg);
-  };
-
-  // ?q= จาก landing ask bar — ส่งเข้า chat ทันทีที่ data พร้อม (ครั้งเดียว)
-  const qConsumed = useRef(false);
-  useEffect(() => {
-    const q = sp.get("q");
-    if (!q || qConsumed.current || !data) return;
-    qConsumed.current = true;
-    void sendText(q);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
-
-  // follow-up chips — คำนวณสดจาก state ปัจจุบันตอน render (ไม่ค้างค่าเก่า) · กดแล้วยิง action จริงทันที
-  const buildFollowups = (): { label: string; actions: ChatActions }[] => {
-    const out: { label: string; actions: ChatActions }[] = [];
-    if (budget > 300) {
-      const cheaper = round50(budget * 0.75);
-      out.push({ label: `💸 Cheaper (~${cheaper}฿)`, actions: { budget: cheaper } });
-    }
-    if (data?.weather?.rainExpected && !filters.indoor) {
-      out.push({ label: "☔ Indoor only", actions: { filters: { indoor: true } } });
-    }
-    if (!filters.quiet && intent === "work") {
-      out.push({ label: "🎧 Quieter please", actions: { filters: { quiet: true } } });
-    }
-    if (!filters.near) {
-      out.push({ label: "⏱ Walkable only", actions: { filters: { near: true } } });
-    }
-    const other = INTENTS.find((i) => i.key !== intent);
-    if (other) out.push({ label: `${other.label} instead`, actions: { intent: other.key } });
-    return out.slice(0, 4);
-  };
-
-  const sendFollowup = (f: { label: string; actions: ChatActions }) => {
-    if (chatSending) return;
-    setChatMsgs((m) => [...m, { role: "user", text: f.label }]);
-    const { applied, refetch } = applyChatActions(f.actions);
-    track("chat_followup", { label: f.label });
-    const meta: ChatMeta = { note: null, quick: false, applied, fresh: refetch };
-    if (refetch) {
-      setChatSending(true);
-      pendingChat.current = meta;
-    } else {
-      setChatMsgs((m) => [...m, { role: "ai", text: buildChatReply(meta, data) }]);
-    }
   };
 
   // กดชื่อร้านใน chat → เลื่อนไปการ์ดจริงกลางจอ + ไฮไลต์
@@ -455,23 +271,31 @@ export default function PlannerClient() {
     })();
   }, [sp, plan, addToPlan, router]);
 
-  const toggleSave = async (venue: Venue) => {
-    try {
-      const res = await gn<{ saved: boolean }>("/api/saves", {
-        method: "POST",
-        body: JSON.stringify({ venue_id: venue.id }),
-      });
-      setSaved((prev) => {
-        const next = new Set(prev);
-        if (res.saved) next.add(venue.id);
-        else next.delete(venue.id);
-        return next;
-      });
-      if (res.saved) track("save_venue", { venue_id: venue.id });
-    } catch {
-      showToast("Couldn't save");
-    }
-  };
+  const toggleSave = useCallback(
+    async (venue: Venue) => {
+      try {
+        const res = await gn<{ saved: boolean }>("/api/saves", {
+          method: "POST",
+          body: JSON.stringify({ venue_id: venue.id }),
+        });
+        setSaved((prev) => {
+          const next = new Set(prev);
+          if (res.saved) next.add(venue.id);
+          else next.delete(venue.id);
+          return next;
+        });
+        if (res.saved) track("save_venue", { venue_id: venue.id });
+      } catch {
+        showToast("Couldn't save");
+      }
+    },
+    [showToast],
+  );
+
+  // route toggle (cheapest ⇄ fastest) บนการ์ด — track อย่างเดียว ไม่มี state อื่นแตะ
+  const handleToggleRoute = useCallback((venueId: string, kind: "cheapest" | "fastest") => {
+    track("route_alt_toggle", { venue_id: venueId, kind, screen: "planner" });
+  }, []);
 
   const submitImport = async () => {
     if (!importUrl.trim() || sendingImport) return;
@@ -496,29 +320,6 @@ export default function PlannerClient() {
     setEditingBudget(false);
   };
 
-  const pickOrigin = (id: string) => {
-    setOrigin(id);
-    try {
-      localStorage.setItem("gn_origin", id);
-    } catch {}
-    track("origin_change", { origin: id });
-  };
-
-  const pickMood = (m: (typeof MOODS)[number]) => {
-    setIntent(m.key);
-    setFilters(m.filters);
-    setBudget(BUDGET_DEFAULTS[m.key]);
-    track("mood_tile", { intent: m.key });
-  };
-
-  const toggleFilter = (key: keyof VenueFilters) => {
-    setFilters((f) => {
-      const next = { ...f, [key]: !f[key] };
-      track("filter_toggle", { key, on: !f[key] });
-      return next;
-    });
-  };
-
   // hooks ต้องมาก่อน early return ทุกตัว
   const spent = plan?.spent ?? 0;
   const left = budget - spent;
@@ -531,7 +332,7 @@ export default function PlannerClient() {
         <p className="text-4xl">📡</p>
         <p className="mt-3 font-bold text-ink">Couldn't load data</p>
         <p className="mt-1 text-sm text-mut">Check your connection and retry</p>
-        <button onClick={load} className="gn-press gn-cta o-pill-primary o-btn-label mt-4 px-6 py-2.5">
+        <button onClick={reload} className="gn-press gn-cta o-pill-primary o-btn-label mt-4 px-6 py-2.5">
           Try again ↻
         </button>
       </div>
@@ -661,78 +462,19 @@ export default function PlannerClient() {
               </div>
             )}
 
-            {/* chat จริง — พิมพ์อิสระไทย/อังกฤษ AI ตั้งเงื่อนไขให้ ตัวเลขทุกตัวมาจาก data */}
-            {chatMsgs.map((m, i) =>
-              m.role === "user" ? (
-                <div key={i} className="max-w-[85%] self-end rounded-2xl bg-pill px-3.5 py-2.5 text-[13.5px] leading-relaxed text-bg">
-                  {m.text}
-                </div>
-              ) : (
-                <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
-                  {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
-                  {m.text}
-                  {/* การ์ด Top 3 กดได้ — เลื่อนไปการ์ดจริง ไม่ใช่ text ลอยๆ */}
-                  {m.venues && m.venues.length > 0 && (
-                    <span className="mt-2 flex flex-wrap gap-1.5">
-                      {m.venues.map((v) => (
-                        <button
-                          key={v.id}
-                          onClick={() => highlightVenue(v.id)}
-                          className="gn-press rounded-full border border-accent/40 bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-accent"
-                        >
-                          📍 {v.name}
-                        </button>
-                      ))}
-                    </span>
-                  )}
-                </div>
-              ),
-            )}
-            {chatSending && (
-              <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
-                <span className="gn-spinner" />
-                thinking…
-              </div>
-            )}
-            {/* follow-up chips — โผล่หลังคำตอบล่าสุด กดแล้ว action จริงทันที ไม่ต้องพิมพ์ */}
-            {!chatSending && chatMsgs.length > 0 && chatMsgs[chatMsgs.length - 1].role === "ai" && (
-              <div className="flex flex-wrap gap-1.5">
-                {buildFollowups().map((f) => (
-                  <button
-                    key={f.label}
-                    onClick={() => sendFollowup(f)}
-                    className="gn-press rounded-full border border-line bg-bg px-3 py-1.5 text-[11.5px] text-mut hover:border-ink hover:text-ink"
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* sticky ล่างของ aside — คุยยาวแค่ไหนช่องพิมพ์ก็ไม่หาย */}
-          <div className="sticky bottom-0 z-10 -mx-1 bg-card px-1 pb-0.5 pt-1">
-            <div className="flex items-center gap-1.5">
-              <input
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendChat()}
-                placeholder='Try "date from Lat Phrao, 500฿, quiet"'
-                aria-label="Chat to set your plan"
-                className="min-w-0 flex-1 rounded-full border border-line bg-bg px-3.5 py-2 text-[13px] text-ink placeholder:text-mut"
-              />
-              <button
-                onClick={sendChat}
-                disabled={chatSending}
-                aria-busy={chatSending}
-                aria-label="Send"
-                className="gn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white disabled:opacity-60"
-              >
-                {chatSending ? <span className="gn-spinner" style={{ margin: 0 }} /> : "↑"}
-              </button>
-            </div>
-            <p className="o-mono-text mt-1 text-[10.5px] text-mut">AI sets the conditions — every number comes from real data</p>
+            {/* chat จริง — เจ้าของ state ทั้งหมดคือ ChatPanel (T1.7) พิมพ์แชทจึงไม่ re-render การ์ดฝั่งนี้ */}
+            <ChatPanel
+              intent={intent}
+              origin={origin}
+              budget={budget}
+              filters={filters}
+              data={data}
+              loadError={loadError}
+              onActions={applyChatActions}
+              registerDataListener={onLoaded}
+              highlightVenue={highlightVenue}
+              initialQuery={sp.get("q")}
+            />
           </div>
 
           {/* ตัวกรองจริง — กดแล้ว refetch ผลลัพธ์ */}
@@ -870,10 +612,10 @@ export default function PlannerClient() {
                   cheapest={data.routes.cheapest}
                   fastest={data.routes.fastest}
                   saved={saved.has(v.id)}
-                  onAdd={(el) => addToPlan(v.id, v.name_th, el)}
+                  onAdd={addToPlan}
                   adding={addingId === v.id}
-                  onSave={() => toggleSave(v)}
-                  onToggleRoute={(kind) => track("route_alt_toggle", { venue_id: v.id, kind, screen: "planner" })}
+                  onSave={toggleSave}
+                  onToggleRoute={handleToggleRoute}
                 />
                 </div>
               ))}

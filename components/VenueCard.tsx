@@ -1,6 +1,14 @@
 "use client";
 // การ์ดสถานที่ Top 3 (spec S2): บาทชิปมุมขวาบน · badge hit/unseen · attributes · trust badge
-import { useState } from "react";
+//
+// กติกาไอคอน (T1.7): ไอคอน lucide (Plug/Wifi/Clock3/UtensilsCrossed/Car/Heart/Play) ในการ์ดนี้
+// เป็น "ภาษา data icon" ของการ์ดร้านโดยเจตนา — ที่อื่นในแอปใช้ emoji ล้วน ห้ามเปลี่ยนการ์ดนี้ไปใช้
+// emoji แทน และห้ามลาม lucide ไปหน้า/component อื่นที่ไม่ใช่การ์ดร้าน
+//
+// ครอบ React.memo (T1.7) เพื่อกัน re-render ทั้งกริดตอนพิมพ์ใน ChatPanel — onAdd/onSave/onToggleRoute
+// เปลี่ยน signature ให้รับ venue id/name จาก VenueCard เอง (แทนที่ parent จะ inline closure ต่อการ์ด)
+// เพื่อให้ PlannerClient ส่ง callback อ้างอิงเดียวที่เสถียร (useCallback) memo ถึงจะมีผลจริง
+import { memo, useState } from "react";
 import { Car, Clock3, Plug, UtensilsCrossed, Wifi, Heart, Play } from "lucide-react";
 import { mid } from "@/lib/costing";
 import type { Route, Venue } from "@/lib/types";
@@ -10,7 +18,7 @@ import TrustBadge from "./TrustBadge";
 
 const FOOD_LABELS = { meals: "Real meals", snacks: "Snacks", drinks: "Drinks" } as const;
 
-export default function VenueCard({
+function VenueCard({
   venue,
   cheapest,
   fastest,
@@ -24,10 +32,10 @@ export default function VenueCard({
   cheapest: Route;
   fastest: Route;
   saved: boolean;
-  onAdd: (cardEl?: HTMLElement | null) => void;
+  onAdd: (venueId: string, venueName: string, cardEl?: HTMLElement | null) => void;
   adding?: boolean;
-  onSave: () => void;
-  onToggleRoute?: (kind: "cheapest" | "fastest") => void;
+  onSave: (venue: Venue) => void;
+  onToggleRoute?: (venueId: string, kind: "cheapest" | "fastest") => void;
 }) {
   const [kind, setKind] = useState<"cheapest" | "fastest">("cheapest");
   const route = kind === "cheapest" ? cheapest : fastest;
@@ -37,7 +45,7 @@ export default function VenueCard({
   const toggle = () => {
     const next = kind === "cheapest" ? "fastest" : "cheapest";
     setKind(next);
-    onToggleRoute?.(next);
+    onToggleRoute?.(venue.id, next);
   };
 
   return (
@@ -50,7 +58,7 @@ export default function VenueCard({
         </span>
         <BahtChip legs={route.legs} className="absolute right-2 top-2 z-[2]" />
         <button
-          onClick={onSave}
+          onClick={() => onSave(venue)}
           aria-label="Save"
           className={`gn-press absolute left-2 top-2 z-[2] rounded-full bg-bg/70 p-1.5 backdrop-blur ${saved ? "text-bad" : "text-ink"}`}
         >
@@ -126,7 +134,7 @@ export default function VenueCard({
 
         <div className="flex gap-2 pt-1">
           <button
-            onClick={(e) => onAdd(e.currentTarget.closest("[data-vcard]") as HTMLElement | null)}
+            onClick={(e) => onAdd(venue.id, venue.name_th, e.currentTarget.closest("[data-vcard]") as HTMLElement | null)}
             aria-busy={adding}
             className={`gn-press gn-cta o-btn-label o-pill-primary flex-1 whitespace-nowrap px-3 py-2 text-sm ${adding ? "gn-busy" : ""}`}
           >
@@ -142,3 +150,5 @@ export default function VenueCard({
     </div>
   );
 }
+
+export default memo(VenueCard);

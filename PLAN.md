@@ -61,6 +61,19 @@
 - [x] แก้ QA ค้าง — `window.confirm` ใน S5 เปลี่ยนเป็น in-app confirm dialog
 - [x] Infra tests — `tests/infra.test.ts` (11 ข้อ: cookie signing/tamper, rate limit, catalog fallback, w2 sanity)
 
+## Frontend sweep 2026-07-26
+
+รอบทำความสะอาด frontend เต็มรูปแบบ 26 commits (`fe0.1` → `fe4.3`, HEAD `5d77b06`) แบ่ง 5 phase:
+
+- **Phase 0 — safety net**: journey smoke test (`tests/journey.mjs`, raw-CDP ไม่มี dependency) ครอบทุกหน้ารวม 3 โหมดของ `/app/plan/[id]` (draft/active/done) ไว้ก่อนเริ่มแตะโค้ด กัน regression ระหว่าง refactor
+- **Phase 1 — refactor**: รวม emoji/ambience map ที่ซ้ำ 15 ตัวจาก 6 ไฟล์ → `lib/venue-display.ts` · shared hooks ใหม่ (`use-toast.tsx`, `use-api-resource.ts`, `use-plan.ts`) แทน boilerplate ที่ซ้ำ 4 จุด · แตก god component: `app/app/plan/[id]/page.tsx` **760 → 201 บรรทัด** (แยกเป็น `plan-view`/`trip-view`/`done-view`/`plan-shared`) และ `planner-client.tsx` **1,172 → 810 บรรทัด** (แยก `ChatPanel.tsx` + `lib/use-venue-search.ts`) · รวมกล่องงบ 2 แบบที่ซ้ำเหลือ component เดียว `MoneyProgress.tsx` (แทน `BudgetBar.tsx` ที่ลบ) + `StopTimelineList.tsx` + `VenueSuggestSheet.tsx` · ลบ `IntentChips.tsx` (ไฟล์ตาย) + CSS token ไร้ผู้ใช้ 27 ตัว
+- **Phase 2 — journey/conversion**: `lib/me-context.tsx` ทำให้ **`/api/me` ยิงครั้งเดียวต่อโหลด** (เดิมยิงซ้ำ 2 ครั้งต่อหน้า) · `components/BottomTabBar.tsx` + `lib/nav.ts` **ปิด gap P0 มือถือ** (แอปไม่เคยมี bottom nav มาก่อน) · `lib/plan-rules.ts` กัน user เปิด 2 ทริป active พร้อมกัน (409 `already_active`) · `POST /api/plans` คืน plan เต็มไม่ต้องมี GET ตามหลัง · `app/error.tsx` + `app/not-found.tsx` + `app/app/loading.tsx` (error boundary/404/skeleton มีแบรนด์) · `DELETE /api/plans/[id]` (ลบได้เฉพาะ draft ของเจ้าของ) + UI ลบ draft ใน `/app/me` · จัดลำดับมือถือใน `/app` ให้การ์ด Top 3 มาก่อนแชท
+- **Phase 3 — a11y**: `lib/use-focus-trap.ts` เขียนเอง (ไม่เพิ่ม dependency) ใช้กับ explore modal + `VenueSuggestSheet` · thumbnail ที่เคยเป็น `<div onClick>` เปลี่ยนเป็น `<button>` จริง · เพิ่ม `role`/`aria-*` ทั่วแอป (log/live region ของแชท, skeleton, chips, input, pressed state) · เติม reduced-motion ให้ animation ที่ตกหล่น
+- **Phase 4 — visual consistency**: กำจัด hardcode สี/เงาที่ drift ออกจาก token (`--mut`, canvas ของ `TripRecap`, landing CTA gradient, sheet shadow, `#f7f7f4`) · unify ขนาด h1 ให้เท่ากันทั้ง 4 หน้า · `lib/use-reveal.ts` + `components/Reveal.tsx` (IntersectionObserver เขียนเอง) ให้ scroll-reveal บน landing/explore/group/หน้าแชร์ พร้อม `prefers-reduced-motion` guard
+- **Phase 5 — verification**: supervisor รันซ้ำทุก gate ที่ HEAD `5d77b06` — `npx tsc --noEmit` clean · `npm run check` **82 ข้อ** (logic 46 · infra 22 · pipeline 14) · `npm run journey` **20 steps** ผ่านหมด 0 console error · `npm run build` เขียว
+
+รายละเอียดทุก task พร้อม deviation/ruling ที่ supervisor ตัดสิน ดู ledger เต็มที่ `.superpowers/sdd/2026-07-26-frontend-sweep/progress.md`
+
 ## Flow 5 หน้าจอ (spec 2.8)
 
 ```
@@ -212,26 +225,30 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 ```
 gonai/
 ├── app/
-│   ├── api/{me,saves,imports,events,venues,plans,chain}/route.ts
-│   ├── app/{page,results/,plan/[id],trip/[id],me}/page.tsx
-│   ├── layout.tsx          # header + footer + font
+│   ├── api/{me,saves,imports,events,venues,plans,plans/[id],chain,chat,explore,health,waitlist,auth/line/{login,callback,logout}}/route.ts
+│   ├── app/
+│   │   ├── page.tsx + planner-client.tsx              # S1: intent/origin/budget + Top 3 + chat panel
+│   │   ├── plan/[id]/{page,plan-view,trip-view,done-view,plan-shared}.tsx   # S3/S4: แผน/กำลังเที่ยว/เสร็จ แยกไฟล์ตาม plan.status
+│   │   ├── explore/ · me/ · group/ · welcome/          # หน้าอื่นใต้ /app
+│   │   └── layout.tsx · template.tsx · loading.tsx     # branded skeleton ระหว่างโหลดโซน /app
+│   ├── p/[id]/page.tsx     # หน้าแชร์ (public, อ่านอย่างเดียว)
+│   ├── shell.tsx           # header + BottomTabBar + mount ToastProvider/MeProvider
+│   ├── layout.tsx          # root layout + font
+│   ├── error.tsx · not-found.tsx   # error boundary + 404 มีแบรนด์ (แทน default ของ Next)
 │   └── globals.css         # design tokens
-├── components/             # VenueCard, RouteLegs, BudgetBar, IntentChips, BahtChip, TrustBadge
+├── components/              # VenueCard, RouteLegs, MoneyProgress (แทน BudgetBar เดิม), StopTimelineList,
+│                             # ChatPanel, VenueSuggestSheet, BottomTabBar, Reveal, Odo, Confetti, AskBar,
+│                             # SplitPay, BahtChip, TrustBadge, TripRecap, LoadingSkeleton, WaitlistForm, Logo
 ├── lib/
-│   ├── types.ts            # data model + labels
-│   ├── fixtures.ts         # placeholder data (dev fallback)
-│   ├── costing.ts          # journey cost math
-│   ├── budget.ts           # budget default logic
-│   ├── top3.ts             # 2 Hit + 1 Unseen selection
-│   ├── chaining.ts         # "ไปต่อ" suggestions
-│   ├── catalog.ts          # zones/venues/routes (Supabase + cache, fallback fixtures)
-│   ├── server.ts           # route lookup + plan expansion (async)
-│   ├── store.ts            # store facade (interface + เลือก backend)
-│   ├── store-json.ts       # JSON backend (dev เท่านั้น)
-│   ├── auth.ts             # signed cookie + LINE Login
-│   ├── ratelimit.ts        # in-memory sliding window
-│   ├── preflight.ts        # ตรวจ env ก่อน deploy (pure function)
-│   └── api.ts              # client fetch helper
+│   ├── types.ts · fixtures.ts · costing.ts · budget.ts · top3.ts · chaining.ts   # pure functions เดิม
+│   ├── filters.ts · timeline.ts · weather.ts · chat.ts · share.ts
+│   ├── catalog.ts · server.ts · store.ts · store-json.ts · auth.ts · ratelimit.ts · preflight.ts · api.ts
+│   ├── venue-display.ts    # emoji/ambience map รวมจาก 6 ไฟล์ (frontend sweep T1.1)
+│   ├── use-toast.tsx · use-api-resource.ts · use-plan.ts · use-count-up.ts    # shared hooks
+│   ├── me-context.tsx      # MeProvider/useMe — ทำให้ /api/me ยิงครั้งเดียวต่อโหลด
+│   ├── nav.ts               # TABS + isActive (ใช้ทั้ง header desktop และ BottomTabBar)
+│   ├── plan-rules.ts        # findBlockingActive — กัน user เปิด 2 ทริป active พร้อมกัน
+│   └── use-venue-search.ts · use-focus-trap.ts · use-reveal.ts   # แยกออกจาก god component เดิม
 ├── supabase/
 │   ├── schema.sql          # 9 ตาราง + RLS
 │   ├── store-adapter.ts    # Supabase backend + catalog fetch/upsert
@@ -239,12 +256,14 @@ gonai/
 ├── scripts/
 │   └── preflight.ts        # CLI: npm run preflight (ตรวจ env ก่อน deploy)
 ├── tests/
-│   ├── logic.test.ts       # 43 integration tests
-│   ├── infra.test.ts       # 21 infra tests (auth/ratelimit/catalog/weather/filters/w2-data/store/preflight)
+│   ├── logic.test.ts       # 46 integration tests
+│   ├── infra.test.ts       # 22 infra tests (auth/ratelimit/catalog/weather/filters/w2-data/store/preflight)
+│   ├── pipeline.test.ts    # CSV → fixtures pipeline end-to-end (14 ข้อ)
+│   ├── journey.mjs         # smoke driver raw-CDP ไม่มี dependency — 20 steps ครอบทั้งแอป (npm run journey)
 │   ├── w2-data.ts          # W2 mock data (24 venues + 16 routes)
 │   ├── w2-seed.ts          # พิมพ์ W2 mock เป็น fixtures
 │   ├── routes-template.csv # routes CSV template (1 แถว = 1 leg)
-│   └── pipeline.test.ts    # CSV → fixtures pipeline end-to-end (14 ข้อ)
+│   └── fixtures-template.csv
 ├── QA-RESULTS.md           # QA 10 รอบ
 └── PLAN.md                 # ไฟล์นี้
 ```
@@ -253,7 +272,8 @@ gonai/
 
 ```bash
 npm run dev                        # รัน dev server (localhost:3000)
-npm run check                      # tests: logic 43 ข้อ + infra 21 ข้อ + pipeline 14 ข้อ
+npm run check                      # tests: logic 46 ข้อ + infra 22 ข้อ + pipeline 14 ข้อ (รวม 82)
+npm run journey                    # smoke test raw-CDP บน dev server ที่รันอยู่ — 20 steps, ต้อง 0 console error
 npm run build                      # production build
 npm run preflight                  # ตรวจ env ก่อน deploy
 npx tsx supabase/seed.ts           # seed catalog ลง Supabase (fixtures)

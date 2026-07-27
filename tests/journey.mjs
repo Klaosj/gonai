@@ -66,6 +66,12 @@ async function evalJS(expr) {
   const r = await send("Runtime.evaluate", { expression: expr, returnByValue: true });
   return r.result.value;
 }
+// เหมือน evalJS แต่รอ Promise resolve จริง (awaitPromise) — ใช้กับ fetch ใน page context (Task 0.2 bootstrap)
+async function evalAsyncJS(expr) {
+  const r = await send("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true });
+  if (r.exceptionDetails) throw new Error(r.exceptionDetails.text ?? "evalAsyncJS threw");
+  return r.result.value;
+}
 async function waitFor(expr, timeoutMs = 12000) {
   const t0 = Date.now();
   while (Date.now() - t0 < timeoutMs) {
@@ -108,7 +114,9 @@ const STEPS = [
 ];
 
 let pass = 0, fail = 0;
-for (const s of STEPS) {
+// เดิมเป็น for-loop inline ล้วนๆ — แตกเป็นฟังก์ชัน runStep เพื่อใช้ซ้ำกับ step ใหม่ 4 ตัวของ
+// /app/plan/[id] (Task 0.2) โดยไม่แตะ logic เดิมสักบรรทัด (setWidth/nav/waitFor/shot/pass-fail เหมือนเดิมทุกอย่าง)
+async function runStep(s) {
   await setWidth(s.width);
   await nav(s.url);
   const ok = await waitFor(s.expr);
@@ -116,6 +124,103 @@ for (const s of STEPS) {
   console.log(`  ${ok ? "✓" : "✗"} ${s.name} @${s.width}`);
   ok ? pass++ : fail++;
 }
+for (const s of STEPS) await runStep(s);
+
+// ===== Task 0.2 — ปิด blind spot: journey ไม่เคย render /app/plan/[id] เลย =====
+// หน้านี้คือหน้าหลักของแอป (โหมด draft/active/done) เพิ่งแตกเป็น 4 ไฟล์ใน T1.5 และมีงานอีกหลาย
+// task (T2.6 DoneView CTA, T4.2 warn banner) กำลังจะลงตรงนี้ต่อ — ถ้า journey ไม่แตะ หน้านี้พังแล้ว
+// gate ยังเขียวได้ จึงต้องสร้าง plan จริงผ่าน API ของแอปเอง (ห้าม hardcode id ที่อาจไม่มีอยู่จริง)
+// แล้วครอบให้ครบทั้ง 3 โหมด
+
+// สร้าง plan จริงผ่าน fetch ใน page context (คุกกี้ auth ของ browser ติดไปด้วยเหมือนผู้ใช้จริง)
+// shape ตรงกับ addToPlan จริงใน app/app/planner-client.tsx:427-441 (intent/origin/venue_id/budget)
+// venue_id เอาจาก GET /api/venues ตัวแรก (cards[0].id) ไม่ hardcode · budget 450 = BUDGET_DEFAULTS.work
+// ใน lib/fixtures.ts (ค่า default จริงตอนผู้ใช้ยังไม่ปรับ ตรงกับ intent/origin ที่ใช้สร้าง plan นี้)
+async function createTestPlan() {
+  return evalAsyncJS(`(async () => {
+    try {
+      const vr = await fetch("/api/venues?intent=work&origin=bangkapi", { credentials: "same-origin" });
+      if (!vr.ok) return { ok: false, error: "GET /api/venues " + vr.status };
+      const vd = await vr.json();
+      const venueId = vd && vd.cards && vd.cards[0] && vd.cards[0].id;
+      if (!venueId) return { ok: false, error: "GET /api/venues ไม่มี card ให้หยิบ venue_id" };
+      const pr = await fetch("/api/plans", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ intent: "work", origin: "bangkapi", venue_id: venueId, budget: 450 }),
+      });
+      if (!pr.ok) return { ok: false, error: "POST /api/plans " + pr.status };
+      const pd = await pr.json();
+      if (!pd || !pd.id) return { ok: false, error: "POST /api/plans ไม่คืน id" };
+      return { ok: true, id: pd.id };
+    } catch (e) {
+      return { ok: false, error: String((e && e.message) || e) };
+    }
+  })()`);
+}
+
+// PATCH plan ผ่าน API จริงเหมือนกด "Start the trip ▶" / "End trip ✓" — ไม่ throw เอง คืน {ok,status} เสมอ
+async function patchTestPlan(id, action) {
+  const url = `/api/plans/${id}`;
+  return evalAsyncJS(`(async () => {
+    try {
+      const r = await fetch(${JSON.stringify(url)}, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: ${JSON.stringify(action)} }),
+      });
+      return { ok: r.ok, status: r.status };
+    } catch (e) {
+      return { ok: false, error: String((e && e.message) || e) };
+    }
+  })()`);
+}
+
+const createdPlan = await createTestPlan();
+if (!createdPlan || !createdPlan.ok) {
+  // ข้อบังคับของ task: ห้าม skip เงียบ — สร้าง plan ไม่สำเร็จต้องนับเป็น fail ให้ exit non-zero
+  console.log(`  ✗ plan-bootstrap — สร้าง plan ไม่สำเร็จ: ${createdPlan?.error ?? "ไม่ทราบสาเหตุ"}`);
+  fail++;
+} else {
+  const planId = createdPlan.id;
+  const planUrl = `/app/plan/${planId}`;
+
+  await runStep({
+    name: "plan-draft-view",
+    url: planUrl,
+    width: 1280,
+    expr: `Array.from(document.querySelectorAll("button")).some((b) => b.textContent.includes("Start the trip"))`,
+  });
+
+  await patchTestPlan(planId, "start"); // draft → active (เหมือนกด "Start the trip ▶" จริง)
+  await runStep({
+    name: "plan-trip-view",
+    url: planUrl,
+    width: 390,
+    expr: `Array.from(document.querySelectorAll("button")).some((b) => b.textContent.includes("Check in"))`,
+  });
+
+  await runStep({ name: "no-overflow-390-plan", url: planUrl, width: 390, expr: NO_OVERFLOW });
+
+  await patchTestPlan(planId, "done"); // active → done (เหมือนกด "End trip ✓" จริง)
+  await runStep({
+    name: "plan-done-view",
+    url: planUrl,
+    width: 1280,
+    // .o-mono มี text-transform: uppercase (app/globals.css) → innerText คืนตัวพิมพ์ใหญ่ ต้อง lowercase ก่อนเทียบ
+    expr: `document.body.innerText.toLowerCase().includes("actually spent today")`,
+  });
+
+  // สำคัญมาก: ปิดท้ายด้วยการบังคับ PATCH ให้ plan นี้เป็น done เสมอ ไม่ว่า step ข้างบนจะพังกลางทางหรือไม่
+  // (เช่น assert "Check in" fail แต่ PATCH start ไปแล้วจริง) — เหตุผล: Task 2.3 (ถัดไปในแผน) จะทำ server
+  // ปฏิเสธการ start ทริปที่สองด้วย 409 เมื่อผู้ใช้มี plan active ค้างอยู่ ถ้า journey รอบนี้ทิ้ง plan ไว้
+  // เป็น active ค้าง รอบถัดไป (npm run journey อีกครั้ง) จะ start ทริปใหม่ไม่ได้ ทำให้ step แดงผิดๆ
+  // ทั้งที่แอปไม่ได้พัง — ต้อง idempotent ทุกรอบ
+  await patchTestPlan(planId, "done").catch(() => {});
+}
+
 // ยอมรับ error จาก devtools เองเท่านั้น — error จากแอปต้องเป็น 0
 consoleErrors = consoleErrors.filter((e) => !String(e).includes("DevTools"));
 console.log("═".repeat(50));

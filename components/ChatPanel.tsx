@@ -197,7 +197,16 @@ export function ChatPanel({
         data-chat-toggle
         className="gn-press flex w-full items-center justify-between gap-2 rounded-2xl border border-line bg-card-solid/60 px-3.5 py-2.5 text-left text-[13px] font-semibold text-ink lg:hidden"
       >
-        <span>💬 Chat with GoNai — tell it what you feel like</span>
+        <span className="flex items-center gap-1.5">
+          <span
+            aria-hidden="true"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]"
+            style={{ background: "var(--gn-brand-grad)" }}
+          >
+            ✨
+          </span>
+          Chat with GoNai AI — tell it what you feel like
+        </span>
         <span aria-hidden="true" className="shrink-0 text-mut">
           {expanded ? "▾" : "▸"}
         </span>
@@ -216,7 +225,18 @@ export function ChatPanel({
               </div>
             ) : (
               <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
-                {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
+                {/* AI identity (คำขอ Klao 2026-07-27): ทุก bubble ของ AI มี avatar gradient + ป้ายชื่อ
+                    ให้รู้ทันทีว่ากำลังคุยกับ AI · โหมด quick parser (ไม่มี key) ติดป้าย QUICK MATCH ตามหลักไม่มีของ fake */}
+                <span className="mb-1 flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px]"
+                    style={{ background: "var(--gn-brand-grad)" }}
+                  >
+                    ✨
+                  </span>
+                  <span className="o-mono text-[9px] tracking-wide text-mut">GONAI AI{m.quick ? " · QUICK MATCH" : ""}</span>
+                </span>
                 {m.text}
                 {/* การ์ด Top 3 กดได้ — เลื่อนไปการ์ดจริง ไม่ใช่ text ลอยๆ */}
                 {m.venues && m.venues.length > 0 && (
@@ -236,9 +256,16 @@ export function ChatPanel({
             ),
           )}
           {chatSending && (
-            <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
+            <div className="flex w-fit items-center gap-1.5 rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
+              <span
+                aria-hidden="true"
+                className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px]"
+                style={{ background: "var(--gn-brand-grad)" }}
+              >
+                ✨
+              </span>
               <span className="gn-spinner" />
-              thinking…
+              GoNai AI is thinking…
             </div>
           )}
         </div>

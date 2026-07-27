@@ -1,0 +1,25 @@
+route_id,origin_zone,dest_zone,kind,seq,mode,detail_th,price_min,price_max,minutes,warning_th
+R101,bangkapi,siam,cheapest,1,walk,Walk to The Mall Bangkapi pier (Wat Sriboonreung),0,0,5,
+R101,bangkapi,siam,cheapest,2,boat,Saen Saep boat (NIDA line) to Pratunam pier,20,26,35,Last boat ~19:15 weekdays / earlier on weekends — verify
+R101,bangkapi,siam,cheapest,3,walk,Walk Pratunam to Siam,0,0,15,
+R102,bangkapi,siam,fastest,1,grab,Grab from home to Siam,145,210,35,
+R103,ladprao,siam,cheapest,1,walk,Walk to BTS Ha Yaek Lat Phrao,0,0,5,
+R103,ladprao,siam,cheapest,2,bts,BTS direct to Siam (no interchange),64,64,20,New fare structure since Nov 2025 — verify at station
+R103,ladprao,siam,cheapest,3,walk,Walk into Siam,0,0,3,
+R104,ladprao,siam,fastest,1,grab,Grab from home to Siam,120,175,30,
+R105,onnut,siam,cheapest,1,walk,Walk to BTS On Nut,0,0,5,
+R105,onnut,siam,cheapest,2,bts,BTS to Siam,47,47,18,
+R105,onnut,siam,cheapest,3,walk,Walk into Siam,0,0,3,
+R106,onnut,siam,fastest,1,grab,Grab from home to Siam,125,185,30,
+R107,pinklao,siam,cheapest,1,walk,Walk to bus stop at Central Pinklao,0,0,5,
+R107,pinklao,siam,cheapest,2,van,City bus 79 or 511 to Siam,17,24,35,Bus line numbers change often — verify at the stop
+R107,pinklao,siam,cheapest,3,walk,Walk to Siam Square,0,0,8,
+R108,pinklao,siam,fastest,1,grab,Grab from home to Siam,135,200,35,
+R109,chatuchak,siam,cheapest,1,walk,Walk to BTS Mo Chit,0,0,5,
+R109,chatuchak,siam,cheapest,2,bts,BTS to Siam,47,47,17,
+R109,chatuchak,siam,cheapest,3,walk,Walk into Siam,0,0,3,
+R110,chatuchak,siam,fastest,1,grab,Grab from home to Siam,110,165,30,
+R111,bangna,siam,cheapest,1,walk,Walk to BTS Bang Na,0,0,5,
+R111,bangna,siam,cheapest,2,bts,BTS to Siam,65,65,25,Extension-zone ceiling fare — verify at station
+R111,bangna,siam,cheapest,3,walk,Walk into Siam,0,0,3,
+R112,bangna,siam,fastest,1,grab,Grab from home to Siam,185,270,45,

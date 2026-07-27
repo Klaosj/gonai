@@ -18,7 +18,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastCtx.Provider value={show}>
       {children}
       {toast && (
-        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[26px] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink">
+        <div role="status" aria-live="polite" className="gn-toast fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-[120] max-w-[90vw] -translate-x-1/2 rounded-full bg-card-solid px-5 py-2.5 text-[13px] text-ink sm:bottom-[26px]">
           {toast}
         </div>
       )}

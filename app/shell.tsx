@@ -4,25 +4,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { BottomTabBar } from "@/components/BottomTabBar";
 import Logo from "@/components/Logo";
 import { track } from "@/lib/api";
 import { MeProvider, useMe } from "@/lib/me-context";
+import { TABS, isActive } from "@/lib/nav";
 import type { MeResponse, Venue } from "@/lib/types";
 import { ToastProvider } from "@/lib/use-toast";
-
-const TABS = [
-  { key: "planner", label: "🗺️ Plan", href: "/app" },
-  { key: "explore", label: "🔎 Explore", href: "/app/explore" },
-  { key: "group", label: "👥 Group · soon", href: "/app/group" },
-  { key: "trips", label: "🎒 My trips", href: "/app/me" },
-] as const;
-
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/app") {
-    return pathname === "/app" || pathname.startsWith("/app/plan") || pathname.startsWith("/app/trip");
-  }
-  return pathname === href || pathname.startsWith(href + "/");
-}
 
 const INTENT_DNA_LABELS: Record<string, string> = {
   work: "Worker",
@@ -185,7 +173,9 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
         </Link>
       </header>
 
-      {children}
+      {/* pb-16 กันเนื้อหาโดน BottomTabBar (fixed, mobile only) ทับที่ท้ายจอ · sm:pb-0 เพราะ tab bar หายไปแล้ว
+          Shell เดิมไม่มี <main> ครอบ children เลย (children ต่อจาก header ตรงๆ) — เพิ่ม <main> ตรงนี้เป็นที่แรก */}
+      <main className="pb-16 sm:pb-0">{children}</main>
 
       <footer className="o-mono-text flex flex-wrap justify-center gap-5 border-t border-line bg-bg px-5 py-3.5 text-[11px] text-mut">
         <span>🚧 Beta — sample data; collecting real Siam data now</span>
@@ -193,6 +183,9 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
         <span>🗺 Win/boat/BTS routes field-collected · Grab formula until validated</span>
         <span>🔒 PDPA compliant — view/delete your data anytime</span>
       </footer>
+
+      {/* มือถือ < sm เท่านั้น (T2.2 ปิด P0: มือถือเข้า nav ไม่ได้เลย) */}
+      <BottomTabBar />
     </>
   );
 }

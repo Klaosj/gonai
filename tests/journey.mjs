@@ -111,6 +111,13 @@ const STEPS = [
   { name: "no-overflow-390-app", url: "/app", width: 390, expr: NO_OVERFLOW },
   { name: "no-overflow-768-app", url: "/app", width: 768, expr: NO_OVERFLOW },
   { name: "no-overflow-360-explore", url: "/app/explore", width: 360, expr: NO_OVERFLOW },
+  // T2.2 — bottom tab bar มือถือ ต้องมีจริง (ปิด P0 nav) และมีลิงก์ไปครบ 4 แท็บ (เช็ค explore เป็นตัวแทน)
+  {
+    name: "mobile-tabbar",
+    url: "/app",
+    width: 390,
+    expr: `!!document.querySelector('nav[aria-label="Main"] a[href="/app/explore"]')`,
+  },
 ];
 
 let pass = 0, fail = 0;

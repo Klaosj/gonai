@@ -770,7 +770,7 @@ export default function PlannerClient() {
       {createPortal(
         <button
           onClick={() => document.getElementById("gn-budget-target")?.scrollIntoView({ behavior: "smooth", block: "center" })}
-          className="gn-glass fixed inset-x-3 bottom-3 z-40 flex items-center justify-between gap-2 rounded-full border border-line px-4 py-2.5 shadow-[0_4px_10px_rgba(18,20,17,.07),0_26px_56px_rgba(18,20,17,.14)] lg:hidden"
+          className="gn-glass fixed inset-x-3 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 flex items-center justify-between gap-2 rounded-full border border-line px-4 py-2.5 shadow-[0_4px_10px_rgba(18,20,17,.07),0_26px_56px_rgba(18,20,17,.14)] sm:bottom-3 lg:hidden"
           aria-label="Jump to budget"
         >
           <span className="o-mono text-[10px] text-mut">BUDGET</span>

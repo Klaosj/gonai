@@ -262,6 +262,33 @@ V001,Test Cafe,siam,cafe,work,hit,abc,,,all,200,999,medium,false,meals,true,true
     }
   });
 
+  // ===== mode whitelist (tsx ไม่เช็ค type — generator ต้องกันเอง) =====
+  await test("generator: mode นอก whitelist → exit 1 บอกชื่อ mode", () => {
+    const dir = mkTmpDir();
+    const v = path.join(dir, "v.csv");
+    const r = path.join(dir, "r.csv");
+    fs.writeFileSync(v, VALID_VENUES_CSV);
+    fs.writeFileSync(r, VALID_ROUTES_CSV.replace(",win,", ",jetski,"));
+    const res = runGenerator(v, r);
+    eq(res.status, 1);
+    ok(res.stderr.includes("jetski"), "stderr ต้องบอก mode ที่ผิด");
+  });
+
+  await test("generator: mode bus ผ่าน", () => {
+    const dir = mkTmpDir();
+    const v = path.join(dir, "v.csv");
+    const r = path.join(dir, "r.csv");
+    fs.writeFileSync(v, VALID_VENUES_CSV);
+    fs.writeFileSync(r, VALID_ROUTES_CSV.replace(",win,", ",bus,"));
+    const res = runGenerator(v, r);
+    eq(res.status, 0, res.stderr);
+  });
+
+  await test("w2 จริง: data/w2/*.csv ผ่าน generator (กัน field-day แก้ CSV แล้วพังเงียบ)", () => {
+    const res = runGenerator("data/w2/venues.csv", "data/w2/routes.csv");
+    eq(res.status, 0, res.stderr);
+  });
+
   console.log("═".repeat(60));
   console.log(`  ${pass} passed, ${fail} failed (${pass + fail} total)`);
   if (fail > 0) process.exit(1);

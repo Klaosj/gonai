@@ -61,8 +61,8 @@
 ## เรื่องที่ต้องตัดสินใจ (Klao)
 
 1. **นโยบาย validation_count หลัง field ตรวจ:** กติกา spec คือ unseen ต้อง ≥3 ถึงโชว์ · ทางเลือก (ก) ตรวจเองนับเป็น 3 เลย (founder validation) → gem โชว์ตั้งแต่ launch (ข) นับ 1 ตามจริง → gem ซ่อนจนผู้ใช้ยืนยันเพิ่ม (แอปมี note "no confirmed gem yet" รองรับแล้ว)
-2. **โหมด bus:** เส้นปิ่นเกล้าใช้รถเมล์ แต่ enum mode ใน `lib/types.ts` ยังไม่มี `bus` — ตอนนี้ draft ใช้ `van` ชั่วคราว · ถ้าเอาจริงควรเพิ่ม `bus` ใน enum + MODE_LABELS ก่อน seed (งานโค้ด ~5 บรรทัด สั่งได้เลย)
-3. **SEA LIFE ราคาไหน:** gate 1,190-1,290 vs online 690-990 — โชว์ช่วงไหนในการ์ด
+2. ~~โหมด bus~~ **ตัดสินแล้ว 2026-07-27**: เพิ่ม bus ใน enum + MODE_LABELS + emoji + generator whitelist แล้ว — R107 ใช้ mode=bus จริง
+3. ~~SEA LIFE ราคาไหน~~ **ตัดสินแล้ว 2026-07-27**: โชว์ราคา online 690–990 (ตรง promise "รู้งบก่อนออกจากบ้าน") — field day เช็คว่าราคา online ยังจริง + จดราคา gate ไว้ประกอบ
 
 ## ที่มา (สำหรับอ้างอิง)
 

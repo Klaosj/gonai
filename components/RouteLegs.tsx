@@ -12,6 +12,7 @@ const MODE_EMOJI: Record<string, string> = {
   mrt: "🚇",
   songthaew: "🛻",
   van: "🚐",
+  bus: "🚌",
   grab: "🚗",
 };
 

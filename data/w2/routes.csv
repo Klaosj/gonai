@@ -12,7 +12,7 @@ R105,onnut,siam,cheapest,2,bts,BTS to Siam,47,47,18,
 R105,onnut,siam,cheapest,3,walk,Walk into Siam,0,0,3,
 R106,onnut,siam,fastest,1,grab,Grab from home to Siam,125,185,30,
 R107,pinklao,siam,cheapest,1,walk,Walk to bus stop at Central Pinklao,0,0,5,
-R107,pinklao,siam,cheapest,2,van,City bus 79 or 511 to Siam,17,24,35,Bus line numbers change often — verify at the stop
+R107,pinklao,siam,cheapest,2,bus,City bus 79 or 511 to Siam,17,24,35,Bus line numbers change often — verify at the stop
 R107,pinklao,siam,cheapest,3,walk,Walk to Siam Square,0,0,8,
 R108,pinklao,siam,fastest,1,grab,Grab from home to Siam,135,200,35,
 R109,chatuchak,siam,cheapest,1,walk,Walk to BTS Mo Chit,0,0,5,

@@ -4,7 +4,7 @@
 //
 // routes.csv: 1 แถว = 1 leg · คอลัมน์:
 //   route_id, origin_zone, dest_zone, kind (cheapest|fastest), seq,
-//   mode (walk|win|boat|bts|mrt|songthaew|van|grab), detail_th,
+//   mode (walk|win|boat|bts|mrt|songthaew|van|bus|grab), detail_th,
 //   price_min, price_max, minutes, warning_th (เว้นว่าง = null)
 //
 // CSV columns (ตาม spec 2.4):
@@ -125,7 +125,16 @@ function venueToTS(row: Record<string, string>): string {
   },`;
 }
 
+// tsx (npm run check) ไม่ type-check — ค่า mode มั่วจาก CSV จะรอดถึง next build ถ้าไม่กันตรงนี้
+const LEG_MODES = new Set(["walk", "win", "boat", "bts", "mrt", "songthaew", "van", "bus", "grab"]);
+
 function legTS(routeId: string, l: Record<string, string>): string {
+  if (!LEG_MODES.has(l.mode)) {
+    console.error(
+      `route ${routeId}: mode "${l.mode}" ไม่อยู่ในชุดที่รองรับ (${[...LEG_MODES].join("|")})`,
+    );
+    process.exit(1);
+  }
   const warn = l.warning_th === "" ? "null" : s(l.warning_th);
   const seq = reqNum(routeId, "seq", l.seq);
   const priceMin = reqNum(routeId, "price_min", l.price_min);

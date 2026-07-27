@@ -57,6 +57,7 @@ export type LegMode =
   | "mrt"
   | "songthaew"
   | "van"
+  | "bus"
   | "grab";
 
 export interface RouteLeg {
@@ -139,5 +140,6 @@ export const MODE_LABELS: Record<LegMode, string> = {
   mrt: "MRT",
   songthaew: "Songthaew",
   van: "Van",
+  bus: "Bus",
   grab: "Grab",
 };

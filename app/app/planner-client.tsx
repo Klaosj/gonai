@@ -421,121 +421,14 @@ export default function PlannerClient() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[330px_1fr_360px]">
-        {/* ====== col 1: เงื่อนไข + ตัวกรอง + import ====== */}
-        {/* มือถือ: chat มาก่อน (01→02→03 ตรงเลขจริง) · desktop: ตำแหน่งคอลัมน์เดิม */}
-        <aside className="order-1 lg:order-none gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
-          <span className="gn-step">01 — Your conditions</span>
-
-          <div className="flex flex-col gap-2.5">
-            <div className="self-end rounded-2xl bg-card-solid px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
-              {intent === "work"
-                ? `Work session, leaving from ${originName}`
-                : intent === "date"
-                  ? `Date from ${originName}, ${budget}฿ budget`
-                  : intent === "photo"
-                    ? `Photo spots, ${budget}฿ budget`
-                    : `Family day, ${budget}฿ budget`}
-            </div>
-            <div className="rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
-              Picked <b>top {data.cards.length} of {data.total} spots</b>
-              {activeFilters.length > 0 && (
-                <span className="text-mut"> · filters: {activeFilters.map((c) => c.label).join(" · ")}</span>
-              )}
-              <div className="mt-2 divide-y divide-line rounded-lg border border-line bg-card-solid/40 p-2.5 text-[12.5px]">
-                {data.routes.cheapest.legs.map((l) => (
-                  <div key={l.seq} className="flex justify-between py-1 text-mut first:pt-0 last:pb-0">
-                    <span>{l.detail_th}</span>
-                    <span className="text-ink">{l.price_max > 0 ? (l.price_min === l.price_max ? `${l.price_min}฿` : `${l.price_min}-${l.price_max}฿`) : "0฿"}</span>
-                  </div>
-                ))}
-                <div className="mt-1 flex items-baseline justify-between pt-2">
-                  <span className="o-mono text-[10px] text-mut">
-                    Trip there · {data.routes.cheapest.legs.reduce((s, l) => s + l.minutes, 0)} min
-                  </span>
-                  <span className="gn-num text-[22px] font-semibold text-ink">
-                    {data.routes.cheapest.legs.reduce((s, l) => s + l.price_min, 0)}฿
-                  </span>
-                </div>
-              </div>
-            </div>
-            {/* คำเตือนฝนจริงจาก Open-Meteo — ไม่มีข้อมูล = ไม่โชว์ */}
-            {showRain && (
-              <div className="rounded-2xl border border-warn/40 bg-[#fdf6ec] px-3.5 py-2.5 text-[12.5px] text-warn">
-                ☔ <b>Today's forecast:</b> {rain.maxProb}% rain chance
-                {rain.peakHour !== null && ` around ${rain.peakHour}:00`}
-                {!filters.indoor && (
-                  <button
-                    onClick={() => toggleFilter("indoor")}
-                    className="gn-press ml-1.5 rounded-lg border border-warn/50 bg-bg px-2 py-0.5 text-[11.5px] font-bold text-warn"
-                  >
-                    Indoor only
-                  </button>
-                )}
-                <button onClick={() => setRainDismissed(true)} className="ml-1.5 text-[11.5px] text-warn underline">
-                  Hide
-                </button>
-              </div>
-            )}
-
-            {/* chat จริง — เจ้าของ state ทั้งหมดคือ ChatPanel (T1.7) พิมพ์แชทจึงไม่ re-render การ์ดฝั่งนี้ */}
-            <ChatPanel
-              intent={intent}
-              origin={origin}
-              budget={budget}
-              filters={filters}
-              data={data}
-              loadError={loadError}
-              onActions={applyChatActions}
-              registerDataListener={onLoaded}
-              highlightVenue={highlightVenue}
-              initialQuery={sp.get("q")}
-            />
-          </div>
-
-          {/* ตัวกรองจริง — กดแล้ว refetch ผลลัพธ์ */}
-          <div className="flex flex-wrap gap-1.5">
-            {FILTER_CHIPS.map((c) => {
-              const on = !!filters[c.key];
-              return (
-                <button
-                  key={c.key}
-                  onClick={() => toggleFilter(c.key)}
-                  className={`gn-press rounded-full border px-3.5 py-2.5 text-[13px] ${
-                    on
-                      ? "gn-boing border-pill bg-pill font-semibold text-bg"
-                      : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="rounded-xl border border-dashed border-line bg-card-solid/40 p-3">
-            <h4 className="o-mono mb-1.5 text-[11px] text-accent">📎 Found a spot on TikTok / IG?</h4>
-            <div className="flex gap-1.5">
-              <input
-                value={importUrl}
-                onChange={(e) => setImportUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitImport()}
-                placeholder="Paste the clip link here..."
-                className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-[12.5px] text-ink placeholder:text-mut"
-              />
-              <button
-                onClick={submitImport}
-                className="gn-press o-btn-label rounded-lg bg-accent px-3 py-1.5 text-[12.5px] text-bg"
-               aria-busy={sendingImport}>
-                {sendingImport ? <span className="gn-spinner" /> : null}Send
-              </button>
-            </div>
-            <p className="mt-1.5 text-[11px] text-mut">Real humans pull the data within 24h — not a bot</p>
-          </div>
-        </aside>
-
-        {/* ====== col 2: Top 3 + hero + intent chips ====== */}
-        <section className="order-2 lg:order-none gn-card-e gn-rise gn-d1 p-4">
-          <span className="gn-step">02 — Pick a spot · top {data.cards.length} of {data.total}</span>
+        {/* ====== col 2 (T2.8 — การตัดสินใจ Klao ข้อ 2): Top 3 + hero + intent chips ======
+            ย้าย DOM จริงมาก่อน col 1 (ไม่ใช่แค่ CSS order) เพื่อให้ลำดับที่ screen reader / keyboard
+            tab อ่านตรงกับสิ่งที่ตาเห็นบนมือถือ (การ์ดก่อนแชท) · desktop (lg+): lg:order-2 ดึงกลับไป
+            คอลัมน์กลางเหมือนเดิมเป๊ะ (grid 330px/1fr/360px เดิมไม่เปลี่ยน) */}
+        <section className="order-1 lg:order-2 gn-card-e gn-rise gn-d1 p-4">
+          {/* T2.8 fix: ซ่อนเลขขั้นตอนบนมือถือ (< lg) เพราะ DOM order สลับจาก desktop (การ์ดมาก่อนเงื่อนไข)
+              เลข 01/02/03 เลยไม่ตรงลำดับที่ตาเห็นอีกต่อไป — desktop (≥ lg) ยังเห็นเลขเหมือนเดิมทุกตัวอักษร */}
+          <span className="gn-step"><span className="hidden lg:inline">02 — </span>Pick a spot · top {data.cards.length} of {data.total}</span>
 
           <div
             className={`o-grain gn-shine relative mb-3 mt-2 h-[150px] overflow-hidden rounded-xl ${INTENT_AMBIENCE[intent]}`}
@@ -659,9 +552,124 @@ export default function PlannerClient() {
           )}
         </section>
 
-        {/* ====== col 3: plan + budget ====== */}
-        <aside className="order-3 lg:order-none gn-card-e gn-rise gn-d2 p-4">
-          <span className="gn-step">03 — Your plan + budget</span>
+        {/* ====== col 1 (T2.8 — DOM ที่ 2 บนมือถือ): เงื่อนไข + แชท + ตัวกรอง + import ======
+            desktop (lg+): lg:order-1 ดึงกลับไปคอลัมน์ซ้ายสุดเหมือนเดิม (grid เดิมไม่เปลี่ยน) */}
+        <aside className="order-2 lg:order-1 gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
+          {/* T2.8 fix: ซ่อนเลขขั้นตอนบนมือถือ (< lg) — เหตุผลเดียวกับ col2 ด้านบน (DOM order สลับจาก desktop) */}
+          <span className="gn-step"><span className="hidden lg:inline">01 — </span>Your conditions</span>
+
+          <div className="flex flex-col gap-2.5">
+            <div className="self-end rounded-2xl bg-card-solid px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
+              {intent === "work"
+                ? `Work session, leaving from ${originName}`
+                : intent === "date"
+                  ? `Date from ${originName}, ${budget}฿ budget`
+                  : intent === "photo"
+                    ? `Photo spots, ${budget}฿ budget`
+                    : `Family day, ${budget}฿ budget`}
+            </div>
+            <div className="rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
+              Picked <b>top {data.cards.length} of {data.total} spots</b>
+              {activeFilters.length > 0 && (
+                <span className="text-mut"> · filters: {activeFilters.map((c) => c.label).join(" · ")}</span>
+              )}
+              <div className="mt-2 divide-y divide-line rounded-lg border border-line bg-card-solid/40 p-2.5 text-[12.5px]">
+                {data.routes.cheapest.legs.map((l) => (
+                  <div key={l.seq} className="flex justify-between py-1 text-mut first:pt-0 last:pb-0">
+                    <span>{l.detail_th}</span>
+                    <span className="text-ink">{l.price_max > 0 ? (l.price_min === l.price_max ? `${l.price_min}฿` : `${l.price_min}-${l.price_max}฿`) : "0฿"}</span>
+                  </div>
+                ))}
+                <div className="mt-1 flex items-baseline justify-between pt-2">
+                  <span className="o-mono text-[10px] text-mut">
+                    Trip there · {data.routes.cheapest.legs.reduce((s, l) => s + l.minutes, 0)} min
+                  </span>
+                  <span className="gn-num text-[22px] font-semibold text-ink">
+                    {data.routes.cheapest.legs.reduce((s, l) => s + l.price_min, 0)}฿
+                  </span>
+                </div>
+              </div>
+            </div>
+            {/* คำเตือนฝนจริงจาก Open-Meteo — ไม่มีข้อมูล = ไม่โชว์ */}
+            {showRain && (
+              <div className="rounded-2xl border border-warn/40 bg-[#fdf6ec] px-3.5 py-2.5 text-[12.5px] text-warn">
+                ☔ <b>Today's forecast:</b> {rain.maxProb}% rain chance
+                {rain.peakHour !== null && ` around ${rain.peakHour}:00`}
+                {!filters.indoor && (
+                  <button
+                    onClick={() => toggleFilter("indoor")}
+                    className="gn-press ml-1.5 rounded-lg border border-warn/50 bg-bg px-2 py-0.5 text-[11.5px] font-bold text-warn"
+                  >
+                    Indoor only
+                  </button>
+                )}
+                <button onClick={() => setRainDismissed(true)} className="ml-1.5 text-[11.5px] text-warn underline">
+                  Hide
+                </button>
+              </div>
+            )}
+
+            {/* chat จริง — เจ้าของ state ทั้งหมดคือ ChatPanel (T1.7) พิมพ์แชทจึงไม่ re-render การ์ดฝั่งนี้
+                T2.8: ChatPanel เองยุบ/ขยายตัวเองบนมือถือ < lg (default ยุบ, เปิดเองถ้ามี initialQuery) */}
+            <ChatPanel
+              intent={intent}
+              origin={origin}
+              budget={budget}
+              filters={filters}
+              data={data}
+              loadError={loadError}
+              onActions={applyChatActions}
+              registerDataListener={onLoaded}
+              highlightVenue={highlightVenue}
+              initialQuery={sp.get("q")}
+            />
+          </div>
+
+          {/* ตัวกรองจริง — กดแล้ว refetch ผลลัพธ์ */}
+          <div className="flex flex-wrap gap-1.5">
+            {FILTER_CHIPS.map((c) => {
+              const on = !!filters[c.key];
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => toggleFilter(c.key)}
+                  className={`gn-press rounded-full border px-3.5 py-2.5 text-[13px] ${
+                    on
+                      ? "gn-boing border-pill bg-pill font-semibold text-bg"
+                      : "border-line bg-transparent text-mut hover:border-ink hover:text-ink"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="rounded-xl border border-dashed border-line bg-card-solid/40 p-3">
+            <h4 className="o-mono mb-1.5 text-[11px] text-accent">📎 Found a spot on TikTok / IG?</h4>
+            <div className="flex gap-1.5">
+              <input
+                value={importUrl}
+                onChange={(e) => setImportUrl(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && submitImport()}
+                placeholder="Paste the clip link here..."
+                className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-[12.5px] text-ink placeholder:text-mut"
+              />
+              <button
+                onClick={submitImport}
+                className="gn-press o-btn-label rounded-lg bg-accent px-3 py-1.5 text-[12.5px] text-bg"
+               aria-busy={sendingImport}>
+                {sendingImport ? <span className="gn-spinner" /> : null}Send
+              </button>
+            </div>
+            <p className="mt-1.5 text-[11px] text-mut">Real humans pull the data within 24h — not a bot</p>
+          </div>
+        </aside>
+
+        {/* ====== col 3 (DOM เดิม, ตำแหน่งไม่เปลี่ยน): plan + budget ====== */}
+        <aside className="order-3 gn-card-e gn-rise gn-d2 p-4">
+          {/* T2.8 fix: ซ่อนเลขขั้นตอนบนมือถือ (< lg) — เหตุผลเดียวกับ col2/col1 ด้านบน (DOM order สลับจาก desktop) */}
+          <span className="gn-step"><span className="hidden lg:inline">03 — </span>Your plan + budget</span>
 
           <div id="gn-budget-target" className="mt-2 mb-3 rounded-xl border border-line bg-card-solid/60 p-3">
             <div className="mb-1.5 flex items-center justify-between">

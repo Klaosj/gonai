@@ -66,6 +66,15 @@ export function ChatPanel({
   const pendingChat = useRef<ChatMeta | null>(null); // ตอบหลัง refetch เสร็จ — ตัวเลข = data ล่าสุดจริง
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
+  // T2.8 (การตัดสินใจ Klao ข้อ 2): มือถือ < lg ยุบแชทเป็นแถบไว้ก่อน กดเองถึงขยาย
+  // ≥ lg ไม่ใช้ state นี้เลย — CSS (lg:flex) บังคับเนื้อแชทให้เต็มเสมอ ไม่มีปุ่มยุบ
+  const [expanded, setExpanded] = useState(false);
+
+  // มาจาก /app?q=... (AskBar) → auto-send เกิดขึ้นจริง ผู้ใช้ต้องเห็นคำตอบ เลยเปิดแชทให้เองทันที
+  useEffect(() => {
+    if (initialQuery) setExpanded(true);
+  }, [initialQuery]);
+
   // chat เลื่อนตามข้อความล่าสุดเสมอ
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -179,77 +188,95 @@ export function ChatPanel({
 
   return (
     <>
-      {/* chat จริง — พิมพ์อิสระไทย/อังกฤษ AI ตั้งเงื่อนไขให้ ตัวเลขทุกตัวมาจาก data */}
-      {chatMsgs.map((m, i) =>
-        m.role === "user" ? (
-          <div key={i} className="max-w-[85%] self-end rounded-2xl bg-pill px-3.5 py-2.5 text-[13.5px] leading-relaxed text-bg">
-            {m.text}
-          </div>
-        ) : (
-          <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
-            {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
-            {m.text}
-            {/* การ์ด Top 3 กดได้ — เลื่อนไปการ์ดจริง ไม่ใช่ text ลอยๆ */}
-            {m.venues && m.venues.length > 0 && (
-              <span className="mt-2 flex flex-wrap gap-1.5">
-                {m.venues.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() => highlightVenue(v.id)}
-                    className="gn-press rounded-full border border-accent/40 bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-accent"
-                  >
-                    📍 {v.name}
-                  </button>
-                ))}
-              </span>
-            )}
-          </div>
-        ),
-      )}
-      {chatSending && (
-        <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
-          <span className="gn-spinner" />
-          thinking…
-        </div>
-      )}
-      {/* follow-up chips — โผล่หลังคำตอบล่าสุด กดแล้ว action จริงทันที ไม่ต้องพิมพ์ */}
-      {!chatSending && chatMsgs.length > 0 && chatMsgs[chatMsgs.length - 1].role === "ai" && (
-        <div className="flex flex-wrap gap-1.5">
-          {buildFollowups().map((f) => (
-            <button
-              key={f.label}
-              onClick={() => sendFollowup(f)}
-              className="gn-press rounded-full border border-line bg-bg px-3 py-1.5 text-[11.5px] text-mut hover:border-ink hover:text-ink"
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      )}
-      <div ref={chatEndRef} />
+      {/* T2.8: แถบยุบ/ขยายแชท — เฉพาะมือถือ < lg (lg:hidden) · desktop ไม่มีปุ่มนี้เลย เห็นแชทเต็มเสมอ */}
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-controls="gn-chat-body"
+        data-chat-toggle
+        className="gn-press flex w-full items-center justify-between gap-2 rounded-2xl border border-line bg-card-solid/60 px-3.5 py-2.5 text-left text-[13px] font-semibold text-ink lg:hidden"
+      >
+        <span>💬 Chat with GoNai — tell it what you feel like</span>
+        <span aria-hidden="true" className="shrink-0 text-mut">
+          {expanded ? "▾" : "▸"}
+        </span>
+      </button>
 
-      {/* sticky ล่างของ aside — คุยยาวแค่ไหนช่องพิมพ์ก็ไม่หาย */}
-      <div className="sticky bottom-0 z-10 -mx-1 bg-card px-1 pb-0.5 pt-1">
-        <div className="flex items-center gap-1.5">
-          <input
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendChat()}
-            placeholder='Try "date from Lat Phrao, 500฿, quiet"'
-            aria-label="Chat to set your plan"
-            className="min-w-0 flex-1 rounded-full border border-line bg-bg px-3.5 py-2 text-[13px] text-ink placeholder:text-mut"
-          />
-          <button
-            onClick={sendChat}
-            disabled={chatSending}
-            aria-busy={chatSending}
-            aria-label="Send"
-            className="gn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white disabled:opacity-60"
-          >
-            {chatSending ? <span className="gn-spinner" style={{ margin: 0 }} /> : "↑"}
-          </button>
+      {/* เนื้อแชทจริง — มือถือ < lg โชว์ตาม expanded, ≥ lg (lg:flex) เต็มเสมอไม่สนใจ state นี้เลย */}
+      <div id="gn-chat-body" className={`${expanded ? "flex" : "hidden"} flex-col gap-2.5 lg:flex`}>
+        {/* chat จริง — พิมพ์อิสระไทย/อังกฤษ AI ตั้งเงื่อนไขให้ ตัวเลขทุกตัวมาจาก data */}
+        {chatMsgs.map((m, i) =>
+          m.role === "user" ? (
+            <div key={i} className="max-w-[85%] self-end rounded-2xl bg-pill px-3.5 py-2.5 text-[13.5px] leading-relaxed text-bg">
+              {m.text}
+            </div>
+          ) : (
+            <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
+              {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
+              {m.text}
+              {/* การ์ด Top 3 กดได้ — เลื่อนไปการ์ดจริง ไม่ใช่ text ลอยๆ */}
+              {m.venues && m.venues.length > 0 && (
+                <span className="mt-2 flex flex-wrap gap-1.5">
+                  {m.venues.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => highlightVenue(v.id)}
+                      className="gn-press rounded-full border border-accent/40 bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-accent"
+                    >
+                      📍 {v.name}
+                    </button>
+                  ))}
+                </span>
+              )}
+            </div>
+          ),
+        )}
+        {chatSending && (
+          <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
+            <span className="gn-spinner" />
+            thinking…
+          </div>
+        )}
+        {/* follow-up chips — โผล่หลังคำตอบล่าสุด กดแล้ว action จริงทันที ไม่ต้องพิมพ์ */}
+        {!chatSending && chatMsgs.length > 0 && chatMsgs[chatMsgs.length - 1].role === "ai" && (
+          <div className="flex flex-wrap gap-1.5">
+            {buildFollowups().map((f) => (
+              <button
+                key={f.label}
+                onClick={() => sendFollowup(f)}
+                className="gn-press rounded-full border border-line bg-bg px-3 py-1.5 text-[11.5px] text-mut hover:border-ink hover:text-ink"
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div ref={chatEndRef} />
+
+        {/* sticky ล่างของ aside — คุยยาวแค่ไหนช่องพิมพ์ก็ไม่หาย */}
+        <div className="sticky bottom-0 z-10 -mx-1 bg-card px-1 pb-0.5 pt-1">
+          <div className="flex items-center gap-1.5">
+            <input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendChat()}
+              placeholder='Try "date from Lat Phrao, 500฿, quiet"'
+              aria-label="Chat to set your plan"
+              className="min-w-0 flex-1 rounded-full border border-line bg-bg px-3.5 py-2 text-[13px] text-ink placeholder:text-mut"
+            />
+            <button
+              onClick={sendChat}
+              disabled={chatSending}
+              aria-busy={chatSending}
+              aria-label="Send"
+              className="gn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-base text-white disabled:opacity-60"
+            >
+              {chatSending ? <span className="gn-spinner" style={{ margin: 0 }} /> : "↑"}
+            </button>
+          </div>
+          <p className="o-mono-text mt-1 text-[10.5px] text-mut">AI sets the conditions — every number comes from real data</p>
         </div>
-        <p className="o-mono-text mt-1 text-[10.5px] text-mut">AI sets the conditions — every number comes from real data</p>
       </div>
     </>
   );

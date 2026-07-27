@@ -123,6 +123,19 @@ const STEPS = [
     width: 390,
     expr: `!!document.querySelector('nav[aria-label="Main"] a[href="/app/explore"]')`,
   },
+  // T2.8 (การตัดสินใจ Klao ข้อ 2) — มือถือต้องเห็นการ์ดร้าน (col2) ก่อนแชท/เงื่อนไข (col1) ในลำดับที่ตาเห็นจริง
+  // เทียบ top ของการ์ดใบแรก ([data-vcard]) กับปุ่มยุบ/ขยายแชท ([data-chat-toggle]) — การ์ดต้องอยู่สูงกว่า (top น้อยกว่า)
+  {
+    name: "mobile-cards-before-chat",
+    url: "/app",
+    width: 390,
+    expr: `(() => {
+      const card = document.querySelector("[data-vcard]");
+      const chat = document.querySelector("[data-chat-toggle]");
+      if (!card || !chat) return false;
+      return card.getBoundingClientRect().top < chat.getBoundingClientRect().top;
+    })()`,
+  },
 ];
 
 let pass = 0, fail = 0;

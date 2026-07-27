@@ -247,11 +247,10 @@ export default function PlannerClient() {
       }
       try {
         track("add_stop", { venue_id: venueId });
-        const { id } = await gn<{ id: string }>("/api/plans", {
+        const p = await gn<ExpandedPlan>("/api/plans", {
           method: "POST",
           body: JSON.stringify({ intent, origin, venue_id: venueId, budget }),
         });
-        const p = await gn<ExpandedPlan>(`/api/plans/${id}`);
         setPlan(p);
         showToast(`Plan created with ${venueName}`);
       } catch {

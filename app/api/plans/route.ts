@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { budgetDefault } from "@/lib/budget";
 import { mid } from "@/lib/costing";
-import { venueById } from "@/lib/server";
+import { expandPlan, venueById } from "@/lib/server";
 import { store } from "@/lib/store";
 import { INTENT_LABELS, type Intent, type Plan } from "@/lib/types";
 
@@ -58,5 +58,5 @@ export async function POST(req: NextRequest) {
   await store.savePlan(plan);
   await store.bumpTaste(auth.id, `intent:${body.intent}`);
 
-  return attachAuth(NextResponse.json({ id: plan.id }), auth);
+  return attachAuth(NextResponse.json(await expandPlan(plan)), auth);
 }

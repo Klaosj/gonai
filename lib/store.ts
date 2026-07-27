@@ -18,6 +18,7 @@ export interface Store {
   migrateUser(oldId: string, newId: string): Promise<void>; // device id → LINE user id
   getPlan(id: string): Promise<Plan | null>;
   savePlan(plan: Plan): Promise<void>;
+  deletePlan(id: string): Promise<void>; // Task 2.7 — ลบเฉพาะ draft, เช็ค ownership ที่ชั้น route
   plansOf(user_id: string): Promise<Plan[]>; // ทุกสถานะ ใหม่ → เก่า
   donePlansOf(user_id: string): Promise<Plan[]>;
   toggleSave(user_id: string, venue_id: string): Promise<boolean>; // true = saved

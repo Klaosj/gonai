@@ -128,6 +128,10 @@ export default function TripsPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
 
+  // Task 2.7 — แยก draft (ยังไม่ใช่ทริปที่เกิดขึ้นจริง) ออกจาก Past trips
+  const pastPlans = me.plans.filter((p) => p.status !== "draft");
+  const draftPlans = me.plans.filter((p) => p.status === "draft");
+
   // in-app confirm (ไม่ใช้ window.confirm — บล็อค browser + ใช้กับ automation ไม่ได้)
   const wipe = async () => {
     await gn("/api/me", { method: "DELETE" });
@@ -140,6 +144,17 @@ export default function TripsPage() {
   const logout = async () => {
     await gn("/api/auth/line/logout", { method: "POST" });
     window.location.reload();
+  };
+
+  // Task 2.7 — ลบ draft รายตัว (server เช็ค ownership + status === "draft" ซ้ำอีกชั้น)
+  const deleteDraft = async (id: string) => {
+    try {
+      await gn(`/api/plans/${id}`, { method: "DELETE" });
+      load(); // sync MeProvider — ไม่งั้น draft ที่ลบแล้วยังค้างในลิสต์
+      showToast("Draft deleted");
+    } catch {
+      showToast("Couldn't delete — try again");
+    }
   };
 
   return (
@@ -321,15 +336,16 @@ export default function TripsPage() {
           )}
         </div>
 
-        {/* history — อัพเกรดสไตล์แบบ mockup: thumbnail ambience + ยอด + ต่ำกว่า/เกินงบ (plan §6.4) */}
+        {/* history — อัพเกรดสไตล์แบบ mockup: thumbnail ambience + ยอด + ต่ำกว่า/เกินงบ (plan §6.4)
+            Task 2.7: Past trips = active/done เท่านั้น — draft แยกไปกลุ่มพับด้านล่าง (ยังไม่ใช่ประวัติทริปจริง) */}
         <div>
           <h4 className="mb-2.5 font-semibold text-ink">📜 Past trips</h4>
-          {me.plans.length === 0 && (
+          {pastPlans.length === 0 && (
             <p className="gn-card-e p-6 text-center text-sm text-mut">
               No trips yet — plan your first one
             </p>
           )}
-          {me.plans.map((p) => {
+          {pastPlans.map((p) => {
             const diff = (p.budget_actual ?? 0) - p.budget_planned;
             return (
               <Link
@@ -361,6 +377,35 @@ export default function TripsPage() {
               </Link>
             );
           })}
+
+          {/* Task 2.7 — drafts พับไว้: ยังไม่ใช่ทริปจริง ไม่ปนกับ Past trips แต่ลบรายตัวได้ */}
+          {draftPlans.length > 0 && (
+            <details className="gn-card-e mt-2.5 p-3">
+              <summary className="cursor-pointer text-[13px] font-semibold text-ink">
+                Drafts ({draftPlans.length})
+              </summary>
+              <div className="mt-2.5 space-y-2">
+                {draftPlans.map((p) => (
+                  <div key={p.id} className="flex items-center gap-2.5 rounded-xl border border-line p-2.5">
+                    <Link href={`/app/plan/${p.id}`} className="min-w-0 flex-1">
+                      <b className="block truncate text-[13px] text-ink">
+                        {INTENT_LABELS[p.intent]} · {p.origin_name} → Siam
+                      </b>
+                      <small className="text-mut">
+                        {p.stops.length} {p.stops.length === 1 ? "stop" : "stops"}
+                      </small>
+                    </Link>
+                    <button
+                      onClick={() => deleteDraft(p.id)}
+                      className="gn-press shrink-0 text-xs font-semibold text-bad underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
 
         {/* saved */}

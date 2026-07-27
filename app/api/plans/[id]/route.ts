@@ -91,3 +91,17 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   await store.savePlan(plan);
   return attachAuth(NextResponse.json(await expandPlan(plan)), auth);
 }
+
+// Task 2.7 — ลบ plan ได้เฉพาะ draft ของตัวเอง (กันลบประวัติทริป active/done จริงหาย)
+export async function DELETE(req: NextRequest, ctx: Ctx) {
+  const auth = resolveUser(req);
+  const { id } = await ctx.params;
+  const plan = await ownedPlan(id, auth);
+  if (!plan) return attachAuth(new NextResponse("plan not found", { status: 404 }), auth);
+  if (plan.status !== "draft") {
+    return attachAuth(new NextResponse("only draft plans can be deleted", { status: 400 }), auth);
+  }
+
+  await store.deletePlan(id);
+  return attachAuth(NextResponse.json({ ok: true }), auth);
+}

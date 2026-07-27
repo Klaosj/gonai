@@ -86,6 +86,13 @@ export const jsonStore: Store = {
     persist();
   },
 
+  // Task 2.7 — ลบ plan เฉพาะ id ที่ขอ ไม่กระทบ id อื่น
+  async deletePlan(id) {
+    const s = load();
+    delete s.plans[id];
+    persist();
+  },
+
   async plansOf(user_id) {
     return Object.values(load().plans)
       .filter((p) => p.user_id === user_id)

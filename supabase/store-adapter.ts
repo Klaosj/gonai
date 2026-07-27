@@ -73,6 +73,11 @@ export const supabaseStore: Store = {
     must("savePlan", error);
   },
 
+  // Task 2.7 — ลบ plan เฉพาะ id ที่ขอ
+  async deletePlan(id) {
+    must("deletePlan", (await sb().from("plans").delete().eq("id", id)).error);
+  },
+
   async plansOf(user_id) {
     const { data } = await sb()
       .from("plans")

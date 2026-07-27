@@ -184,6 +184,43 @@ console.log(JSON.stringify({ a, b, c }));
     }
   });
 
+  // ===== store: deletePlan (Task 2.7 — ลบ draft ได้เฉพาะของตัวเอง) =====
+  // รันผ่าน subprocess ชี้ GN_DATA_FILE ไปไฟล์ temp เดียวกับ pattern countEvents ด้านบน
+  await test("store-json: deletePlan ลบเฉพาะ id ที่ขอ", () => {
+    const tmpData = path.join(os.tmpdir(), `gn-deleteplan-data-${Date.now()}.json`);
+    const tmpScript = path.join(os.tmpdir(), `gn-deleteplan-script-${Date.now()}.mjs`);
+    const storeJsonUrl = pathToFileURL(path.join(process.cwd(), "lib", "store-json.ts")).href;
+    const scriptSrc = `
+import { jsonStore } from ${JSON.stringify(storeJsonUrl)};
+const base = { user_id: "test-user-deleteplan", intent: "work", origin_zone: "siam", status: "draft", route_kind: "cheapest", budget_planned: 500, budget_actual: null, stops: [], created_at: new Date().toISOString() };
+await jsonStore.savePlan({ ...base, id: "plan-a" });
+await jsonStore.savePlan({ ...base, id: "plan-b" });
+await jsonStore.deletePlan("plan-a");
+const a = await jsonStore.getPlan("plan-a");
+const b = await jsonStore.getPlan("plan-b");
+console.log(JSON.stringify({ aGone: a === null, bStays: b !== null }));
+`;
+    fs.writeFileSync(tmpScript, scriptSrc);
+    try {
+      const tsxBin = path.join(process.cwd(), "node_modules", ".bin", "tsx");
+      const out = execFileSync(tsxBin, [tmpScript], {
+        env: { ...process.env, GN_DATA_FILE: tmpData },
+        encoding: "utf8",
+      });
+      const lastLine = out.trim().split("\n").pop() ?? "{}";
+      const { aGone, bStays } = JSON.parse(lastLine) as { aGone: boolean; bStays: boolean };
+      ok(aGone, "plan-a ต้องถูกลบ");
+      ok(bStays, "plan-b ต้องไม่ถูกกระทบ");
+    } finally {
+      try {
+        fs.unlinkSync(tmpScript);
+      } catch {}
+      try {
+        fs.unlinkSync(tmpData);
+      } catch {}
+    }
+  });
+
   // ===== preflight: env check ก่อน deploy (pure function, ไม่มี network) =====
   const GOOD_ENV = {
     GN_AUTH_SECRET: "x".repeat(40),

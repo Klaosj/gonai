@@ -65,6 +65,7 @@ create table if not exists public.imports (
 );
 
 create index if not exists idx_imports_status on public.imports(status);
+create index if not exists idx_imports_user_id on public.imports(user_id);
 
 -- ===== Catalog: zones / venues / routes =====
 -- content ของแอป — ทีม field ops แก้ใน dashboard ได้เลย ไม่ต้อง deploy โค้ด

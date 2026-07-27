@@ -36,7 +36,10 @@ export function SkeletonPage() {
       <span className="sr-only">Loading…</span>
       <div className="gn-skeleton h-7 w-1/3 rounded-full bg-gn-cream" />
       <div className="gn-skeleton h-3 w-1/2 rounded-full bg-gn-cream" />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* T3.2b: SkeletonCard แต่ละใบมี role=status/sr-only ของตัวเอง (ต้องใช้เดี่ยวๆ ได้ที่อื่น)
+          แต่ตอนซ้อนกัน 3 ใบในนี้ ตัวนอกสุด (div นี้) ประกาศ "Loading…" ให้ครบแล้ว — ครอบ grid นี้ด้วย
+          aria-hidden กัน screen reader ประกาศซ้ำ 4 รอบ (1 ตัวนอก + 3 การ์ดข้างใน) ตอน /app โหลด */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
         <SkeletonCard />
         <SkeletonCard />
         <SkeletonCard />

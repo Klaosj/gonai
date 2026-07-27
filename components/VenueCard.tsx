@@ -59,7 +59,8 @@ function VenueCard({
         <BahtChip legs={route.legs} className="absolute right-2 top-2 z-[2]" />
         <button
           onClick={() => onSave(venue)}
-          aria-label="Save"
+          aria-label={saved ? "Remove from saved" : "Save"}
+          aria-pressed={saved}
           className={`gn-press absolute left-2 top-2 z-[2] rounded-full bg-bg/70 p-1.5 backdrop-blur ${saved ? "text-bad" : "text-ink"}`}
         >
           <span className={`relative ${saved ? "gn-pop" : ""} inline-block`}>

@@ -132,6 +132,7 @@ export default function ExplorePage() {
           <button
             key={t.key}
             onClick={() => setFilter(t.key)}
+            aria-current={filter === t.key ? "true" : undefined}
             className={`gn-press rounded-full border px-4 py-2.5 text-[13px] ${
               filter === t.key
                 ? "border-pill bg-pill font-semibold text-bg"

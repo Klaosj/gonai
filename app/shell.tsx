@@ -120,6 +120,7 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
               <Link
                 key={t.key}
                 href={t.href}
+                aria-current={on ? "page" : undefined}
                 className={`gn-press o-mono rounded-full px-4 py-2 text-[11px] ${
                   on ? "bg-pill text-bg" : "text-mut hover:text-ink"
                 }`}

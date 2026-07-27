@@ -46,6 +46,7 @@ export function SpendInput({ onSave, onClose }: { onSave: (amount: number) => vo
         type="number"
         autoFocus
         placeholder="฿"
+        aria-label="Amount paid in baht"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             const n = parseInt((e.target as HTMLInputElement).value, 10);

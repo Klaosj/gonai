@@ -365,6 +365,9 @@ export default function PlannerClient() {
 
   return (
     <div className="mx-auto max-w-[1500px] px-4 pb-24 pt-4 lg:pb-4">
+      {/* T3.2: heading เดียวของหน้าสำหรับ screen reader — ไม่กระทบหน้าตา (sr-only) */}
+      <h1 className="sr-only">Plan your day</h1>
+
       {/* Trip ค้าง active — เตือนก่อนการ์ดความทรงจำ (ทรงเดียวกัน, ลอกคลาสมาจาก memory card ด้านล่าง) */}
       {showActiveBanner && activePlan && (
         <Link
@@ -406,6 +409,7 @@ export default function PlannerClient() {
             <button
               key={m.key}
               onClick={() => pickMood(m)}
+              aria-pressed={active}
               className={`o-grain gn-drift gn-rise gn-d${i + 1} gn-press relative flex min-h-[118px] flex-col justify-end gap-1 overflow-hidden rounded-[20px] border p-4 text-left transition-transform hover:-translate-y-1 ${m.ambience} ${
                 active ? "border-ink" : "border-line"
               }`}
@@ -428,7 +432,7 @@ export default function PlannerClient() {
         <section className="order-1 lg:order-2 gn-card-e gn-rise gn-d1 p-4">
           {/* T2.8 fix: ซ่อนเลขขั้นตอนบนมือถือ (< lg) เพราะ DOM order สลับจาก desktop (การ์ดมาก่อนเงื่อนไข)
               เลข 01/02/03 เลยไม่ตรงลำดับที่ตาเห็นอีกต่อไป — desktop (≥ lg) ยังเห็นเลขเหมือนเดิมทุกตัวอักษร */}
-          <span className="gn-step"><span className="hidden lg:inline">02 — </span>Pick a spot · top {data.cards.length} of {data.total}</span>
+          <h2 className="gn-step"><span className="hidden lg:inline">02 — </span>Pick a spot · top {data.cards.length} of {data.total}</h2>
 
           <div
             className={`o-grain gn-shine relative mb-3 mt-2 h-[150px] overflow-hidden rounded-xl ${INTENT_AMBIENCE[intent]}`}
@@ -452,6 +456,7 @@ export default function PlannerClient() {
                 <button
                   key={z.id}
                   onClick={() => pickOrigin(z.id)}
+                  aria-pressed={origin === z.id}
                   className={`gn-press rounded-full border px-3.5 py-2 text-xs ${
                     origin === z.id
                       ? "gn-boing border-pill bg-pill font-semibold text-bg"
@@ -463,6 +468,7 @@ export default function PlannerClient() {
               ))}
               <button
                 onClick={() => pickOrigin("other")}
+                aria-pressed={origin === "other"}
                 className={`gn-press rounded-full border px-3.5 py-2 text-xs ${
                   origin === "other"
                     ? "gn-boing border-pill bg-pill font-semibold text-bg"
@@ -491,6 +497,7 @@ export default function PlannerClient() {
                     setBudget(BUDGET_DEFAULTS[i.key]);
                     track("search", { intent: i.key, origin });
                   }}
+                  aria-pressed={on}
                   className={`gn-press rounded-full border-[1.5px] px-4 py-2.5 text-[13px] font-semibold ${
                     on
                       ? "gn-boing border-pill bg-pill text-bg"
@@ -556,7 +563,7 @@ export default function PlannerClient() {
             desktop (lg+): lg:order-1 ดึงกลับไปคอลัมน์ซ้ายสุดเหมือนเดิม (grid เดิมไม่เปลี่ยน) */}
         <aside className="order-2 lg:order-1 gn-card-e gn-rise flex max-h-[calc(100vh-180px)] flex-col gap-2.5 overflow-auto p-4 gn-noscroll">
           {/* T2.8 fix: ซ่อนเลขขั้นตอนบนมือถือ (< lg) — เหตุผลเดียวกับ col2 ด้านบน (DOM order สลับจาก desktop) */}
-          <span className="gn-step"><span className="hidden lg:inline">01 — </span>Your conditions</span>
+          <h2 className="gn-step"><span className="hidden lg:inline">01 — </span>Your conditions</h2>
 
           <div className="flex flex-col gap-2.5">
             <div className="self-end rounded-2xl bg-card-solid px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
@@ -633,6 +640,7 @@ export default function PlannerClient() {
                 <button
                   key={c.key}
                   onClick={() => toggleFilter(c.key)}
+                  aria-pressed={on}
                   className={`gn-press rounded-full border px-3.5 py-2.5 text-[13px] ${
                     on
                       ? "gn-boing border-pill bg-pill font-semibold text-bg"
@@ -653,6 +661,7 @@ export default function PlannerClient() {
                 onChange={(e) => setImportUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitImport()}
                 placeholder="Paste the clip link here..."
+                aria-label="TikTok or Instagram clip link"
                 className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-[12.5px] text-ink placeholder:text-mut"
               />
               <button
@@ -669,7 +678,7 @@ export default function PlannerClient() {
         {/* ====== col 3 (DOM เดิม, ตำแหน่งไม่เปลี่ยน): plan + budget ====== */}
         <aside className="order-3 gn-card-e gn-rise gn-d2 p-4">
           {/* T2.8 fix: ซ่อนเลขขั้นตอนบนมือถือ (< lg) — เหตุผลเดียวกับ col2/col1 ด้านบน (DOM order สลับจาก desktop) */}
-          <span className="gn-step"><span className="hidden lg:inline">03 — </span>Your plan + budget</span>
+          <h2 className="gn-step"><span className="hidden lg:inline">03 — </span>Your plan + budget</h2>
 
           <div id="gn-budget-target" className="mt-2 mb-3 rounded-xl border border-line bg-card-solid/60 p-3">
             <div className="mb-1.5 flex items-center justify-between">
@@ -683,6 +692,7 @@ export default function PlannerClient() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") (e.target as HTMLInputElement).blur();
                   }}
+                  aria-label="New budget in baht"
                   className="w-20 rounded-full border border-line bg-bg px-2 py-0.5 text-ink"
                 />
               ) : (

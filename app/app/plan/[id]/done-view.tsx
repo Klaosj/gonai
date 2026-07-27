@@ -72,6 +72,7 @@ export function DoneView({ plan, showToast }: DoneViewProps) {
                       type="number"
                       autoFocus
                       placeholder="฿/person"
+                      aria-label="Price per person in baht"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           const n = parseInt((e.target as HTMLInputElement).value, 10);

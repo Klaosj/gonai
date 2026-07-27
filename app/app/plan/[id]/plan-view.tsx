@@ -59,6 +59,7 @@ export function PlanView({ plan, act, acting, showToast, setView }: PlanViewProp
             type="number"
             autoFocus
             defaultValue={plan.budget_planned}
+            aria-label="New budget in baht"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 const n = parseInt((e.target as HTMLInputElement).value, 10);

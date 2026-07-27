@@ -27,7 +27,7 @@ export default function WaitlistForm({ source }: { source: string }) {
 
   if (status === "done") {
     return (
-      <p className="mx-auto mt-6 max-w-md rounded-2xl border border-line bg-bg/50 px-6 py-4 text-sm font-semibold text-ink backdrop-blur">
+      <p role="status" className="mx-auto mt-6 max-w-md rounded-2xl border border-line bg-bg/50 px-6 py-4 text-sm font-semibold text-ink backdrop-blur">
         ✅ You're in! We'll ping you first when new zones open
       </p>
     );
@@ -40,6 +40,7 @@ export default function WaitlistForm({ source }: { source: string }) {
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           placeholder="LINE ID or email"
+          aria-label="LINE ID or email"
           className="min-w-0 flex-1 rounded-full border border-line bg-bg/50 px-5 py-3 text-sm text-ink placeholder:text-mut outline-none backdrop-blur"
           required
         />
@@ -60,7 +61,7 @@ export default function WaitlistForm({ source }: { source: string }) {
         />
         <span>I consent to be contacted about GoNai only — delete anytime, never shared (PDPA)</span>
       </label>
-      {status === "error" && <p className="mt-2 text-xs font-semibold text-bad">{error}</p>}
+      {status === "error" && <p role="alert" className="mt-2 text-xs font-semibold text-bad">{error}</p>}
     </form>
   );
 }

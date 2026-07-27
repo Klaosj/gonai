@@ -205,39 +205,43 @@ export function ChatPanel({
 
       {/* เนื้อแชทจริง — มือถือ < lg โชว์ตาม expanded, ≥ lg (lg:flex) เต็มเสมอไม่สนใจ state นี้เลย */}
       <div id="gn-chat-body" className={`${expanded ? "flex" : "hidden"} flex-col gap-2.5 lg:flex`}>
-        {/* chat จริง — พิมพ์อิสระไทย/อังกฤษ AI ตั้งเงื่อนไขให้ ตัวเลขทุกตัวมาจาก data */}
-        {chatMsgs.map((m, i) =>
-          m.role === "user" ? (
-            <div key={i} className="max-w-[85%] self-end rounded-2xl bg-pill px-3.5 py-2.5 text-[13.5px] leading-relaxed text-bg">
-              {m.text}
+        {/* chat จริง — พิมพ์อิสระไทย/อังกฤษ AI ตั้งเงื่อนไขให้ ตัวเลขทุกตัวมาจาก data
+            T3.2: ครอบรายการข้อความด้วย role=log ให้ screen reader ประกาศข้อความใหม่อัตโนมัติ
+            (ไม่รวม composer/follow-up chips ด้านล่าง เพราะไม่ใช่เนื้อหา log) */}
+        <div role="log" aria-live="polite" aria-relevant="additions" className="flex flex-col gap-2.5">
+          {chatMsgs.map((m, i) =>
+            m.role === "user" ? (
+              <div key={i} className="max-w-[85%] self-end rounded-2xl bg-pill px-3.5 py-2.5 text-[13.5px] leading-relaxed text-bg">
+                {m.text}
+              </div>
+            ) : (
+              <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
+                {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
+                {m.text}
+                {/* การ์ด Top 3 กดได้ — เลื่อนไปการ์ดจริง ไม่ใช่ text ลอยๆ */}
+                {m.venues && m.venues.length > 0 && (
+                  <span className="mt-2 flex flex-wrap gap-1.5">
+                    {m.venues.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => highlightVenue(v.id)}
+                        className="gn-press rounded-full border border-accent/40 bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-accent"
+                      >
+                        📍 {v.name}
+                      </button>
+                    ))}
+                  </span>
+                )}
+              </div>
+            ),
+          )}
+          {chatSending && (
+            <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
+              <span className="gn-spinner" />
+              thinking…
             </div>
-          ) : (
-            <div key={i} className="max-w-[92%] rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink">
-              {m.quick && <span className="o-mono mb-0.5 block text-[9px] text-mut">quick match · no AI key</span>}
-              {m.text}
-              {/* การ์ด Top 3 กดได้ — เลื่อนไปการ์ดจริง ไม่ใช่ text ลอยๆ */}
-              {m.venues && m.venues.length > 0 && (
-                <span className="mt-2 flex flex-wrap gap-1.5">
-                  {m.venues.map((v) => (
-                    <button
-                      key={v.id}
-                      onClick={() => highlightVenue(v.id)}
-                      className="gn-press rounded-full border border-accent/40 bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-accent"
-                    >
-                      📍 {v.name}
-                    </button>
-                  ))}
-                </span>
-              )}
-            </div>
-          ),
-        )}
-        {chatSending && (
-          <div className="w-fit rounded-2xl border border-line bg-card px-3.5 py-2.5 text-[13px] text-mut">
-            <span className="gn-spinner" />
-            thinking…
-          </div>
-        )}
+          )}
+        </div>
         {/* follow-up chips — โผล่หลังคำตอบล่าสุด กดแล้ว action จริงทันที ไม่ต้องพิมพ์ */}
         {!chatSending && chatMsgs.length > 0 && chatMsgs[chatMsgs.length - 1].role === "ai" && (
           <div className="flex flex-wrap gap-1.5">

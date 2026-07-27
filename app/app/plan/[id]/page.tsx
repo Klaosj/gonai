@@ -97,6 +97,7 @@ export default function PlanPage() {
         <div className="flex rounded-[11px] bg-bg-elev p-1">
           <button
             onClick={() => setView("plan")}
+            aria-current={showPlan ? "page" : undefined}
             className={`gn-press flex-1 rounded-lg py-2 text-[13px] font-bold ${
               showPlan ? "bg-pill text-bg" : "text-mut"
             }`}
@@ -111,6 +112,7 @@ export default function PlanPage() {
               }
               setView("trip");
             }}
+            aria-current={showTrip ? "page" : undefined}
             className={`gn-press flex-1 rounded-lg py-2 text-[13px] font-bold ${
               showTrip ? "bg-pill text-bg" : "text-mut"
             } ${plan.status === "draft" ? "opacity-50" : ""}`}

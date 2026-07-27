@@ -151,10 +151,7 @@ export default function ExplorePage() {
             อัตราส่วน 4:3 ต้องคงไว้ (วงแหวนเวลาเดินใช้ % ทั้งกว้างและสูง ถ้าสัดส่วนเปลี่ยนวงจะบิดตามจอ)
             แต่ห้ามใส่ min-h คู่กับ aspect: CSS จะแปลงความสูงขั้นต่ำข้ามอัตราส่วนกลับมาเป็น
             ความกว้างขั้นต่ำ (360×4/3 = 480px) แล้วดันจอล้น — วัดจริงตอนมี min-h: 390px ล้น 106px */}
-        <div
-          className="relative aspect-[4/3] overflow-hidden rounded-[20px] border border-line"
-          style={{ background: "#f7f7f4" }}
-        >
+        <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] border border-line bg-bg-elev">
           {/* ข้อความเต็มตกเป็น 2 บรรทัดบนมือถือแล้วไปบังป้าย "≤15+ min" ของวงนอกสุด — มือถือใช้ข้อความสั้น */}
           <span className="o-mono absolute right-3 top-3 z-[3] rounded-full border border-line bg-bg/75 px-3 py-1.5 text-[10px] text-mut backdrop-blur">
             <span className="sm:hidden">Sample layout · W2 pending</span>

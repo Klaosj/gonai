@@ -8,6 +8,7 @@ import { parseQuick } from "../lib/chat";
 import { bahtChipText, ceil10, dayBudgetEst, fmtRange, grabEstimate, mid, round5, routeCost } from "../lib/costing";
 import { budgetDefault } from "../lib/budget";
 import { BUDGET_DEFAULTS, ROUTES, VENUES } from "../lib/fixtures";
+import { findBlockingActive } from "../lib/plan-rules";
 import { top3 } from "../lib/top3";
 import type { Intent, Plan, Venue } from "../lib/types";
 
@@ -320,6 +321,30 @@ test("share: token ตรง verify ผ่าน / ปลอมไม่ผ่�
   falsy(verifyShareToken("plan-x", "forged-token-000000"));
   falsy(verifyShareToken("plan-y", t));
   truthy(sharePath("plan-x").startsWith("/p/plan-x?k="));
+});
+
+// ─── plan-rules.ts — กันทริป active ซ้อน (Task 2.3) ─────────
+
+const mkRulePlan = (id: string, status: Plan["status"]): Plan => ({
+  id, user_id: "u", intent: "work", origin_zone: "bangkapi", status,
+  route_kind: "cheapest", budget_planned: 500, budget_actual: null, stops: [], created_at: "",
+});
+
+test("findBlockingActive: มี active ตัวอื่นอยู่ → เจอตัวนั้น", () => {
+  const plans = [mkRulePlan("p1", "active"), mkRulePlan("p2", "draft")];
+  const blocking = findBlockingActive(plans, "p2");
+  truthy(blocking, "should find the other active plan");
+  eq(blocking?.id, "p1");
+});
+
+test("findBlockingActive: target ตัวเองเป็น active → ไม่บล็อกตัวเอง (null)", () => {
+  const plans = [mkRulePlan("p1", "active")];
+  eq(findBlockingActive(plans, "p1"), null);
+});
+
+test("findBlockingActive: ไม่มี active เลย → null", () => {
+  const plans = [mkRulePlan("p1", "draft"), mkRulePlan("p2", "done")];
+  eq(findBlockingActive(plans, "p1"), null);
 });
 
 // ─── print results ─────────────────────────────────────────

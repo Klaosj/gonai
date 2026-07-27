@@ -187,6 +187,10 @@ export default function PlannerClient() {
     setMemoryDismissedId(id);
   };
 
+  // trip ค้าง active (Task 2.3) — จาก me.plans เดียวกับที่ใช้หา lastDonePlan ด้านบน
+  // มีไว้เตือนผู้ใช้ที่ทิ้งทริปกลางทาง ไม่ให้ลืมว่ามีทริปค้างอยู่
+  const activePlan = useMemo<ExpandedPlan | null>(() => me?.plans.find((p) => p.status === "active") ?? null, [me]);
+
   // onboarding redirect (plan §3) — เฉพาะตอนไม่มี query param ใดๆ เลย (add/intent/origin/budget)
   // และยังไม่เคยทำ onboarding มาก่อน · เช็คครั้งเดียวตอน mount
   useEffect(() => {
@@ -199,7 +203,7 @@ export default function PlannerClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { act, acting } = usePlan(plan, setPlan); // in-flight lock ต่อ action มาจาก hook กลาง (T1.4)
+  const { act, acting, lastError } = usePlan(plan, setPlan); // in-flight lock ต่อ action มาจาก hook กลาง (T1.4)
 
   // (5) fly-to-plan — เงาการ์ดลอยเข้าคอลัมน์งบ (WAAPI, ไม่มี dependency)
   const flyToBudget = (fromEl?: HTMLElement | null) => {
@@ -357,8 +361,21 @@ export default function PlannerClient() {
 
   const estOver = plan?.status === "draft" && plan.est_total > plan.budget_planned;
 
+  // banner เตือนทริปค้าง active (Task 2.3) — ไม่โชว์ถ้า plan ที่กำลังดูอยู่ในคอลัมน์ 3 คือตัวเดียวกันอยู่แล้ว
+  const showActiveBanner = activePlan !== null && activePlan.id !== plan?.id;
+
   return (
     <div className="mx-auto max-w-[1500px] px-4 pb-24 pt-4 lg:pb-4">
+      {/* Trip ค้าง active — เตือนก่อนการ์ดความทรงจำ (ทรงเดียวกัน, ลอกคลาสมาจาก memory card ด้านล่าง) */}
+      {showActiveBanner && activePlan && (
+        <Link
+          href={`/app/plan/${activePlan.id}`}
+          className="gn-card-e gn-rise mb-4 flex items-center justify-between gap-3 px-4 py-3"
+        >
+          <span className="text-[13px] font-semibold text-ink">Continue your trip in progress →</span>
+        </Link>
+      )}
+
       {/* Return-visit memory moment — เงียบๆ แถวเดียว เหนือ mood tiles, เฉพาะทริปที่จบแล้วภายใน 7 วัน */}
       {showMemory && lastDonePlan && (
         <div className="gn-card-e gn-rise mb-4 flex items-center justify-between gap-3 px-4 py-3">
@@ -728,7 +745,15 @@ export default function PlannerClient() {
               <button
                 onClick={async () => {
                   const p = await act("start");
-                  if (!p) return; // PATCH พัง — เงียบเหมือนเดิม
+                  if (!p) {
+                    // 409 already_active (Task 2.3) — มี trip ค้างอยู่ตัวอื่น บอก + พาไปทริปเดิมแทน
+                    const body = lastError?.status === 409 ? (lastError.body as { activePlanId?: string } | undefined) : undefined;
+                    if (body?.activePlanId) {
+                      showToast("You already have a trip in progress");
+                      router.push(`/app/plan/${body.activePlanId}`);
+                    }
+                    return; // PATCH พัง (กรณีอื่น) — เงียบเหมือนเดิม
+                  }
                   track("plan_start_trip", { plan_id: plan.id });
                   router.push(`/app/plan/${plan.id}`);
                 }}

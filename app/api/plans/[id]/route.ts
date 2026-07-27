@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { attachAuth, resolveUser, type AuthUser } from "@/lib/auth";
 import { mid } from "@/lib/costing";
+import { findBlockingActive } from "@/lib/plan-rules";
 import { expandPlan, venueById } from "@/lib/server";
 import { store } from "@/lib/store";
 import type { Plan } from "@/lib/types";
@@ -55,9 +56,19 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       });
       break;
     }
-    case "start":
+    case "start": {
+      // กัน active trip ซ้อน — โหลด plans ของ user วิธีเดียวกับ /api/me (store.plansOf) แล้วเช็คว่ามี active ตัวอื่นค้างอยู่ไหม
+      const userPlans = await store.plansOf(auth.id);
+      const blocking = findBlockingActive(userPlans, plan.id);
+      if (blocking) {
+        return attachAuth(
+          NextResponse.json({ error: "already_active", activePlanId: blocking.id }, { status: 409 }),
+          auth,
+        );
+      }
       plan.status = "active";
       break;
+    }
     case "checkin": {
       const s = plan.stops.find((x) => x.seq === body.seq);
       if (s) s.checked_in_at = new Date().toISOString();

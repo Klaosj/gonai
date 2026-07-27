@@ -7,12 +7,12 @@ import { isSupabaseEnabled } from "@/supabase/store-adapter";
 // เช็คว่า catalog โหลดได้จริง — ถ้า Supabase ล่มหรือ config พัง จะตอบ 500
 // และถ้า production หลุดมาอยู่บน JSON store (env หาย) → 503 ให้ monitor ร้องทันที
 export async function GET() {
-  const supa = isSupabaseEnabled();
-  const problem = healthProblem(process.env, supa);
-  if (problem) {
-    return NextResponse.json({ ok: false, store: "json", error: problem }, { status: 503 });
-  }
   try {
+    const supa = isSupabaseEnabled();
+    const problem = healthProblem(process.env, supa);
+    if (problem) {
+      return NextResponse.json({ ok: false, store: "json", error: problem }, { status: 503 });
+    }
     const { venues } = await getCatalog();
     return NextResponse.json({
       ok: true,

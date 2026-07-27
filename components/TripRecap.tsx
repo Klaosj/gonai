@@ -6,7 +6,7 @@ import { track } from "@/lib/api";
 import type { ExpandedPlan } from "@/lib/server";
 
 const INK = "#121411";
-const MUT = "#70746e";
+const MUT = "#63675f";
 const HAIRLINE = "rgba(18,20,17,0.14)";
 const ACCENT = "#107f6b";
 const BRIGHT = "#41b982";

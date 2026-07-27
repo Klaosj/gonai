@@ -161,7 +161,7 @@ export default function LandingPage() {
       {/* CTA — พื้น gradient เขียวสดตามต้นแบบ (plan §3), ไม่ใช้ o-ambience-* เดิม (นั่นคือ pastel ของ mood tiles) */}
       <section
         className="o-grain relative px-6 py-16 text-center text-ink"
-        style={{ background: "linear-gradient(160deg, #2db3a4, #41b982 55%, #6ccf63)" }}
+        style={{ background: "var(--gn-brand-grad)" }}
       >
         <div className="relative z-[2]">
           <h2 className="o-serif text-3xl font-medium">

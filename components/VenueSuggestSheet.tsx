@@ -29,7 +29,7 @@ export function VenueSuggestSheet({ title, list, indoorReason, adding, onAdd, on
         tabIndex={-1}
         ref={sheetRef}
         onKeyDown={(e) => e.key === "Escape" && onClose()}
-        className="outline-none gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl"
+        className="outline-none gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-[var(--gn-shadow-3)]"
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold text-ink">{title}</h2>

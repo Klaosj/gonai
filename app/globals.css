@@ -45,7 +45,7 @@
   --card-solid: #ffffff;
   --line: #e3e3dd;
   --ink: #121411;
-  --mut: #70746e;
+  --mut: var(--color-mut);
   --accent: #107f6b;
   --accent-bright: #41b982;
   --tint: #d9f0ea;

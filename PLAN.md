@@ -145,7 +145,7 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 
 - `Venue`: id, name_th, zone_id, category, intents[], badge (hit/unseen), hit_rank, unseen_rank, transition_rank, attributes, price_per_head_min/max, open/close_time, walk_min_from_hub, source, last_validated_at, validation_count
 - `Route`: origin_zone → dest_zone, kind (cheapest/fastest), legs[]
-- `RouteLeg`: mode (walk/win/boat/bts/mrt/songthaew/van/grab), detail_th, price_min/max, minutes, warning_th
+- `RouteLeg`: mode (walk/win/boat/bts/mrt/songthaew/van/bus/grab), detail_th, price_min/max, minutes, warning_th
 - `Plan`: user_id, intent, origin_zone, status (draft/active/done), route_kind, budget_planned, budget_actual, stops[]
 - `PlanStop`: seq, venue_id, est_cost, actual_cost, checked_in_at
 - `User`: budget_defaults, taste (Record<string, number>)
@@ -198,11 +198,8 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 - auth: anonymous ผ่าน signed cookie ทันทีที่แตะ API แรก · LINE Login เมื่อตั้ง `LINE_CHANNEL_ID/SECRET`
 
 ### ขั้น deploy จริง (เหลือทำ)
-0. `npm run preflight` (ตั้ง env เหมือน production แล้วรัน — ผ่านค่อยไปต่อ)
-1. สร้างโปรเจค Supabase → รัน `supabase/schema.sql` ใน SQL Editor
-2. `npx tsx supabase/seed.ts --w2` (staging) หรือไม่ใส่ `--w2` (fixtures)
-3. ตั้ง env บน host: `GN_AUTH_SECRET` (บังคับ), `SUPABASE_*`, `NEXT_PUBLIC_BASE_URL`, `LINE_*`
-4. LINE Developers Console: ตั้ง callback URL = `https://<domain>/api/auth/line/callback`
+ย้ายทั้งหมดไปเป็น step-by-step ฉบับทำตามได้จริงที่ `docs/LAUNCH-RUNBOOK.md` แล้ว —
+`vercel.json` บังคับ `npm run preflight` ก่อน `npm run build` อัตโนมัติทุก deploy (ไม่ต้องรันมือแยกอีก แต่ยังแนะนำรันในเครื่องก่อนกด deploy จริงเพื่อเช็ค env ชุดเดียวกัน)
 
 ### W2 field sprint (งานภาคสนาม — ตัวจริงของ product)
 - เก็บข้อมูลจริงตาม CSV template (spec 2.4) — สยาม 15-20 ที่ + เส้นทางจริง 6 origins
@@ -276,8 +273,9 @@ npm run check                      # tests: logic 46 ข้อ + infra 22 ข้
 npm run journey                    # smoke test raw-CDP บน dev server ที่รันอยู่ — 20 steps, ต้อง 0 console error
 npm run build                      # production build
 npm run preflight                  # ตรวจ env ก่อน deploy
-npx tsx supabase/seed.ts           # seed catalog ลง Supabase (fixtures)
-npx tsx supabase/seed.ts --w2      # seed catalog ลง Supabase (W2 mock 24 venues)
-npx tsx tests/w2-seed.ts > lib/fixtures.ts   # ใช้ W2 mock เป็น fixtures local
-npx tsx tests/csv-to-fixtures.ts <venues.csv> <routes.csv> > lib/fixtures.ts   # W2 CSV → fixtures (venues + routes)
+npm run seed                       # seed catalog ลง Supabase (fixtures placeholder) — smoke test
+npm run seed:w2 -- --dry           # ตรวจ + นับ data/w2 CSV เท่านั้น ไม่เขียน Supabase (ซ้อมมือก่อน seed จริง)
+npm run seed:w2                    # seed ข้อมูลจริงจาก data/w2 ลง Supabase
+npm run fixtures:w2                # data/w2 CSV → lib/fixtures.ts
+npx tsx tests/csv-to-fixtures.ts <venues.csv> <routes.csv> > lib/fixtures.ts   # CSV อื่นนอกเหนือ data/w2 → fixtures (venues + routes)
 ```

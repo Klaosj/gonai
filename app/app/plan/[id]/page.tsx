@@ -8,8 +8,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Confetti from "@/components/Confetti";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { VenueSuggestSheet } from "@/components/VenueSuggestSheet";
 import { gn } from "@/lib/api";
-import { mid } from "@/lib/costing";
 import { useApiResource } from "@/lib/use-api-resource";
 import { usePlan } from "@/lib/use-plan";
 import { useToast } from "@/lib/use-toast";
@@ -142,59 +142,20 @@ export default function PlanPage() {
 
       {/* ===== chain / replan bottom sheet ===== */}
       {suggestions && (
-        <div
-          className="gn-backdrop fixed inset-0 z-[29] bg-ink/20"
-          onClick={() => setSuggestions(null)}
-          aria-hidden
+        <VenueSuggestSheet
+          title={suggestions.indoor ? `Indoor spots within budget (${plan.remaining}฿)` : `Next stop within budget`}
+          list={suggestions.list}
+          indoorReason
+          adding={null}
+          ariaLabel="Replan suggestions"
+          onAdd={async (v) => {
+            const p = await act("add_stop", { venue_id: v.id });
+            if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (bottom sheet เปิดค้างเหมือนเดิม)
+            setSuggestions(null);
+            showToast(`Added ${v.name_th} to your plan`);
+          }}
+          onClose={() => setSuggestions(null)}
         />
-      )}
-      {suggestions && (
-        <div role="dialog" aria-modal="true" aria-label="Replan suggestions" tabIndex={-1} ref={(el) => el?.focus()} onKeyDown={(e) => e.key === "Escape" && setSuggestions(null)} className="outline-none gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-bold text-ink">
-              {suggestions.indoor ? `Indoor spots within budget (${plan.remaining}฿)` : `Next stop within budget`}
-            </h2>
-            <button onClick={() => setSuggestions(null)} className="text-sm text-mut">
-              Close
-            </button>
-          </div>
-          {suggestions.list.length === 0 && (
-            <p className="text-sm text-mut">
-              {(() => {
-                const h = parseInt(
-                  new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Bangkok", hour: "2-digit", hour12: false }).format(
-                    new Date(),
-                  ),
-                  10,
-                );
-                return h >= 22 || h < 8
-                  ? "Everything nearby is closed now — heading home is fine too"
-                  : "Not enough budget left for nearby spots — heading home is fine too";
-              })()}
-            </p>
-          )}
-          <ul className="space-y-2">
-            {suggestions.list.map((v) => (
-              <li key={v.id} className="flex items-center gap-3 rounded-xl border border-line bg-bg-elev p-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-ink">{v.name_th}</p>
-                  <p className="text-xs text-mut">~{mid(v.price_per_head_min, v.price_per_head_max)}฿/person</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    const p = await act("add_stop", { venue_id: v.id });
-                    if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (bottom sheet เปิดค้างเหมือนเดิม)
-                    setSuggestions(null);
-                    showToast(`Added ${v.name_th} to your plan`);
-                  }}
-                  className="gn-press o-pill-primary o-btn-label shrink-0 px-3 py-1.5 text-sm"
-                >
-                  + Add
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
       )}
     </div>
   );

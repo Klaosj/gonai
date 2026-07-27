@@ -2,7 +2,7 @@
 // /app/plan/[id]/plan-view.tsx — โหมด "ดูแผน + เส้นทาง" (status draft/active มุมมอง plan)
 // ย้ายจาก page.tsx เดิม บล็อก showPlan (T1.5 แตกไฟล์) — logic/className/ข้อความเดิมทุกตัวอักษร ไม่มีแก้
 import { useState, type Dispatch, type SetStateAction } from "react";
-import BudgetBar from "@/components/BudgetBar";
+import MoneyProgress from "@/components/MoneyProgress";
 import RouteLegs from "@/components/RouteLegs";
 import { track } from "@/lib/api";
 import type { ExpandedPlan } from "@/lib/server";
@@ -50,7 +50,7 @@ export function PlanView({ plan, act, acting, showToast, setView }: PlanViewProp
         ))}
       </ol>
 
-      <BudgetBar est={plan.est_total} budget={plan.budget_planned} onEdit={() => setEditingBudget(true)} />
+      <MoneyProgress label="Estimated" value={plan.est_total} target={plan.budget_planned} onEdit={() => setEditingBudget(true)} />
 
       {editingBudget && (
         <div className="flex items-center gap-2 rounded-xl border border-line bg-card-solid p-3">

@@ -8,12 +8,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import SplitPay from "@/components/SplitPay";
+import { MoneyProgressBar } from "@/components/MoneyProgress";
 import Odo from "@/components/Odo";
+import { StopTimelineList } from "@/components/StopTimelineList";
 import VenueCard from "@/components/VenueCard";
+import { VenueSuggestSheet } from "@/components/VenueSuggestSheet";
 import { gn, track } from "@/lib/api";
 import type { ChatActions, ChatResponse } from "@/lib/chat";
-import { mid } from "@/lib/costing";
-import { buildTimeline, tripTitle } from "@/lib/timeline";
+import { tripTitle } from "@/lib/timeline";
 import { filtersToParams, type VenueFilters } from "@/lib/filters";
 import { useCountUp } from "@/lib/use-count-up";
 import { usePlan } from "@/lib/use-plan";
@@ -22,7 +24,7 @@ import { BUDGET_DEFAULTS } from "@/lib/fixtures";
 import type { ExpandedPlan } from "@/lib/server";
 import type { Intent, Route, Venue, Zone } from "@/lib/types";
 import type { RainForecast } from "@/lib/weather";
-import { CATEGORY_EMOJI, INTENT_AMBIENCE } from "@/lib/venue-display";
+import { INTENT_AMBIENCE } from "@/lib/venue-display";
 
 // 4 intents จริงเท่านั้น — "กินของอร่อย/ธรรมชาติ" เดิมเป็นปุ่มหลอก (ผลลัพธ์เป็น work) เลยตัดออก
 const INTENTS: { key: Intent; label: string }[] = [
@@ -928,12 +930,7 @@ export default function PlannerClient() {
             <div key={spent} className={`gn-bump mt-1 text-xs font-semibold ${left < 0 ? "text-bad" : "text-ok"}`}>
               {left >= 0 ? `${leftAnim}฿ left` : `${leftAnim}฿ over ⚠️`}
             </div>
-            <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-line">
-              <div
-                className={`gn-bar h-full rounded-full ${left < 0 ? "bg-bad" : pct > 80 ? "bg-warn" : "bg-ok"}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
+            <MoneyProgressBar pct={pct} tone={left < 0 ? "bad" : pct > 80 ? "warn" : "ok"} className="mt-2.5" />
             {/* est vs งบ ต้องเตือนตั้งแต่ตอน draft — ไม่ใช่รอให้เข้าไปเจอแถบแดงในหน้า plan */}
             {plan && plan.status === "draft" && (
               <div
@@ -957,46 +954,7 @@ export default function PlannerClient() {
               </h4>
 
               {/* timeline: เวลาเดินทาง = ตัวเลขจริงจาก route legs + walk_min ภาคสนาม · เวลาอยู่ต่อร้าน = ~ */}
-              {(() => {
-                const tl = buildTimeline(plan.stops, plan.route);
-                return (
-                  <div className="flex flex-col">
-                    {tl && (
-                      <div className="flex gap-2.5 border-b border-dashed border-line py-2.5">
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line bg-card-solid text-[13px]">
-                          🏠
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <b className="text-[13.5px] text-ink">Leave {plan.origin_name} ~{tl.leaveOrigin}</b>
-                          <small className="block leading-relaxed text-mut">
-                            {tl.transitMin} min to the first stop ({plan.route_kind} route)
-                          </small>
-                        </div>
-                      </div>
-                    )}
-                    {plan.stops.map((s, i) => (
-                      <div key={s.seq}>
-                        {tl?.stops[i]?.walkFromPrev != null && (
-                          <p className="o-mono py-1 pl-9 text-[9.5px] text-mut">≤ {tl.stops[i].walkFromPrev} min walk</p>
-                        )}
-                        <div className="flex gap-2.5 border-b border-dashed border-line py-2.5">
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line bg-card-solid text-[13px]">
-                            {CATEGORY_EMOJI[s.venue.category]}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <b className="text-[13.5px] text-ink">{s.venue.name_th}</b>
-                            <small className="block leading-relaxed text-mut">
-                              {tl && <>~{tl.stops[i].start}–{tl.stops[i].end} · </>}
-                              {s.venue.walk_min_from_hub} min from BTS Siam
-                            </small>
-                          </div>
-                          <div className="gn-num whitespace-nowrap font-semibold text-ink">~{s.est_cost}฿</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
+              <StopTimelineList plan={plan} variant="interactive" />
 
               {plan.warnings.length > 0 && (
                 <div className="mt-2 rounded-lg border border-warn/40 bg-card-solid px-3 py-2 text-[12.5px] text-warn">
@@ -1091,45 +1049,19 @@ export default function PlannerClient() {
 
       {/* chain picker — เลือกแล้วเพิ่มเข้าแผนได้จริง */}
       {chainList && plan && (
-        <div
-          className="gn-backdrop fixed inset-0 z-[29] bg-ink/20"
-          onClick={() => setChainList(null)}
-          aria-hidden
+        <VenueSuggestSheet
+          title={`Next stop within budget (${plan.remaining}฿)`}
+          list={chainList}
+          adding={null}
+          ariaLabel="Next stop suggestions"
+          onAdd={async (v) => {
+            const p = await act("add_stop", { venue_id: v.id });
+            if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (dialog เปิดค้างเหมือนเดิม)
+            setChainList(null);
+            showToast(`Added ${v.name_th} to your plan`);
+          }}
+          onClose={() => setChainList(null)}
         />
-      )}
-      {chainList && plan && (
-        <div role="dialog" aria-modal="true" aria-label="Next stop suggestions" tabIndex={-1} ref={(el) => el?.focus()} onKeyDown={(e) => e.key === "Escape" && setChainList(null)} className="outline-none gn-sheet fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-3xl border border-b-0 border-line bg-card-solid p-5 shadow-2xl">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-bold text-ink">Next stop within budget ({plan.remaining}฿)</h2>
-            <button onClick={() => setChainList(null)} className="text-sm text-mut">
-              Close
-            </button>
-          </div>
-          {chainList.length === 0 && (
-            <p className="text-sm text-mut">Nothing open within what's left — heading home is fine too</p>
-          )}
-          <ul className="space-y-2">
-            {chainList.map((v) => (
-              <li key={v.id} className="flex items-center gap-3 rounded-xl border border-line bg-bg-elev p-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-ink">{v.name_th}</p>
-                  <p className="text-xs text-mut">~{mid(v.price_per_head_min, v.price_per_head_max)}฿/person</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    const p = await act("add_stop", { venue_id: v.id });
-                    if (!p) return; // PATCH พัง — เงียบเหมือนเดิม (dialog เปิดค้างเหมือนเดิม)
-                    setChainList(null);
-                    showToast(`Added ${v.name_th} to your plan`);
-                  }}
-                  className="gn-press o-pill-primary o-btn-label shrink-0 px-3 py-1.5 text-sm"
-                >
-                  + Add
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
       )}
     </div>
   );

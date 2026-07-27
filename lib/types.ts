@@ -1,3 +1,6 @@
+// import type เท่านั้น — server.ts import type จาก types.ts อยู่แล้ว ไม่มี runtime circular (T2.1)
+import type { ExpandedPlan } from "./server";
+
 export type Intent = "work" | "date" | "family" | "photo";
 
 export type Badge = "hit" | "unseen";
@@ -108,6 +111,17 @@ export interface GnEvent {
   type: string;
   payload: Record<string, unknown>;
   created_at: string;
+}
+
+// /api/me response — ฉบับเต็มตรงกับ app/api/me/route.ts ทุก field (ย้ายมาจาก me/page.tsx, T2.1)
+// ใช้ร่วมกันโดย MeProvider (lib/me-context.tsx) + shell.tsx + me/page.tsx + planner-client.tsx
+export interface MeResponse {
+  saves: Venue[];
+  plans: ExpandedPlan[];
+  imports: { url: string; platform: string; status: string; created_at: string }[];
+  taste: Record<string, number>;
+  priceConfirms: number;
+  auth: { provider: "line" | "anonymous"; displayName: string | null };
 }
 
 export const INTENT_LABELS: Record<Intent, string> = {

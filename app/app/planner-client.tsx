@@ -8,7 +8,7 @@
 // + ไฟล์นี้ (mood tiles / import box / plan+budget คอลัมน์ 3 / VenueCard grid) เหมือนเดิม
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import SplitPay from "@/components/SplitPay";
@@ -22,6 +22,7 @@ import { gn, track } from "@/lib/api";
 import type { ChatActions } from "@/lib/chat";
 import { tripTitle } from "@/lib/timeline";
 import type { VenueFilters } from "@/lib/filters";
+import { useMe } from "@/lib/me-context";
 import { useCountUp } from "@/lib/use-count-up";
 import { usePlan } from "@/lib/use-plan";
 import { useToast } from "@/lib/use-toast";
@@ -100,8 +101,8 @@ export default function PlannerClient() {
 
   const [hlVenueId, setHlVenueId] = useState<string | null>(null); // การ์ดที่ถูกชี้จาก chat
 
-  // return-visit memory moment — "ทริปล่าสุดของคุณ" การ์ดเงียบๆ เหนือ mood tiles
-  const [lastDonePlan, setLastDonePlan] = useState<ExpandedPlan | null>(null);
+  // return-visit memory moment — "ทริปล่าสุดของคุณ" การ์ดเงียบๆ เหนือ mood tiles (ข้อมูลมาจาก MeProvider ที่แชร์กับ Shell, T2.1)
+  const { me } = useMe();
   const [memoryDismissedId, setMemoryDismissedId] = useState<string | null>(null);
 
   const showToast = useToast();
@@ -164,22 +165,20 @@ export default function PlannerClient() {
     }
   }, [data]);
 
-  // ทริปล่าสุด (ถ้าจบแล้ว + ภายใน 7 วัน) — ยิงคู่ขนานกับ /api/venues ไม่บล็อก first paint
-  // โชว์เฉพาะตอนยังไม่มีแผน active ในสเตท (เช็คตอน render จาก lastDonePlan + plan ปัจจุบัน)
+  // อ่าน dismiss flag จาก localStorage ครั้งเดียวตอน mount (ไม่เกี่ยวกับ /api/me — คนละแหล่งข้อมูล)
   useEffect(() => {
     try {
       setMemoryDismissedId(localStorage.getItem("gn_memory_dismissed"));
     } catch {}
-    gn<{ plans: ExpandedPlan[] }>("/api/me")
-      .then((d) => {
-        const mostRecent = d.plans[0];
-        if (!mostRecent || mostRecent.status !== "done") return;
-        const ageMs = Date.now() - new Date(mostRecent.created_at).getTime();
-        if (ageMs <= 7 * 24 * 60 * 60 * 1000) setLastDonePlan(mostRecent);
-      })
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ทริปล่าสุด (ถ้าจบแล้ว + ภายใน 7 วัน) จาก me.plans — เดิมยิง /api/me เองอีกครั้ง (ซ้ำกับ Shell) เปลี่ยนมาใช้ context ที่ MeProvider โหลดไว้แล้ว (T2.1)
+  const lastDonePlan = useMemo<ExpandedPlan | null>(() => {
+    const mostRecent = me?.plans[0];
+    if (!mostRecent || mostRecent.status !== "done") return null;
+    const ageMs = Date.now() - new Date(mostRecent.created_at).getTime();
+    return ageMs <= 7 * 24 * 60 * 60 * 1000 ? mostRecent : null;
+  }, [me]);
 
   const dismissMemory = (id: string) => {
     try {

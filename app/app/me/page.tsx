@@ -7,20 +7,11 @@ import { useState } from "react";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { gn } from "@/lib/api";
 import { mid } from "@/lib/costing";
-import { useApiResource } from "@/lib/use-api-resource";
+import { useMe } from "@/lib/me-context";
 import { useToast } from "@/lib/use-toast";
 import type { ExpandedPlan } from "@/lib/server";
 import { INTENT_LABELS, type Venue } from "@/lib/types";
 import { CATEGORY_AMBIENCE, CATEGORY_EMOJI, INTENT_AMBIENCE, INTENT_EMOJI } from "@/lib/venue-display";
-
-interface MeResponse {
-  saves: Venue[];
-  plans: ExpandedPlan[];
-  imports: { url: string; platform: string; status: string; created_at: string }[];
-  taste: Record<string, number>;
-  priceConfirms: number;
-  auth: { provider: "line" | "anonymous"; displayName: string | null };
-}
 
 const IMPORT_STATUS_TH: Record<string, string> = {
   queued: "⏳ Waiting for the team",
@@ -88,7 +79,7 @@ function computeBadges(donePlans: ExpandedPlan[], priceConfirms: number): Badge[
 
 export default function TripsPage() {
   const router = useRouter();
-  const { data: me, error: loadError, reload: load } = useApiResource<MeResponse>("/api/me");
+  const { me, error: loadError, reload: load } = useMe();
   const [confirmingWipe, setConfirmingWipe] = useState(false);
   const showToast = useToast();
 
@@ -140,6 +131,7 @@ export default function TripsPage() {
   // in-app confirm (ไม่ใช้ window.confirm — บล็อค browser + ใช้กับ automation ไม่ได้)
   const wipe = async () => {
     await gn("/api/me", { method: "DELETE" });
+    load(); // sync MeProvider ที่แชร์กับ Shell — ไม่งั้น LIVE pill/Taste DNA ค้างข้อมูลเก่าหลังกลับหน้า /app
     setConfirmingWipe(false);
     showToast("All your data is deleted — back to the planner");
     setTimeout(() => router.push("/app"), 800);

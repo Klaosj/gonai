@@ -24,7 +24,7 @@ export const INTENT_AMBIENCE: Record<Intent, string> = {
 };
 
 // ค่ามาจากสำเนา live 2 ตัวที่ตรงกัน (explore + me) — date: 💛
-// components/IntentChips.tsx มี date: 💐 แต่เป็นไฟล์ตายไม่มีจุดเรียกใช้แล้ว (รอลบใน T1.8) จึงไม่นับเป็น drift ที่ต้องชั่งน้ำหนัก
+// components/IntentChips.tsx เคยมี date: 💐 (สำเนา drift) แต่ไฟล์นั้นถูกลบไปแล้วใน T1.8 (fe1.8) จึงไม่มีจุดขัดแย้งให้ชั่งน้ำหนักอีกต่อไป
 export const INTENT_EMOJI: Record<Intent, string> = {
   work: "💻",
   date: "💛",

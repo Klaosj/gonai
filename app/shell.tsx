@@ -6,9 +6,8 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Logo from "@/components/Logo";
 import { track } from "@/lib/api";
-import type { ExpandedPlan } from "@/lib/server";
-import type { Venue } from "@/lib/types";
-import { useApiResource } from "@/lib/use-api-resource";
+import { MeProvider, useMe } from "@/lib/me-context";
+import type { MeResponse, Venue } from "@/lib/types";
 import { ToastProvider } from "@/lib/use-toast";
 
 const TABS = [
@@ -23,11 +22,6 @@ function isActive(pathname: string, href: string): boolean {
     return pathname === "/app" || pathname.startsWith("/app/plan") || pathname.startsWith("/app/trip");
   }
   return pathname === href || pathname.startsWith(href + "/");
-}
-
-interface MeResponse {
-  plans: ExpandedPlan[];
-  taste: Record<string, number>;
 }
 
 const INTENT_DNA_LABELS: Record<string, string> = {
@@ -80,10 +74,22 @@ function tasteDnaLabels(me: MeResponse): string[] {
   return labels.slice(0, 3);
 }
 
+// Shell mount MeProvider ครอบ ShellChrome (ข้างใน ToastProvider) — /api/me โหลดครั้งเดียวแชร์ทุกหน้า /app/* (T2.1)
+// แยกเป็น 2 component เพราะ ShellChrome ต้องเป็น "ลูก" ของ MeProvider ถึงจะเรียก useMe() ได้
 export default function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <ToastProvider>
+      <MeProvider>
+        <ShellChrome>{children}</ShellChrome>
+      </MeProvider>
+    </ToastProvider>
+  );
+}
+
+function ShellChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "";
-  // Taste DNA — โหลดครั้งเดียวตอน mount ทุกหน้าในโซนแอป · เงียบเมื่อพัง (ไม่บล็อค UI) — ไม่ใช้ error ที่ hook คืนมา ตั้งใจให้พังเงียบเหมือนเดิม
-  const { data: me } = useApiResource<MeResponse>("/api/me");
+  // Taste DNA — มาจาก MeProvider ที่โหลดครั้งเดียวตอน mount ทุกหน้าในโซนแอป · เงียบเมื่อพัง (ไม่บล็อค UI) — ไม่ใช้ error ที่ context คืนมา ตั้งใจให้พังเงียบเหมือนเดิม
+  const { me } = useMe();
 
   // client error reporter — ส่งเข้า events ให้เห็นปัญหาจริงจากเครื่องผู้ใช้ (สูงสุด 1 ครั้ง/30 วิ)
   useEffect(() => {
@@ -112,7 +118,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const dnaLabels = me ? tasteDnaLabels(me) : [];
 
   return (
-    <ToastProvider>
+    <>
       {/* pt สูงกว่า pb เล็กน้อย — เผื่อหัวเครื่องบินของโลโก้ยื่นเหนือ cap height ไม่ให้โดนขอบจอตัด */}
       <header className="gn-glass sticky top-0 z-50 flex items-center gap-4 px-5 pb-2 pt-3.5">
         <Link href="/app" className="flex items-baseline gap-2">
@@ -187,6 +193,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <span>🗺 Win/boat/BTS routes field-collected · Grab formula until validated</span>
         <span>🔒 PDPA compliant — view/delete your data anytime</span>
       </footer>
-    </ToastProvider>
+    </>
   );
 }

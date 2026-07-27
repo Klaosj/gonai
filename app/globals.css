@@ -8,7 +8,7 @@
   --color-bg-elev: #f2f2ee;
   --color-card: #ffffff;
   --color-card-solid: #ffffff;
-  --color-line: #e3e3dd;
+  --color-line: #c9c9c1;
   --color-ink: #121411;
   --color-mut: #63675f;
   --color-accent: #107f6b;
@@ -23,7 +23,7 @@
      didn't touch (bg-gn-*, text-gn-*, border-gn-*) still renders correctly =====
      T1.8: กวาด token ที่ grep ทั้ง repo แล้ว 0 ผู้ใช้ทิ้งไปแล้ว (เหลือแค่ตัวที่มี utility เรียกจริง) */
   --color-gn-mut: #63675f;
-  --color-gn-line: #e3e3dd;
+  --color-gn-line: #c9c9c1;
   --color-gn-card: #ffffff;
   --color-gn-cream: #f2f2ee;
 
@@ -43,7 +43,7 @@
   --bg-elev: #f2f2ee;
   --card: #ffffff;
   --card-solid: #ffffff;
-  --line: #e3e3dd;
+  --line: #c9c9c1;
   --ink: #121411;
   --mut: var(--color-mut);
   --accent: #107f6b;

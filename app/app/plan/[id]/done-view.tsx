@@ -4,6 +4,7 @@
 // confirmed/setConfirmed เดิมเป็น state ระดับ page ส่งมาเป็น prop — ผู้ใช้จริงมีแค่ DoneView หน้าเดียว
 // จึงย้ายเป็น local state ในนี้ตรงตามกติกา "state ใช้แค่ view เดียว ย้ายเป็น local ได้"
 import { useState } from "react";
+import Link from "next/link";
 import Odo from "@/components/Odo";
 import SplitPay from "@/components/SplitPay";
 import TripRecap from "@/components/TripRecap";
@@ -115,6 +116,11 @@ export function DoneView({ plan, showToast }: DoneViewProps) {
       <div className="rounded-[10px] border border-line bg-card-solid px-3 py-2.5 text-[12.5px] text-accent">
         💚 Every confirmation goes to the validation queue — spots earn a &quot;price checked&quot; badge at 3 confirmations
       </div>
+
+      {/* Task 2.6: CTA ปิดวง — ชวนวางแผนวันถัดไปทันทีตอนที่ยังอินอยู่ */}
+      <Link href="/app" className="gn-press o-pill-primary o-btn-label mt-4 inline-block px-6 py-3 text-sm">
+        Plan another day →
+      </Link>
     </div>
   );
 }

@@ -55,7 +55,8 @@ export default async function SharedPlanPage({
         </div>
 
         <div className="mt-6 text-center">
-          <Link href="/" className="gn-press gn-cta o-pill-primary o-btn-label inline-block px-7 py-3 text-sm">
+          {/* Task 2.6: เข้าแอปตรง ไม่ผ่านหน้าแรกอีกชั้น */}
+          <Link href="/app" className="gn-press gn-cta o-pill-primary o-btn-label inline-block px-7 py-3 text-sm">
             Plan yours free — every baht counted ▶
           </Link>
           <p className="o-mono-text mt-3 text-[10.5px] text-mut">

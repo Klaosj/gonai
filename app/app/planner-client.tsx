@@ -610,6 +610,13 @@ export default function PlannerClient() {
             })}
           </div>
 
+          {/* Task 2.6: คู่เดียวกันของ combo นี้ยังไม่มี Unseen gem ที่ยืนยันแล้ว — บอกตรงๆ ก่อนโชว์การ์ด */}
+          {data.unseenPoolEmpty && (
+            <p className="mb-2 text-[12px] text-mut">
+              No confirmed Unseen gem for this combo yet — showing our next best Hit.
+            </p>
+          )}
+
           {list.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-line py-10 text-center text-sm text-mut">
               Nothing matches every filter 😅 — try turning some off

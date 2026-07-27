@@ -141,7 +141,10 @@ function VenueCard({
             {adding ? <><span className="gn-spinner" />Adding…</> : "+ Add to plan"}
           </button>
           {venue.video_url && (
-            <button className="gn-press o-pill-dark o-btn-label inline-flex items-center gap-1 px-3 py-2 text-sm">
+            <button
+              onClick={() => window.open(venue.video_url!, "_blank", "noopener,noreferrer")}
+              className="gn-press o-pill-dark o-btn-label inline-flex items-center gap-1 px-3 py-2 text-sm"
+            >
               <Play size={14} /> Watch clip
             </button>
           )}

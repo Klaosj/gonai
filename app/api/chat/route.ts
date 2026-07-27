@@ -59,8 +59,46 @@ interface ChatBody {
   current?: { intent?: string; origin?: string; budget?: number; filters?: Record<string, boolean> };
 }
 
+// ผลดิบจากโมเดล (schema เดียวกันทั้ง Claude และ Ollama) — null = ไม่แตะ field นั้น
+interface RawParsed {
+  actions: {
+    intent: ChatActions["intent"] | null;
+    origin: string | null;
+    budget: number | null;
+    filters: Record<string, boolean | null>;
+  };
+  note: string | null;
+}
+
+// แปลง null → undefined ให้ตรง ChatActions (ใช้ร่วมทุก engine)
+// validate enum ที่นี่เสมอ — โมเดล cloud ของ Ollama ไม่บังคับ schema (format ถูกเมิน)
+// ค่าที่หลุด enum ต้องตกหล่นเงียบๆ ไม่ใช่ไหลเข้า state ของ planner
+const INTENT_SET = new Set(["work", "date", "family", "photo"]);
+function normalizeParsed(parsed: RawParsed): ChatParse {
+  const actions: ChatActions = {};
+  if (parsed.actions?.intent && INTENT_SET.has(parsed.actions.intent)) actions.intent = parsed.actions.intent;
+  if (parsed.actions?.origin && ORIGIN_IDS.includes(parsed.actions.origin)) actions.origin = parsed.actions.origin;
+  if (typeof parsed.actions?.budget === "number" && parsed.actions.budget > 0) actions.budget = Math.round(parsed.actions.budget);
+  const filters: ChatActions["filters"] = {};
+  for (const k of FILTER_KEYS) {
+    const v = parsed.actions?.filters?.[k];
+    if (typeof v === "boolean") filters[k] = v;
+  }
+  if (Object.keys(filters).length > 0) actions.filters = filters;
+  return { actions, note: typeof parsed.note === "string" ? parsed.note : null };
+}
+
+// ดึง JSON object จากคำตอบโมเดลที่อาจห่อ prose/code fence มา (โหมด cloud ไม่มี format บังคับ)
+function extractJson(text: string): string {
+  const cleaned = text.replace(/```(?:json)?/g, "");
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start === -1 || end <= start) throw new Error("no json object in reply");
+  return cleaned.slice(start, end + 1);
+}
+
 async function parseWithClaude(message: string, current: ChatBody["current"]): Promise<ChatParse> {
-  const client = new Anthropic(); // อ่าน ANTHROPIC_API_KEY / ant auth profile จาก env เอง
+  const client = new Anthropic(); // อ่าน ANTHROPIC_API_KEY จาก env เอง — ไม่มี key = throw ทันที (ไปต่อ Ollama)
   const resp = await client.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 500,
@@ -70,29 +108,42 @@ async function parseWithClaude(message: string, current: ChatBody["current"]): P
   });
   const text = resp.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") throw new Error("no text block");
-  const parsed = JSON.parse(text.text) as {
-    actions: {
-      intent: ChatActions["intent"] | null;
-      origin: string | null;
-      budget: number | null;
-      filters: Record<string, boolean | null>;
-    };
-    note: string | null;
-  };
+  return normalizeParsed(JSON.parse(text.text) as RawParsed);
+}
 
-  // แปลง null → undefined ให้ตรง ChatActions (null = ไม่แตะ)
-  const actions: ChatActions = {};
-  if (parsed.actions.intent) actions.intent = parsed.actions.intent;
-  if (parsed.actions.origin) actions.origin = parsed.actions.origin;
-  if (typeof parsed.actions.budget === "number" && parsed.actions.budget > 0) actions.budget = parsed.actions.budget;
-  const filters: ChatActions["filters"] = {};
-  for (const k of FILTER_KEYS) {
-    const v = parsed.actions.filters?.[k];
-    if (typeof v === "boolean") filters[k] = v;
-  }
-  if (Object.keys(filters).length > 0) actions.filters = filters;
+// Ollama (LLM ในเครื่อง) — ตัวหลักบนเครื่อง dev ของ Klao: ฟรี ไม่ต้องมี key
+// structured output ผ่าน `format: <json schema>` schema เดียวกับ Claude เป๊ะ
+// timeout 20s เผื่อโหลดโมเดลเข้า RAM ครั้งแรก (gemma4:12b ~7.5GB) — ครั้งถัดไปเร็ว
+const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "gemma4:12b";
 
-  return { actions, note: parsed.note };
+// โมเดล cloud (เช่น minimax-m3:cloud) เมิน `format` — constrained decoding มีเฉพาะโมเดล local
+// จึงบังคับผ่าน prompt ด้วยเสมอ แล้ว extractJson + normalizeParsed (validate enum) เป็นตาข่ายรับ
+const OLLAMA_JSON_RULE = `
+
+OUTPUT FORMAT (STRICT): reply with ONLY one JSON object, no prose, no markdown fences:
+{"actions":{"intent":"work|date|family|photo"|null,"origin":"<zone id>"|null,"budget":<integer>|null,"filters":{"near":bool|null,"food":bool|null,"quiet":bool|null,"plugs":bool|null,"indoor":bool|null}},"note":"<string>"|null}`;
+
+async function parseWithOllama(message: string, current: ChatBody["current"]): Promise<ChatParse> {
+  const res = await fetch(`${OLLAMA_URL}/api/chat`, {
+    method: "POST",
+    signal: AbortSignal.timeout(20_000),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      stream: false,
+      format: SCHEMA, // โมเดล local เคารพ schema นี้ · โมเดล cloud เมินแล้วไปพึ่ง OLLAMA_JSON_RULE แทน
+      options: { temperature: 0 },
+      messages: [
+        { role: "system", content: SYSTEM + OLLAMA_JSON_RULE },
+        { role: "user", content: JSON.stringify({ message, current: current ?? null }) },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`ollama ${res.status}`);
+  const data = (await res.json()) as { message?: { content?: string } };
+  if (!data.message?.content) throw new Error("ollama empty reply");
+  return normalizeParsed(JSON.parse(extractJson(data.message.content)) as RawParsed);
 }
 
 export async function POST(req: NextRequest) {
@@ -107,16 +158,27 @@ export async function POST(req: NextRequest) {
   }
 
   let result: ChatResponse;
+  // ลำดับ engine: Claude (มี key) → Ollama (เครื่อง dev) → quick parser — ผู้ใช้ไม่เจอ error สักชั้น
+  let engine: "claude" | "ollama" | "quick" = "quick";
   try {
     result = { ...(await parseWithClaude(message, current)), source: "ai" };
+    engine = "claude";
   } catch {
-    // ไม่มี key / โมเดลล่ม / parse พัง — quick parser รับช่วง ผู้ใช้ไม่เจอ error
-    result = { ...parseQuick(message), source: "quick" };
+    try {
+      result = { ...(await parseWithOllama(message, current)), source: "ai" };
+      engine = "ollama";
+    } catch (e) {
+      // Ollama ไม่รัน / โมเดลไม่มี / timeout / ตอบไม่เป็น JSON — quick parser รับช่วง
+      // log สาเหตุไว้ฝั่ง server เสมอ (ผู้ใช้ไม่เห็น) — fallback เงียบสนิทเคยทำให้ debug ไม่ได้
+      console.error("[chat] ollama fallback:", e instanceof Error ? e.message : e);
+      result = { ...parseQuick(message), source: "quick" };
+    }
   }
 
   await store.ensureUser(auth.id);
   await store.addEvent(auth.id, "chat_message", {
     source: result.source,
+    engine,
     matched: Object.keys(result.actions),
   });
 

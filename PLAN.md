@@ -137,7 +137,7 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 | `/api/auth/line/login` | GET | redirect ไป LINE Login |
 | `/api/auth/line/callback` | GET | แลก code + migrate ข้อมูล + เซ็น cookie ใหม่ |
 | `/api/auth/line/logout` | POST | ล้าง cookie ตัวตน |
-| `/api/chat` | POST | chat-to-plan: Claude Haiku 4.5 (structured output) แปลข้อความอิสระ → action (intent/origin/budget/filters) · ไม่มี key = quick parser (`lib/chat.ts`) · rate limit 30/5นาที · client ประกอบคำตอบจากตัวเลขจริงเอง |
+| `/api/chat` | POST | chat-to-plan: แปลข้อความอิสระ → action (intent/origin/budget/filters, structured output schema เดียว) · engine ตามลำดับ: Claude Haiku (มี `ANTHROPIC_API_KEY`) → **Ollama** (`OLLAMA_URL`/`OLLAMA_MODEL` default localhost/gemma4:12b — เครื่อง dev) → quick parser (`lib/chat.ts`) · rate limit 30/5นาที · client ประกอบคำตอบจากตัวเลขจริงเอง |
 
 ทุก endpoint ระบุตัวตนจาก signed httpOnly cookie `gn_uid` (ดู `lib/auth.ts`) — ไม่มี header auth อีกต่อไป
 

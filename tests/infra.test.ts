@@ -288,6 +288,17 @@ console.log(JSON.stringify({ aGone: a === null, bStays: b !== null }));
     ok(!line.ok && !line.required, "half-set ต้อง warn แบบไม่ block");
   });
 
+  // ===== health: prod ห้ามอยู่บน JSON store =====
+  await test("health: production + JSON store → มีปัญหา", async () => {
+    const { healthProblem } = await import("../lib/health");
+    eq(healthProblem({ NODE_ENV: "production" }, false), "json_store_in_production");
+  });
+  await test("health: production + Supabase / dev + JSON → ปกติ", async () => {
+    const { healthProblem } = await import("../lib/health");
+    eq(healthProblem({ NODE_ENV: "production" }, true), null);
+    eq(healthProblem({ NODE_ENV: "development" }, false), null);
+  });
+
   console.log("════════════════════════════════════════════════════════════");
   console.log(`  ${pass} passed, ${fail} failed (${pass + fail} total)`);
   if (fail > 0) process.exit(1);

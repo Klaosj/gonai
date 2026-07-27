@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/ratelimit";
 import { store } from "@/lib/store";
 
 // v1: เก็บลิงก์ + ให้ทีมงานดึงข้อมูลใน 24 ชม. — ห้าม scrape (spec 2.11)
 // คิวนี้เป็นแรงงานคนจริง → จำกัด 5 ลิงก์/ชม./คน
-export async function POST(req: NextRequest) {
+export const POST = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   if (!rateLimit(`imports:${auth.id}`, 5, 60 * 60_000)) {
     return attachAuth(new NextResponse("Max 5 links per hour", { status: 429 }), auth);
@@ -36,4 +37,4 @@ export async function POST(req: NextRequest) {
   await store.addImport(auth.id, url, platform);
   await store.addEvent(auth.id, "import_link", { url, platform });
   return attachAuth(NextResponse.json({ ok: true }), auth);
-}
+});

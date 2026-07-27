@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { ollamaAllowed, ollamaHeaders, parseQuick, type ChatActions, type ChatParse, type ChatResponse } from "@/lib/chat";
 import { FILTER_KEYS } from "@/lib/filters";
@@ -149,7 +150,7 @@ async function parseWithOllama(message: string, current: ChatBody["current"]): P
   return normalizeParsed(JSON.parse(extractJson(data.message.content)) as RawParsed);
 }
 
-export async function POST(req: NextRequest) {
+export const POST = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   if (!rateLimit(`chat:${auth.id}`, 30, 5 * 60_000)) {
     return attachAuth(new NextResponse("Too many messages — wait a minute", { status: 429 }), auth);
@@ -191,4 +192,4 @@ export async function POST(req: NextRequest) {
   });
 
   return attachAuth(NextResponse.json(result), auth);
-}
+});

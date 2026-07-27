@@ -60,7 +60,7 @@
 
 ## เรื่องที่ต้องตัดสินใจ (Klao)
 
-1. **นโยบาย validation_count หลัง field ตรวจ:** กติกา spec คือ unseen ต้อง ≥3 ถึงโชว์ · ทางเลือก (ก) ตรวจเองนับเป็น 3 เลย (founder validation) → gem โชว์ตั้งแต่ launch (ข) นับ 1 ตามจริง → gem ซ่อนจนผู้ใช้ยืนยันเพิ่ม (แอปมี note "no confirmed gem yet" รองรับแล้ว)
+1. ~~นโยบาย validation_count~~ **ตัดสินแล้ว 2026-07-27 (D1)**: founder-validation — แถวที่ Klao ตรวจครบเองใส่ validation_count = 3 (gem โชว์ตั้งแต่วันแรก) · แถวที่ตรวจไม่ทัน/ไม่ผ่าน = คง 0
 2. ~~โหมด bus~~ **ตัดสินแล้ว 2026-07-27**: เพิ่ม bus ใน enum + MODE_LABELS + emoji + generator whitelist แล้ว — R107 ใช้ mode=bus จริง
 3. ~~SEA LIFE ราคาไหน~~ **ตัดสินแล้ว 2026-07-27**: โชว์ราคา online 690–990 (ตรง promise "รู้งบก่อนออกจากบ้าน") — field day เช็คว่าราคา online ยังจริง + จดราคา gate ไว้ประกอบ
 

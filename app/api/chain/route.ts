@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { chainSuggestions } from "@/lib/chaining";
@@ -6,7 +7,7 @@ import { LAUNCH_ZONE } from "@/lib/fixtures";
 import { expandPlan, nowBangkokHHMM } from "@/lib/server";
 import { store } from "@/lib/store";
 
-export async function GET(req: NextRequest) {
+export const GET = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   const sp = req.nextUrl.searchParams;
   const planId = sp.get("planId");
@@ -32,4 +33,4 @@ export async function GET(req: NextRequest) {
   });
 
   return attachAuth(NextResponse.json(list), auth);
-}
+});

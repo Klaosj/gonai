@@ -69,7 +69,7 @@ create index if not exists idx_imports_user_id on public.imports(user_id);
 
 -- ===== Catalog: zones / venues / routes =====
 -- content ของแอป — ทีม field ops แก้ใน dashboard ได้เลย ไม่ต้อง deploy โค้ด
--- seed ครั้งแรก: npx tsx supabase/seed.ts (fixtures) หรือ --w2 (mock 40 venues)
+-- seed ครั้งแรก: npx tsx supabase/seed.ts (fixtures) หรือ --csv <venues.csv> <routes.csv> / npm run seed:w2 (ข้อมูลจริงจาก field sprint)
 
 create table if not exists public.zones (
   id text primary key,

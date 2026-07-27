@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser, type AuthUser } from "@/lib/auth";
 import { mid } from "@/lib/costing";
 import { findBlockingActive } from "@/lib/plan-rules";
@@ -15,15 +16,15 @@ async function ownedPlan(id: string, auth: AuthUser): Promise<Plan | null> {
   return plan;
 }
 
-export async function GET(req: NextRequest, ctx: Ctx) {
+export const GET = guarded(async (req: NextRequest, ctx: Ctx) => {
   const auth = resolveUser(req);
   const { id } = await ctx.params;
   const plan = await ownedPlan(id, auth);
   if (!plan) return attachAuth(new NextResponse("plan not found", { status: 404 }), auth);
   return attachAuth(NextResponse.json(await expandPlan(plan)), auth);
-}
+});
 
-export async function PATCH(req: NextRequest, ctx: Ctx) {
+export const PATCH = guarded(async (req: NextRequest, ctx: Ctx) => {
   const auth = resolveUser(req);
   const { id } = await ctx.params;
   const plan = await ownedPlan(id, auth);
@@ -90,10 +91,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
   await store.savePlan(plan);
   return attachAuth(NextResponse.json(await expandPlan(plan)), auth);
-}
+});
 
 // Task 2.7 — ลบ plan ได้เฉพาะ draft ของตัวเอง (กันลบประวัติทริป active/done จริงหาย)
-export async function DELETE(req: NextRequest, ctx: Ctx) {
+export const DELETE = guarded(async (req: NextRequest, ctx: Ctx) => {
   const auth = resolveUser(req);
   const { id } = await ctx.params;
   const plan = await ownedPlan(id, auth);
@@ -104,4 +105,4 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
 
   await store.deletePlan(id);
   return attachAuth(NextResponse.json({ ok: true }), auth);
-}
+});

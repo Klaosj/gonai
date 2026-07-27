@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { guarded } from "../lib/api-guard";
 import { decodeUid, encodeUid, verifyLineState } from "../lib/auth";
 import { getCatalog } from "../lib/catalog";
 import { applyVenueFilters } from "../lib/filters";
@@ -96,6 +97,30 @@ async function main() {
     if (c.venues.length < 5) throw new Error(`venues น้อยผิดปกติ: ${c.venues.length}`);
     if (!c.zones.find((z) => z.id === "siam")) throw new Error("ไม่มีโซนสยาม");
     if (!c.routes.length) throw new Error("ไม่มี routes");
+  });
+
+  // ===== api-guard: กันชนชั้นนอกสุด API route (launch audit 2026-07-27, finding 1) =====
+  await test("api-guard: handler สำเร็จ → response ผ่านไม่แก้ไข", async () => {
+    const h = guarded(async (req: Request) => {
+      eq(req.url, "http://x/");
+      return new Response(JSON.stringify({ ok: true, hello: "world" }), { status: 200 });
+    });
+    const res = await h(new Request("http://x"));
+    eq(res.status, 200);
+    const body = (await res.json()) as { ok: boolean; hello: string };
+    eq(body.ok, true);
+    eq(body.hello, "world");
+  });
+
+  await test("api-guard: handler throw → 503 backend_unavailable", async () => {
+    const h = guarded(async (_req: Request) => {
+      throw new Error("supabase unreachable");
+    });
+    const res = await h(new Request("http://x"));
+    eq(res.status, 503);
+    const body = (await res.json()) as { ok: boolean; error: string };
+    eq(body.ok, false);
+    eq(body.error, "backend_unavailable");
   });
 
   // ===== weather (pure) =====

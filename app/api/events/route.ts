@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/ratelimit";
 import { store } from "@/lib/store";
 
-export async function POST(req: NextRequest) {
+export const POST = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   if (!rateLimit(`events:${auth.id}`, 60, 60_000)) {
     return attachAuth(new NextResponse("too many events", { status: 429 }), auth);
@@ -21,4 +22,4 @@ export async function POST(req: NextRequest) {
   await store.ensureUser(auth.id);
   await store.addEvent(auth.id, body.type, payload);
   return attachAuth(NextResponse.json({ ok: true }), auth);
-}
+});

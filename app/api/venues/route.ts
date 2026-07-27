@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { applyVenueFilters, parseFilters } from "@/lib/filters";
@@ -8,7 +9,7 @@ import { top3 } from "@/lib/top3";
 import { getRainForecast } from "@/lib/weather";
 import type { Intent } from "@/lib/types";
 
-export async function GET(req: NextRequest) {
+export const GET = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   await store.ensureUser(auth.id);
 
@@ -33,4 +34,4 @@ export async function GET(req: NextRequest) {
     }),
     auth,
   );
-}
+});

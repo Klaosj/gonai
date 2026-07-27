@@ -3,12 +3,14 @@
 import { STALE_DAYS } from "@/lib/fixtures";
 import { trustState } from "@/lib/trust";
 
+const GRAY_PILL = "inline-flex items-center gap-1.5 rounded-full border border-line bg-card-solid/60 px-2.5 py-1 text-[11px] text-mut";
+
 export default function TrustBadge({ lastValidatedAt, count }: { lastValidatedAt: string; count: number }) {
   const state = trustState(lastValidatedAt, count, Date.now(), STALE_DAYS);
 
   if (state.kind === "stale") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card-solid/60 px-2.5 py-1 text-[11px] text-mut">
+      <span className={GRAY_PILL}>
         Last checked {state.days}d ago — reconfirming
       </span>
     );
@@ -16,7 +18,7 @@ export default function TrustBadge({ lastValidatedAt, count }: { lastValidatedAt
 
   if (state.kind === "unverified") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card-solid/60 px-2.5 py-1 text-[11px] text-mut">
+      <span className={GRAY_PILL}>
         New spot — not traveler-confirmed yet
       </span>
     );

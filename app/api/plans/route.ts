@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { budgetDefault } from "@/lib/budget";
 import { mid } from "@/lib/costing";
@@ -8,7 +9,7 @@ import { INTENT_LABELS, type Intent, type Plan } from "@/lib/types";
 
 const VALID_INTENTS = new Set(Object.keys(INTENT_LABELS)) as Set<Intent>;
 
-export async function POST(req: NextRequest) {
+export const POST = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   await store.ensureUser(auth.id);
 
@@ -59,4 +60,4 @@ export async function POST(req: NextRequest) {
   await store.bumpTaste(auth.id, `intent:${body.intent}`);
 
   return attachAuth(NextResponse.json(await expandPlan(plan)), auth);
-}
+});

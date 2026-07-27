@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { rateLimit } from "@/lib/ratelimit";
 import { store } from "@/lib/store";
 
 // Waitlist จาก landing page — เก็บ contact + PDPA consent
-export async function POST(req: NextRequest) {
+export const POST = guarded(async (req: NextRequest) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   if (!rateLimit(`waitlist:${ip}`, 5, 60 * 60_000)) {
     return new NextResponse("Try again in an hour", { status: 429 });
@@ -25,4 +26,4 @@ export async function POST(req: NextRequest) {
     pdpa_consent: true,
   });
   return NextResponse.json({ ok: true });
-}
+});

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, resolveUser } from "@/lib/auth";
 import { venueById } from "@/lib/server";
 import { store } from "@/lib/store";
 
-export async function POST(req: NextRequest) {
+export const POST = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   await store.ensureUser(auth.id);
   const { venue_id } = (await req.json()) as { venue_id: string };
@@ -13,4 +14,4 @@ export async function POST(req: NextRequest) {
   const saved = await store.toggleSave(auth.id, venue_id);
   if (saved) await store.bumpTaste(auth.id, `save:${venue.category}`);
   return attachAuth(NextResponse.json({ saved }), auth);
-}
+});

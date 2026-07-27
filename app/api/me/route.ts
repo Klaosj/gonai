@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { attachAuth, clearAuthCookies, displayNameFrom, resolveUser } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { expandPlan } from "@/lib/server";
 import { store } from "@/lib/store";
 
-export async function GET(req: NextRequest) {
+export const GET = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   const [user, savedIds, plans, imports, catalog, priceConfirms] = await Promise.all([
     store.ensureUser(auth.id),
@@ -31,13 +32,13 @@ export async function GET(req: NextRequest) {
     }),
     auth,
   );
-}
+});
 
 // PDPA — ลบข้อมูลผู้ใช้ทุกตารางจริง (A12) แล้วล้าง cookie → รอบหน้าได้ตัวตนใหม่
-export async function DELETE(req: NextRequest) {
+export const DELETE = guarded(async (req: NextRequest) => {
   const auth = resolveUser(req);
   if (!auth.isNew) await store.wipeUser(auth.id);
   const res = NextResponse.json({ ok: true });
   clearAuthCookies(res);
   return res;
-}
+});

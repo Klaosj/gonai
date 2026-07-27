@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guarded } from "@/lib/api-guard";
 import { decodeUid, exchangeLineCode, setAuthCookie, setNameCookie, verifyLineState } from "@/lib/auth";
 import { store } from "@/lib/store";
 
@@ -7,7 +8,7 @@ import { store } from "@/lib/store";
 // 2. แลก code → LINE profile
 // 3. migrate: ตัวตน anonymous เดิมอ่านจาก signed cookie (มากับ redirect เสมอ) → ย้ายเข้า LINE user id
 // 4. เซ็น cookie ใหม่เป็น line:<userId> แล้ว redirect กลับ returnPath
-export async function GET(req: NextRequest) {
+export const GET = guarded(async (req: NextRequest) => {
   const sp = req.nextUrl.searchParams;
   const code = sp.get("code");
   if (sp.get("error")) {
@@ -37,4 +38,4 @@ export async function GET(req: NextRequest) {
     console.error("LINE auth error:", e);
     return NextResponse.redirect(new URL("/app/me?auth_error=exchange_failed", req.url));
   }
-}
+});

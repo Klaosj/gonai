@@ -4,12 +4,20 @@
 > ทำตามลำดับ ข้ามไม่ได้ เว้นแต่บอกว่า optional
 
 ## สถานะจริง (อัปเดต 2026-08-16 — ทำผ่าน CLI/MCP ในเซสชัน Claude Code)
-- ✅ **GitHub**: private repo `https://github.com/Klaosj/gonai` · `origin/main` — **push main = Vercel auto-deploy** (จะแดงจนกว่า env บน Vercel ครบ)
-- ✅ **Vercel**: project `gonai` (`prj_9Vl7mOcFXCODitEeckTax5u5zBkl`, team `klaosjs-projects`) link กับ repo แล้ว · **ยังไม่ตั้ง env / ยังไม่ deploy**
-- ✅ **Supabase (§1 ครบ)**: project **`gonai`** ref `ymyvqdbmtzoztlbpzuyd` region **ap-southeast-1** · CLI login (token `gonai-cli`) + `supabase link` แล้ว · `supabase db push` migration `20260720000000_init.sql` สำเร็จ (remote = local) · service_role อยู่ใน `.env` เครื่อง Klao · `npm run preflight` ผ่าน · `seed:w2 --dry` = 21/12 ✓ · `npm run seed` placeholder ลง DB จริงแล้ว (7 zones · 9 venues · 6 routes) · dev :3010 → `/api/health` = `{"ok":true,"store":"supabase","venues":9}` · journey 20/20 console errors 0
-  - ⚠️ มี project **"Klaosj's Project"** (`nxqhkpwwlinajnptuhyy`, ap-northeast-1 Tokyo, สร้าง 2026-08-16 13:05) ว่างอยู่ในบัญชี — ไม่ได้ใช้ ลบได้ถ้าไม่ต้องการ (free tier จำกัด 2 projects)
-  - smoke ทิ้งแถวทดสอบไว้: users 2 · plans 1 · events 7 — ลบใน dashboard ได้ก่อน launch จริง
-- ⏳ **ต่อไป**: §2 Vercel env (7 ตัว: GN_AUTH_SECRET · SUPABASE_URL · SUPABASE_SERVICE_KEY · NEXT_PUBLIC_BASE_URL=`https://gonai.vercel.app` ไปก่อน D6 · OLLAMA_URL · OLLAMA_MODEL · OLLAMA_API_KEY) → deploy → smoke §2.5 → §3 LINE (optional) → §4 UptimeRobot → §5 field day
+**LIVE: https://gonai-three.vercel.app** (alias สำรอง `gonai-klaosjs-projects.vercel.app` · `gonai.vercel.app` มีคนจองแล้ว ใช้ไม่ได้)
+
+- ✅ **§1 Supabase**: project **`gonai`** ref `ymyvqdbmtzoztlbpzuyd` region **ap-southeast-1** · CLI login (token `gonai-cli`) + `supabase link` · `supabase db push` migration `20260720000000_init.sql` (remote = local) · service_role อยู่ใน `.env` เครื่อง Klao · `npm run preflight` ผ่าน · `seed:w2 --dry` = 21/12 ✓ · `npm run seed` placeholder ลง DB จริง (7 zones · 9 venues · 6 routes)
+  - project "Klaosj's Project" (Tokyo, ว่าง 0 ตาราง) **ลบแล้ว** ตามคำตัดสิน Klao — บัญชีเหลือ project เดียว
+  - smoke ทิ้งแถวทดสอบไว้ (users/plans/events ไม่กี่แถว จาก journey ในเครื่อง + prod) — ลบใน dashboard ได้ก่อน soft launch
+- ✅ **§2 Vercel**: project `gonai` (`prj_9Vl7mOcFXCODitEeckTax5u5zBkl`, team `klaosjs-projects`) link กับ GitHub `Klaosj/gonai` (private) · **push main = auto-deploy** · env ตั้งครบทั้ง Production+Preview: `GN_AUTH_SECRET` · `SUPABASE_URL` · `SUPABASE_SERVICE_KEY` · `NEXT_PUBLIC_BASE_URL=https://gonai-three.vercel.app` · `OLLAMA_MODEL` (ทุกตัวถูก policy ทีมตั้งเป็น Sensitive อ่านค่ากลับไม่ได้ — ต้นฉบับอยู่ใน `.env` เครื่อง Klao)
+  - ⚠️ ระหว่างทางมี **Supabase Vercel integration** (legacy) ถูกต่อกับ project Tokyo → ยัด `SUPABASE_URL`/`POSTGRES_*`/`NEXT_PUBLIC_SUPABASE_*` 16 ตัวลง Production — **ลบออกหมดแล้ว** และ Tokyo project ถูกลบ · ถ้า Vercel → Settings → Integrations ยังโชว์ Supabase ค้างอยู่ ให้ remove ทิ้ง (ไม่งั้นวันหนึ่งมัน sync env กลับมาทับ)
+  - smoke §2.5 บนโดเมนจริง: `/api/health` = `{"ok":true,"store":"supabase","venues":9}` ✓ · journey 20/20 console errors 0 ✓ (ครอบ /app สร้างแผน → trip → done) · og:image ชี้โดเมนจริง ✓ · chat = `source:"quick"` (ตามคาด — ยังไม่มี Ollama key)
+- ⏳ **เหลือ (Klao)**:
+  1. **Ollama key**: สร้างที่ ollama.com → Settings → API Keys → ใส่ `OLLAMA_API_KEY=` ลง `.env` → รัน `vercel env add OLLAMA_URL production` (ค่า `https://ollama.com`) + `vercel env add OLLAMA_API_KEY production --sensitive` (และ preview) → `vercel redeploy <deployment-url>` — จงใจ**ยังไม่ตั้ง `OLLAMA_URL`** เพราะตั้งโดยไม่มี key = prod ยิง ollama.com แล้ว 401 ทุกข้อความ
+  2. §3 LINE callback URL = `https://gonai-three.vercel.app/api/auth/line/callback` (optional)
+  3. §4 UptimeRobot → `https://gonai-three.vercel.app/api/health` ทุก 5 นาที · §4.6 backup cron
+  4. §5–6 field day → seed:w2 จริง (ห้าม seed ข้อมูลที่ยังไม่ field-verify)
+  5. D6 โดเมนจริง — ซื้อแล้วเปลี่ยน `NEXT_PUBLIC_BASE_URL` + LINE callback + UptimeRobot ตาม
 
 ## 0. ของที่ต้องมีก่อนเริ่ม
 - [ ] โดเมนจริง (ตัดสินใจแล้วจดตรงนี้: `https://____________`) — ห้ามมี trailing slash ทุกที่ที่กรอก

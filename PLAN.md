@@ -197,8 +197,8 @@ S1 /app               S2 /app/results        S3 /app/plan/[id]      S4 /app/trip
 - prod: ตั้ง `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` → ทุกอย่างเข้า Supabase (user data + catalog)
 - auth: anonymous ผ่าน signed cookie ทันทีที่แตะ API แรก · LINE Login เมื่อตั้ง `LINE_CHANNEL_ID/SECRET`
 
-### ขั้น deploy จริง (เหลือทำ)
-ย้ายทั้งหมดไปเป็น step-by-step ฉบับทำตามได้จริงที่ `docs/LAUNCH-RUNBOOK.md` แล้ว —
+### ขั้น deploy จริง — **LIVE แล้ว 2026-08-16 ที่ https://gonai-three.vercel.app** (Supabase `ymyvqdbmtzoztlbpzuyd` Singapore · Vercel `gonai` · GitHub `Klaosj/gonai`)
+สถานะละเอียด + สิ่งที่เหลือ (Ollama key · LINE · UptimeRobot · field day) อยู่บนสุดของ `docs/LAUNCH-RUNBOOK.md` —
 `vercel.json` บังคับ `npm run preflight` ก่อน `npm run build` อัตโนมัติทุก deploy (ไม่ต้องรันมือแยกอีก แต่ยังแนะนำรันในเครื่องก่อนกด deploy จริงเพื่อเช็ค env ชุดเดียวกัน)
 
 ### W2 field sprint (งานภาคสนาม — ตัวจริงของ product)

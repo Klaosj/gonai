@@ -29,10 +29,11 @@ export const metadata: Metadata = {
   description:
     "Plan a full Bangkok day out with every baht counted before you leave — Top 3 picks validated by real visitors",
   // ชี้ตรงไปที่ public/icon.svg + public/apple-icon.png แทน Next's app/icon.svg
-  // + app/apple-icon.png convention — เครื่อง dev นี้ path มี apostrophe
-  // ("Klao's Workspace") ที่ทำให้ next-metadata-route-loader gen โค้ดพัง (unescaped
-  // ' ใน string literal) จนทั้งแอป 500 ทุกหน้า ถ้ามีไฟล์ static convention พวกนี้ใน app/.
-  // public/ ไม่ผ่าน loader นั้นเลย จึงปลอดภัย — ผลลัพธ์ที่ผู้ใช้เห็นเหมือนกันทุกประการ.
+  // + app/apple-icon.png convention — เดิมเครื่อง dev นี้ path มี apostrophe
+  // ("Klao's Workspace" — เปลี่ยนชื่อเป็น "Klao Workspace" แล้ว 2026-08-12) ซึ่งทำให้
+  // next-metadata-route-loader gen โค้ดพัง (unescaped ' ใน string literal) จนทั้งแอป
+  // 500 ทุกหน้า ถ้ามีไฟล์ static convention พวกนี้ใน app/. คงไว้ที่ public/ ต่อไป —
+  // ไม่ผ่าน loader นั้นเลย จึงปลอดภัยทุก path และผลลัพธ์ที่ผู้ใช้เห็นเหมือนกันทุกประการ.
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon.png",

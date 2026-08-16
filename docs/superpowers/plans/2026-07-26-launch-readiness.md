@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- **Repo:** `/Users/suvichakjarunopratamp/Desktop/Klao's Workspace/Code/gonai` — path มี apostrophe **ต้อง quote ทุกครั้ง** ใน shell
+- **Repo:** `/Users/suvichakjarunopratamp/Desktop/Klao Workspace/Personal/GoNai` — path มีช่องว่าง **ต้อง quote ทุกครั้ง** ใน shell (ย้ายจาก `Klao's Workspace/Code/gonai` 2026-08-12)
 - **บั๊กเครื่อง dev ที่รู้อยู่:** webpack cache พังเพราะ apostrophe ใน path — ถ้า `npm run build`/dev ล้มด้วย `__webpack_modules__[moduleId] is not a function` หรือหน้า 500 → `rm -rf .next` แล้วรันใหม่ (ไม่ใช่บั๊กของโค้ด)
 - **ห้ามเพิ่ม dependency ใดๆ** — test เป็น tsx script ล้วน, script ใหม่ใช้ node builtin เท่านั้น
 - **ห้ามแตะ:** design tokens / ฟอนต์ (v0.8 เพิ่ง FINAL), dark mode (Klao สั่งข้าม), rate limit infra (PLAN.md: "ห้ามเพิ่ม infra จนกว่าตัวเลขจริงจะเถียง")

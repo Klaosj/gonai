@@ -120,7 +120,7 @@ family = fresh:  #14282b → #356b62 → #7fb0a0   (ทะเลเขียว)
 ## 5. Verify loop (ทำตามลำดับ ทุกครั้งที่จบไฟล์ใหญ่)
 
 ```bash
-cd "/Users/suvichakjarunopratamp/Desktop/Klao's Workspace/Code/gonai"
+cd "/Users/suvichakjarunopratamp/Desktop/Klao Workspace/Personal/GoNai"
 npx tsc --noEmit && npm run check        # 48 ข้อต้องเขียวตลอด
 # screenshot journey 9 ขั้น:
 cd /private/tmp/claude-501/-Users-suvichakjarunopratamp/f4e8bd2f-4e1c-4177-943d-4a2f86dccda0/scratchpad/driver

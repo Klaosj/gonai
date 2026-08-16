@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Repo: `/Users/suvichakjarunopratamp/Desktop/Klao's Workspace/Code/gonai` — path contains an apostrophe; ALWAYS double-quote it in shell commands.
+- Repo: `/Users/suvichakjarunopratamp/Desktop/Klao Workspace/Personal/GoNai` — path contains a space; ALWAYS double-quote it in shell commands (moved from `Klao's Workspace/Code/gonai` on 2026-08-12).
 - Dev server: `PORT=3010 npm run dev` (Hermes bridge owns port 3000 — never kill it). Journey: `GN_BASE_URL=http://localhost:3010 npm run journey`.
 - **No new npm dependencies.** If a task seems to need one, STOP and ask.
 - UI copy is English. Repo docs and commit subjects are Thai (match existing style). Commit subjects concise, no ticket prefixes.

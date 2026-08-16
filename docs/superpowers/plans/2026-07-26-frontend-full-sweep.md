@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Repo: `/Users/suvichakjarunopratamp/Desktop/Klao's Workspace/Code/gonai` — path มี apostrophe ต้อง quote เสมอ · build พังด้วย `__webpack_modules__` → `rm -rf .next` แล้ว retry
+- Repo: `/Users/suvichakjarunopratamp/Desktop/Klao Workspace/Personal/GoNai` — path มีช่องว่าง ต้อง quote เสมอ (ย้ายจาก `Klao's Workspace/Code/gonai` 2026-08-12) · build พังด้วย `__webpack_modules__` → `rm -rf .next` แล้ว retry
 - ห้ามเพิ่ม npm dependency · ห้ามแตะ: สี/ฟอนต์หลักที่ FINAL, dark mode, `.o-marker` 74%
 - UI text อังกฤษ · comment/docs ไทย · commit ต่อ task (ละเอียดกว่า spec ที่ว่า "ต่อ phase" — เจตนา: bisect/รีวิวง่ายกว่า) ข้อความไทย prefix `fe<phase>.<n>:` · **ห้าม push**
 - Baseline: HEAD `c4a4ceb`, `npm run check` 78 ข้อเขียว, working tree สะอาด

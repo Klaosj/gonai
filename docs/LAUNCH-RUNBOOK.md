@@ -3,6 +3,14 @@
 > โค้ดพร้อมแล้ว (ดู docs/superpowers/plans/2026-07-27-real-life-launch.md) — ไฟล์นี้คือทุกอย่างที่เหลือ
 > ทำตามลำดับ ข้ามไม่ได้ เว้นแต่บอกว่า optional
 
+## สถานะจริง (อัปเดต 2026-08-16 — ทำผ่าน CLI/MCP ในเซสชัน Claude Code)
+- ✅ **GitHub**: private repo `https://github.com/Klaosj/gonai` · `origin/main` — **push main = Vercel auto-deploy** (จะแดงจนกว่า env บน Vercel ครบ)
+- ✅ **Vercel**: project `gonai` (`prj_9Vl7mOcFXCODitEeckTax5u5zBkl`, team `klaosjs-projects`) link กับ repo แล้ว · **ยังไม่ตั้ง env / ยังไม่ deploy**
+- ✅ **Supabase (§1 ครบ)**: project **`gonai`** ref `ymyvqdbmtzoztlbpzuyd` region **ap-southeast-1** · CLI login (token `gonai-cli`) + `supabase link` แล้ว · `supabase db push` migration `20260720000000_init.sql` สำเร็จ (remote = local) · service_role อยู่ใน `.env` เครื่อง Klao · `npm run preflight` ผ่าน · `seed:w2 --dry` = 21/12 ✓ · `npm run seed` placeholder ลง DB จริงแล้ว (7 zones · 9 venues · 6 routes) · dev :3010 → `/api/health` = `{"ok":true,"store":"supabase","venues":9}` · journey 20/20 console errors 0
+  - ⚠️ มี project **"Klaosj's Project"** (`nxqhkpwwlinajnptuhyy`, ap-northeast-1 Tokyo, สร้าง 2026-08-16 13:05) ว่างอยู่ในบัญชี — ไม่ได้ใช้ ลบได้ถ้าไม่ต้องการ (free tier จำกัด 2 projects)
+  - smoke ทิ้งแถวทดสอบไว้: users 2 · plans 1 · events 7 — ลบใน dashboard ได้ก่อน launch จริง
+- ⏳ **ต่อไป**: §2 Vercel env (7 ตัว: GN_AUTH_SECRET · SUPABASE_URL · SUPABASE_SERVICE_KEY · NEXT_PUBLIC_BASE_URL=`https://gonai.vercel.app` ไปก่อน D6 · OLLAMA_URL · OLLAMA_MODEL · OLLAMA_API_KEY) → deploy → smoke §2.5 → §3 LINE (optional) → §4 UptimeRobot → §5 field day
+
 ## 0. ของที่ต้องมีก่อนเริ่ม
 - [ ] โดเมนจริง (ตัดสินใจแล้วจดตรงนี้: `https://____________`) — ห้ามมี trailing slash ทุกที่ที่กรอก
 - [ ] บัญชี Supabase (free tier พอ — capacity คิดแล้วใน PLAN.md เกิน 10 เท่าของเป้า)

@@ -1,10 +1,10 @@
 # GoNai improvement plan — 24 Sep 2026
 
-Approved by Klao 24 Sep 2026 ("ตาม recommendation ทุกข้อ ยกเว้นเรื่อง AI model").
+Approved by Klao 24 Sep 2026 ("ตาม recommendation ทุกข้อ ยกเว้นเรื่อง AI model"), then AI model = 5A ("ตาม recommendation ทุกข้อ 5A").
 
 ## Diagnosis (audit 24 Sep 2026)
 - **Usage ≈ 0 after launch week.** `events`: 41 events / 12 users on 16–19 Aug, then 1 event from 20 Aug to 23 Sep. Supabase free tier pauses projects after 7 days of low activity → the project went INACTIVE (restored 24 Sep).
-- **Chat runs on the quick parser only.** Ollama cloud returns HTTP 402 "not included in your free usage" for `minimax-m3:cloud` (tested 24 Sep). Every chat message on 24 Sep = `engine: quick`. Model choice is **on hold — Klao's call** (not part of this branch).
+- **Chat runs on the quick parser only.** Ollama cloud returns HTTP 402 "not included in your free usage" for `minimax-m3:cloud` (tested 24 Sep). Every chat message on 24 Sep = `engine: quick`. **Decision 5A (Klao, 24 Sep): keep the quick parser until the field day is done** — real data matters more than AI chat right now; 0฿. Options for later: Claude via `ANTHROPIC_API_KEY` (already first in the engine order) or Ollama credits for `minimax-m3`. Free models that still answered on 24 Sep: `gpt-oss:120b-cloud`, `gpt-oss:20b-cloud`.
 - **Overclaims.** Landing, OG description, in-app footer, share page and README said "validated by real visitors", "field-collected", "9 real travelers". All 21 real venues in `data/w2/` are desk research (`validation_count = 0`).
 - **Stale fares.** Landing showed BTS 44฿ / 37฿. BTS fare table effective 1 Nov 2025: Ha Yaek Lat Phrao (N9) → Siam 64฿, On Nut (E9) → Siam 47฿ (`data/w2/routes.csv` R103/R105).
 - **Security.** next 15.5.22 had 2 critical RCE advisories (GHSA-2xp9-vwfh-vxw4, GHSA-p293-qw3h-jr36, published 8 Sep 2026, fixed in 15.5.24). GoNai was not exposed (no `next/image`, hosted on Vercel Linux).

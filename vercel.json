@@ -1,3 +1,6 @@
 {
-  "buildCommand": "npm run preflight && npm run build"
+  "buildCommand": "npm run preflight && npm run build",
+  "crons": [
+    { "path": "/api/health", "schedule": "0 1 * * *" }
+  ]
 }

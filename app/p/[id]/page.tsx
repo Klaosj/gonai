@@ -60,7 +60,7 @@ export default async function SharedPlanPage({
             Plan yours free — every baht counted ▶
           </Link>
           <p className="o-mono-text mt-3 text-[10.5px] text-mut">
-            Times with ~ are estimates · transport & walk minutes are field-collected
+            Times with ~ are estimates · transport & walk minutes come from route data (field check in progress)
           </p>
         </div>
       </div>

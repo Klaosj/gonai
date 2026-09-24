@@ -79,7 +79,7 @@ export default function WelcomePage() {
           </div>
 
           <div className="mt-6 text-center">
-            <button onClick={() => finish(null)} className="o-mono gn-press text-[11px] text-mut hover:text-ink">
+            <button onClick={() => finish(null)} className="o-mono gn-press px-3 py-2 text-[11px] text-mut hover:text-ink">
               Skip — just browse →
             </button>
           </div>

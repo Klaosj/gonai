@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"),
   title: "GoNai — plan · go · never over budget",
   description:
-    "Plan a full Bangkok day out with every baht counted before you leave — Top 3 picks validated by real visitors",
+    "Plan a full Bangkok day out with every baht counted before you leave — Top 3 picks with real transport fares",
   // ชี้ตรงไปที่ public/icon.svg + public/apple-icon.png แทน Next's app/icon.svg
   // + app/apple-icon.png convention — เดิมเครื่อง dev นี้ path มี apostrophe
   // ("Klao's Workspace" — เปลี่ยนชื่อเป็น "Klao Workspace" แล้ว 2026-08-12) ซึ่งทำให้

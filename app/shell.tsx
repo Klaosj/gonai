@@ -181,7 +181,7 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
       <footer className="o-mono-text flex flex-wrap justify-center gap-5 border-t border-line bg-bg px-5 py-3.5 text-[11px] text-mut">
         <span>🚧 Beta — sample data; collecting real Siam data now</span>
         <span>✨ Unseen spots need ≥ 3 real confirmations to show</span>
-        <span>🗺 Win/boat/BTS routes field-collected · Grab formula until validated</span>
+        <span>🗺 Win/boat/BTS fares from official tables · field check in progress · Grab = estimate</span>
         <span>🔒 PDPA compliant — view/delete your data anytime</span>
       </footer>
 

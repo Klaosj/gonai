@@ -234,7 +234,7 @@ export const ROUTES: Route[] = [
     kind: "cheapest",
     legs: [
       { route_id: "R003", seq: 1, mode: "walk", detail_th: "Walk to BTS Ha Yaek Lat Phrao", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
-      { route_id: "R003", seq: 2, mode: "bts", detail_th: "BTS to Siam", price_min: 44, price_max: 44, minutes: 28, warning_th: null },
+      { route_id: "R003", seq: 2, mode: "bts", detail_th: "BTS to Siam", price_min: 64, price_max: 64, minutes: 28, warning_th: null },
     ],
   },
   {
@@ -253,7 +253,7 @@ export const ROUTES: Route[] = [
     kind: "cheapest",
     legs: [
       { route_id: "R005", seq: 1, mode: "walk", detail_th: "Walk to BTS On Nut", price_min: 0, price_max: 0, minutes: 5, warning_th: null },
-      { route_id: "R005", seq: 2, mode: "bts", detail_th: "BTS to Siam", price_min: 37, price_max: 37, minutes: 24, warning_th: null },
+      { route_id: "R005", seq: 2, mode: "bts", detail_th: "BTS to Siam", price_min: 47, price_max: 47, minutes: 24, warning_th: null },
     ],
   },
   {

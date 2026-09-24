@@ -37,7 +37,7 @@ Dev uses a local JSON store; set `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` to swit
 | `npm run check` | logic + infra + pipeline test suites |
 | `npm run journey` | headless-browser user journey |
 | `npm run preflight` | env sanity check before deploying |
-| `npm run seed:w2` | load field-collected venues/routes into Supabase |
+| `npm run seed:w2` | load the W2 venues/routes into Supabase (desk research until the field day verifies them) |
 
 ## Project docs (mostly Thai)
 

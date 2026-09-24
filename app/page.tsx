@@ -33,15 +33,15 @@ export default function LandingPage() {
           <span className="gn-bob absolute bottom-[18%] right-[9%] text-[56px] drop-shadow-xl" style={{ animationDelay: "-3s" }}>⛴️</span>
           <div className="gn-floaty absolute left-[1%] top-[30%] hidden items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)] xl:flex">
             <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-accent text-[13px] text-white">✓</span>
-            <span>Fare confirmed<small className="block font-medium text-mut">by 9 real travelers</small></span>
+            <span>Fares from official tables<small className="block font-medium text-mut">field check in progress</small></span>
           </div>
           <div className="gn-floaty absolute right-[1%] top-[38%] hidden items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)] xl:flex" style={{ animationDelay: "-4s" }}>
             <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-accent-bright text-[13px]">🚝</span>
-            <span>Lat Phrao → Siam<small className="block font-medium text-mut">BTS 44฿ · one way</small></span>
+            <span>Ha Yaek Lat Phrao → Siam<small className="block font-medium text-mut">BTS 64฿ · one way</small></span>
           </div>
           <div className="gn-floaty absolute bottom-[34%] right-[13%] flex items-center gap-2.5 rounded-2xl border border-line bg-card-solid px-4 py-2.5 text-left text-[12.5px] font-semibold shadow-[0_2px_6px_rgba(18,20,17,0.05),0_18px_44px_rgba(18,20,17,0.10)]" style={{ animationDelay: "-2s" }}>
             <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-pill text-[13px] text-bg">✨</span>
-            <span>One unseen gem<small className="block font-medium text-mut">in every Top 3</small></span>
+            <span>One unseen gem<small className="block font-medium text-mut">when one fits your Top 3</small></span>
           </div>
         </div>
         <div className="relative z-[2] mx-auto max-w-4xl text-center">
@@ -59,7 +59,7 @@ export default function LandingPage() {
             <span className="sm:whitespace-nowrap"><em className="o-marker">know every baht</em> before you leave</span>
           </h1>
           <p className="gn-rise gn-d1 mx-auto mt-6 max-w-xl text-lg text-ink/80">
-            Top 3 picks for your vibe, validated by real visitors — win bikes, boats and BTS all in one budget
+            Top 3 picks for your vibe, with real fares for win bikes, boats and BTS — all in one budget
           </p>
           <div className="gn-rise gn-d1">
             <Link
@@ -76,14 +76,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* (9) marquee ticker — ทุกตัวเลขตรง fixtures จริง (R003/R001/R005 + กติกา unseen) */}
+      {/* (9) marquee ticker — ค่าโดยสารตรง data/w2/routes.csv (R103/R101/R105 · desk research จากตารางค่าโดยสารทางการ ยังไม่ field-verify) */}
       <div className="overflow-hidden border-y-[1.5px] border-ink bg-bg py-2.5">
         <div className="gn-marquee">
           {[0, 1].map((k) => (
             <div key={k} className="o-mono flex gap-12 whitespace-nowrap pr-12 text-[11px] text-ink">
-              <span>LAT PHRAO → SIAM · BTS <b className="text-accent">44฿</b></span>
-              <span>BANG KAPI → SIAM · WIN+BOAT <b className="text-accent">47฿</b></span>
-              <span>ON NUT → SIAM · BTS <b className="text-accent">37฿</b></span>
+              <span>HA YAEK LAT PHRAO → SIAM · BTS <b className="text-accent">64฿</b></span>
+              <span>BANG KAPI → SIAM · BOAT <b className="text-accent">20–26฿</b></span>
+              <span>ON NUT → SIAM · BTS <b className="text-accent">47฿</b></span>
               <span><b>✦ UNSEEN</b> NEEDS 3+ REAL CONFIRMATIONS</span>
               <span>RAIN? REPLAN INDOOR-ONLY · SAME BUDGET</span>
             </div>
@@ -145,14 +145,14 @@ export default function LandingPage() {
       {/* Features */}
       <section className="mx-auto max-w-3xl px-6 py-16">
         <h2 className="o-serif text-center text-3xl font-medium text-ink">
-          Why the numbers are right
+          How the numbers are built
         </h2>
         <Reveal>
           <div className="mt-8 space-y-3">
             {[
-              { icon: "✅", text: "Validated by real visitors — prices locals actually pay, not travel-site prices" },
+              { icon: "✅", text: "Prices locals actually pay, not travel-site prices — a spot shows as confirmed only after real visitors check it" },
               { icon: "🏛", text: "Unseen spots from TAT open data — gems before they trend" },
-              { icon: "🗺", text: "Real routes — win bikes, Saen Saep boats, songthaews, field-collected" },
+              { icon: "🗺", text: "Real routes — win bikes, Saen Saep boats, songthaews, priced from official fare tables" },
               { icon: "☔", text: "Replan on the spot — raining? We find indoor spots within what's left" },
               { icon: "🔒", text: "PDPA compliant — delete anytime, never sold" },
             ].map((f) => (
